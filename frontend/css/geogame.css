@@ -1,10 +1,10 @@
-/* geogame.css */
+/* geogame.css - Ottawa GeoGame Styles */
 
 .geogame-container {
   position: relative;
   width: 100%;
   height: calc(100vh - var(--topbar-height));
-  background-color: var(--bg-primary);
+  background-color: #0f1923;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -13,39 +13,15 @@
 #geogame-map-container {
   flex: 1;
   width: 100%;
-  height: 100%;
   position: relative;
   cursor: crosshair;
+  overflow: hidden;
 }
 
-/* Map SVG Styling */
+/* Map SVG */
 #ottawa-map-svg {
-  width: 100%;
-  height: 100%;
-  transition: transform 0.5s ease-out;
-}
-
-.map-background {
-  fill: var(--bg-secondary);
-}
-
-.map-river {
-  fill: var(--accent-secondary);
-  opacity: 0.5;
-}
-
-.map-road {
-  stroke: var(--text-muted);
-  stroke-width: 2;
-  fill: none;
-  opacity: 0.3;
-}
-
-.map-boundary {
-  stroke: var(--border-color);
-  stroke-width: 1;
-  fill: none;
-  stroke-dasharray: 4;
+  display: block;
+  transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 /* Overlays */
@@ -53,55 +29,60 @@
   position: absolute;
   left: 0;
   right: 0;
-  padding: var(--space-4);
+  padding: var(--space-3) var(--space-6);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  pointer-events: none; /* Let clicks pass through to map */
+  pointer-events: none;
   z-index: 10;
 }
 
 #geogame-ui-top {
   top: 0;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+  background: linear-gradient(to bottom, rgba(15, 25, 35, 0.95), transparent);
+  padding-bottom: var(--space-6);
 }
 
 #geogame-ui-bottom {
   bottom: 0;
   flex-direction: column;
-  background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+  background: linear-gradient(to top, rgba(15, 25, 35, 0.95), transparent);
+  padding-top: var(--space-6);
 }
 
 #geogame-location-display {
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
-  color: var(--text-primary);
-  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  color: #f1f5f9;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
   margin: 0;
 }
 
-#geogame-score-display, #geogame-round-display {
+#geogame-score-display,
+#geogame-round-display {
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
-  background: var(--glass-bg);
+  color: #e2e8f0;
+  background: rgba(30, 58, 95, 0.7);
   padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-full);
-  border: 1px solid var(--glass-border);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  backdrop-filter: blur(4px);
 }
 
 .status-text {
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-medium);
-  color: var(--accent-primary-light);
+  color: #93c5fd;
   margin-top: var(--space-2);
-  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 /* Timer Bar */
 .timer-bar {
   width: 50%;
-  height: 8px;
-  background: var(--bg-tertiary);
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-full);
   overflow: hidden;
 }
@@ -109,67 +90,61 @@
 .timer-fill {
   width: 100%;
   height: 100%;
-  background: var(--accent-primary);
+  background: linear-gradient(90deg, #ef4444, #f59e0b);
+  border-radius: var(--radius-full);
   transition: width 1s linear;
 }
 
-/* Reticles / Targets */
-.reticle {
+/* Game Over Modal */
+#geogame-end-modal {
   position: absolute;
-  width: 24px;
-  height: 24px;
-  border: 2px solid white;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  box-shadow: 0 0 8px rgba(0,0,0,0.5);
-  z-index: 20;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 25, 35, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 50;
 }
 
-.reticle::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 4px;
-  height: 4px;
-  background: white;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
+#geogame-end-modal .modal-content {
+  text-align: center;
+  padding: var(--space-8);
+  background: rgba(30, 58, 95, 0.5);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: var(--radius-2xl);
 }
 
-.reticle-p1 {
-  border-color: var(--color-danger);
-}
-.reticle-p1::after {
-  background: var(--color-danger);
-}
-
-.reticle-p2 {
-  border-color: var(--accent-primary-light);
-}
-.reticle-p2::after {
-  background: var(--accent-primary-light);
+#geogame-end-modal h2 {
+  font-size: var(--font-size-3xl);
+  color: #f1f5f9;
+  margin-bottom: var(--space-4);
 }
 
-/* Target Reveal */
-.target-pin {
-  position: absolute;
-  transform: translate(-50%, -100%);
-  z-index: 15;
-  animation: dropIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+#geogame-end-modal p {
+  font-size: var(--font-size-xl);
+  color: #93c5fd;
+  margin-bottom: var(--space-6);
 }
 
-.proximity-ring {
-  position: absolute;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  border: 2px dashed rgba(255,255,255,0.3);
-  pointer-events: none;
-  z-index: 10;
+#btn-geogame-restart {
+  font-size: var(--font-size-lg);
+  padding: var(--space-3) var(--space-8);
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: white;
+  border-radius: var(--radius-lg);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  pointer-events: auto;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-@keyframes dropIn {
-  0% { transform: translate(-50%, -200px) scale(0); opacity: 0; }
-  100% { transform: translate(-50%, -100%) scale(1); opacity: 1; }
+#btn-geogame-restart:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+}
+
+/* Hidden utility */
+.hidden {
+  display: none !important;
 }
