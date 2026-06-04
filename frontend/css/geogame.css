@@ -190,3 +190,122 @@
 .hidden {
   display: none !important;
 }
+
+
+/* Calibration UI */
+#btn-geogame-calibrate {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+  border: none;
+  padding: 10px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  z-index: 100;
+  transition: color 0.2s, background 0.2s;
+}
+#btn-geogame-calibrate:hover {
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+}
+#btn-geogame-calibrate svg {
+  width: 24px;
+  height: 24px;
+}
+
+#geogame-calibration-screen {
+  display: none;
+  flex-direction: row;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  width: 100%;
+  height: 100%;
+}
+#geogame-calibration-screen.active {
+  display: flex !important;
+}
+
+#geogame-calib-sidebar {
+  width: 320px;
+  height: 100%;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+}
+
+#geogame-calib-sidebar-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+#geogame-calib-sidebar-header h2 { margin: 0; font-size: 1.2rem; }
+#btn-geogame-exit-calib {
+  background: transparent;
+  border: none;
+  color: var(--color-danger);
+  cursor: pointer;
+  font-weight: bold;
+}
+
+#geogame-calib-instructions {
+  padding: 12px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border-color);
+  line-height: 1.4;
+}
+
+#geogame-calib-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.calib-list-item {
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+}
+.calib-list-item:hover { background: var(--bg-tertiary); }
+.calib-list-item.active {
+  background: var(--accent-primary);
+  border-color: var(--accent-secondary);
+  color: #fff;
+}
+
+#geogame-calib-map-container {
+  flex: 1;
+  height: 100%;
+  position: relative;
+  background: #111;
+  overflow: hidden;
+  cursor: crosshair;
+}
+
+#geogame-calib-status {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.8);
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  z-index: 10;
+  display: none;
+}
+#geogame-calib-status.active { display: block; }
+#geogame-calib-status.success { color: var(--color-success); }
+#geogame-calib-status.info { color: var(--accent-primary); }

@@ -930,9 +930,9 @@ function renderCalibList() {
   list.innerHTML = '';
   calibLocations.forEach((loc, i) => {
      const div = document.createElement('div');
-     div.className = 'p-2 rounded cursor-pointer border border-gray-700 hover:bg-gray-700 text-sm';
+     div.className = 'calib-list-item';
      div.textContent = loc.location_name;
-     if (i === currentCalibIndex) div.classList.add('bg-blue-600', 'border-blue-500');
+     if (i === currentCalibIndex) div.classList.add('active');
      div.addEventListener('click', () => selectCalibLocation(i));
      list.appendChild(div);
   });
@@ -990,7 +990,7 @@ async function handleCalibRightClick(e) {
   // Show status
   const status = document.getElementById('geogame-calib-status');
   status.textContent = "Saving...";
-  status.classList.remove('hidden');
+  status.classList.add('active');
   
   // API Call
   await fetch('/api/geogame/locations/update', {
@@ -1004,10 +1004,10 @@ async function handleCalibRightClick(e) {
   });
   
   status.textContent = "Saved ✓";
-  status.classList.add('text-green-400');
+  status.classList.add('success'); status.classList.remove('info');
   setTimeout(() => {
-     status.classList.add('hidden');
-     status.classList.remove('text-green-400');
+     status.classList.remove('active');
+     status.classList.remove('success');
   }, 1000);
 }
 
@@ -1017,11 +1017,11 @@ function handleCalibLeftClick(e) {
   // Show "Confirmed"
   const status = document.getElementById('geogame-calib-status');
   status.textContent = "Confirmed ✓";
-  status.classList.remove('hidden');
-  status.classList.add('text-blue-400');
+  status.classList.add('active');
+  status.classList.add('info'); status.classList.remove('success');
   setTimeout(() => {
-     status.classList.add('hidden');
-     status.classList.remove('text-blue-400');
+     status.classList.remove('active');
+     status.classList.remove('info');
   }, 1000);
   
   // Move to next
