@@ -493,6 +493,55 @@ button:disabled, .btn:disabled {
   justify-content: flex-start;
 }
 
+.theme-btn {
+  text-align: left;
+  padding: var(--space-2) var(--space-4);
+  min-height: 40px;
+}
+
+.theme-btn[data-theme="theme-classic-dark"] {
+  background: #151b33 !important;
+  color: #818cf8 !important;
+  border-color: #4f46e5 !important;
+}
+
+.theme-btn[data-theme="theme-clinical-light"] {
+  background: #f8fafc !important;
+  color: #0284c7 !important;
+  border-color: #38bdf8 !important;
+}
+
+.theme-btn[data-theme="theme-emergency-response"] {
+  background: #1e293b !important;
+  color: #f87171 !important;
+  border-color: #b91c1c !important;
+}
+
+.theme-btn[data-theme="theme-high-vis"] {
+  background: #18181b !important;
+  color: #a3e635 !important;
+  border-color: #65a30d !important;
+}
+
+#btn-lucky-theme {
+  background-color: var(--bg-tertiary) !important;
+  border-color: var(--border-color) !important;
+}
+
+.rainbow-text {
+  background-image: linear-gradient(to right, #ff4e50, #f9d423, #a8ff78, #78ffd6, #6dd5ed, #ff758c, #ff4e50);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: rainbowText 4s infinite linear;
+  font-weight: bold;
+}
+
+@keyframes rainbowText {
+  to { background-position: 200% center; }
+}
+
 
 /* ==========================================================================
    VOLUME CONTROL
