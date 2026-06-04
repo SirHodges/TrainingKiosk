@@ -5,8 +5,11 @@ This module provides endpoints for checking the health of the application
 and initiating software updates (on Linux systems).
 """
 
+import os
 import subprocess
 import sys
+import threading
+import time
 from pathlib import Path
 from flask import Blueprint, jsonify
 
@@ -41,12 +44,36 @@ def health_check():
             'error': str(e)
         }), 500
 
+def _run_update_and_reboot():
+    """
+    Background thread that runs git pull, pip install, then reboots.
+    Runs in a separate thread so the HTTP response can return first.
+    """
+    try:
+        project_dir = str(BASE_DIR)
+        pip_path = os.path.join(project_dir, 'venv', 'bin', 'pip')
+        
+        # Git fetch and reset
+        subprocess.run(['git', 'fetch', 'origin'], cwd=project_dir, timeout=60)
+        subprocess.run(['git', 'reset', '--hard', 'origin/main'], cwd=project_dir, timeout=30)
+        
+        # Install deps using venv pip directly
+        subprocess.run([pip_path, 'install', '-r', 'requirements.txt'], cwd=project_dir, timeout=120)
+        
+        # Small delay to let things settle
+        time.sleep(2)
+        
+        # Reboot using os.system which directly invokes the shell
+        os.system('sudo /sbin/reboot -f')
+        
+    except Exception as e:
+        print(f"Update error: {e}")
+
 @system_bp.route('/update', methods=['POST'])
 def trigger_update():
     """
-    Initiates a software update by running the bash script.
+    Initiates a software update: git pull, pip install, then reboot.
     Only works on Linux (Raspberry Pi).
-    The script handles git pull, pip installs, and service restart.
     """
     if sys.platform != "linux":
         return jsonify({
@@ -54,17 +81,10 @@ def trigger_update():
             'error': 'Updates are only supported on Linux'
         }), 400
         
-    update_script = BASE_DIR / "scripts" / "update.sh"
-    
-    if not update_script.exists():
-        return jsonify({
-            'success': False, 
-            'error': 'Update script not found'
-        }), 404
-        
     try:
-        # We start the script detached so it can restart the service that is running THIS app
-        subprocess.Popen(['bash', str(update_script)])
+        # Run update in a background thread so we can return the response immediately
+        thread = threading.Thread(target=_run_update_and_reboot, daemon=True)
+        thread.start()
         
         return jsonify({
             'success': True,
