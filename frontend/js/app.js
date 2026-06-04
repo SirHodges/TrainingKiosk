@@ -22,6 +22,16 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Init Admin panel
   initAdmin();
+  
+  // Refresh btn
+  const refreshMediaBtn = document.getElementById('btn-refresh-media');
+  if (refreshMediaBtn) {
+    refreshMediaBtn.addEventListener('click', () => {
+      refreshMediaBtn.style.opacity = '0.5';
+      setTimeout(() => refreshMediaBtn.style.opacity = '1', 200);
+      loadCategories();
+    });
+  }
 });
 
 function initAdmin() {
