@@ -201,30 +201,84 @@
     <!-- GeoGame Mode Container -->
     <div id="geogame-mode" class="app-view hidden">
       <div class="geogame-container">
-        <!-- Map and Game UI will be rendered here by geogame.js -->
-        <div id="geogame-ui-top" class="geogame-overlay">
-          <h2 id="geogame-location-display">Loading locations...</h2>
-          <div id="geogame-score-display">Score: <span id="geogame-score">0</span></div>
-          <div id="geogame-round-display">Round: <span id="geogame-round">1/5</span></div>
-        </div>
         
-        <div id="geogame-map-container">
-          <!-- The SVG map will be injected here -->
-        </div>
-
-        <div id="geogame-ui-bottom" class="geogame-overlay">
-          <div id="geogame-timer-bar" class="timer-bar"><div class="timer-fill"></div></div>
-          <p id="geogame-status-text" class="status-text">Click the map to guess the location!</p>
-        </div>
-        
-        <!-- Game Over Modal -->
-        <div id="geogame-end-modal" class="modal hidden">
-          <div class="modal-content">
-            <h2>Game Over</h2>
-            <p>Final Score: <span id="geogame-final-score">0</span></p>
-            <button id="btn-geogame-restart" class="btn-primary">Play Again</button>
+        <!-- INTRO SCREEN -->
+        <div id="geogame-intro-screen" class="geogame-screen active">
+          <div style="text-align: center; max-width: 800px;">
+            <h1 style="font-size: var(--font-size-6xl); color: var(--accent-primary); margin-bottom: var(--space-4);">Ottawa GeoGame</h1>
+            <p style="font-size: var(--font-size-2xl); color: var(--text-secondary); margin-bottom: var(--space-8);">Test your knowledge of Ottawa's geography.</p>
+            
+            <div style="display: flex; gap: var(--space-4); justify-content: center; margin-bottom: var(--space-8);">
+              <button id="btn-geogame-1p" class="btn-secondary active" style="font-size: var(--font-size-xl); padding: var(--space-3) var(--space-6);">1 Player</button>
+              <button id="btn-geogame-2p" class="btn-secondary" style="font-size: var(--font-size-xl); padding: var(--space-3) var(--space-6);">2 Players</button>
+            </div>
+            
+            <div style="display: flex; gap: var(--space-4); justify-content: center; margin-bottom: var(--space-8);">
+              <button id="btn-geogame-mouse" class="btn-secondary active" style="font-size: var(--font-size-xl); padding: var(--space-3) var(--space-6);">Mouse / Touch</button>
+              <button id="btn-geogame-gamepad" class="btn-secondary" style="font-size: var(--font-size-xl); padding: var(--space-3) var(--space-6);">Gamepad</button>
+            </div>
+            
+            <button id="btn-geogame-start-intro" class="btn-primary" style="font-size: var(--font-size-3xl); padding: var(--space-4) var(--space-12); position: relative; overflow: hidden;">
+              <span id="geogame-start-btn-text">CLICK TO START</span>
+              <div id="geogame-start-btn-fill" class="start-progress"></div>
+            </button>
           </div>
         </div>
+        
+        <!-- BINDING SCREEN -->
+        <div id="geogame-binding-screen" class="geogame-screen">
+          <h2 style="font-size: var(--font-size-4xl); margin-bottom: var(--space-6);">Connect Controllers</h2>
+          <p id="geogame-binding-msg" style="font-size: var(--font-size-2xl); color: var(--text-secondary); margin-bottom: var(--space-8);">Press START...</p>
+          <button id="btn-geogame-cancel-binding" class="btn-danger" style="font-size: var(--font-size-2xl); padding: var(--space-4) var(--space-8); margin-top: var(--space-8);">Click to Cancel</button>
+        </div>
+        
+        <!-- COUNTDOWN SCREEN -->
+        <div id="geogame-countdown-screen" class="geogame-screen">
+          <div id="geogame-countdown-number" class="countdown-number">3</div>
+        </div>
+        
+        <!-- GAME SCREEN -->
+        <div id="geogame-game-screen" class="geogame-screen">
+          <div id="geogame-ui-top" class="geogame-overlay">
+            <h2 id="geogame-location-display">Loading locations...</h2>
+            
+            <!-- 2P Scores -->
+            <div id="geogame-p2-score-box" class="player-scores" style="display:none;">
+              <div class="player-score-container p1">
+                <span class="player-badge p1">P1</span>
+                <span id="geogame-p1-score-val" class="score-val">0</span>
+              </div>
+              <div class="player-score-container p2">
+                <span class="player-badge p2">P2</span>
+                <span id="geogame-p2-score-val" class="score-val">0</span>
+              </div>
+            </div>
+            
+            <!-- 1P Score -->
+            <div id="geogame-score-display">Score: <span id="geogame-score">0</span></div>
+            
+            <div id="geogame-round-display">Round: <span id="geogame-round">1/5</span></div>
+          </div>
+          
+          <div id="geogame-map-container">
+            <!-- The SVG map will be injected here -->
+          </div>
+
+          <div id="geogame-ui-bottom" class="geogame-overlay">
+            <div id="geogame-timer-bar" class="timer-bar"><div class="timer-fill"></div></div>
+            <p id="geogame-status-text" class="status-text">Click the map to guess the location!</p>
+          </div>
+          
+          <!-- Game Over Modal -->
+          <div id="geogame-end-modal" class="modal hidden">
+            <div class="modal-content">
+              <h2>Game Over</h2>
+              <p>Final Score: <span id="geogame-final-score">0</span></p>
+              <button id="btn-geogame-restart" class="btn-primary">Play Again</button>
+            </div>
+          </div>
+        </div>
+        
       </div>
     </div>
   </div>

@@ -1,8 +1,7 @@
-// geogame.js - Ottawa GeoGame Logic
-// Uses pre-built SVG map from real OpenStreetMap data
+import { startBinding } from './gamepad.js';
 
 // ==========================================
-// BOUNDING BOX - Must match convert_osm_to_svg.py exactly
+// BOUNDING BOX
 // ==========================================
 const MAP_BOUNDS = {
   minLon: -75.9375,
@@ -17,16 +16,29 @@ const MAP_HEIGHT = 768;
 // ==========================================
 // GAME STATE
 // ==========================================
-let currentState = 'IDLE';
-let currentLocations = [];
+let currentState = 'INTRO'; // INTRO, BINDING, COUNTDOWN, GUESSING, SCORING, GAME_OVER
+let playerCount = 1;
+let inputMode = 'mouse'; // 'mouse' or 'gamepad'
 let currentRoundIndex = 0;
-let totalScore = 0;
+let currentLocations = [];
+let p1Score = 0;
+let p2Score = 0;
 let currentZoom = 0;
 let timerInterval = null;
 
+// Gamepad Tracking
+let p1Pos = { x: MAP_WIDTH/2 - 50, y: MAP_HEIGHT/2 };
+let p2Pos = { x: MAP_WIDTH/2 + 50, y: MAP_HEIGHT/2 };
+let animationFrameId = null;
+let p1HasGuessed = false;
+let p2HasGuessed = false;
+let p1Guess = null;
+let p2Guess = null;
+
 // DOM Elements
 let container, mapContainer, mapSvg;
-let locationDisplay, scoreDisplay, roundDisplay, statusText, timerFill;
+let screens = {};
+let p1Reticle, p2Reticle;
 
 // ==========================================
 // INIT & LIFECYCLE
@@ -36,30 +48,138 @@ export function initGeoGame() {
   container = document.getElementById('geogame-mode');
   if (!container) return;
   
-  mapContainer = document.getElementById('geogame-map-container');
-  locationDisplay = document.getElementById('geogame-location-display');
-  scoreDisplay = document.getElementById('geogame-score');
-  roundDisplay = document.getElementById('geogame-round');
-  statusText = document.getElementById('geogame-status-text');
-  timerFill = document.querySelector('.timer-fill');
+  screens = {
+    intro: document.getElementById('geogame-intro-screen'),
+    binding: document.getElementById('geogame-binding-screen'),
+    countdown: document.getElementById('geogame-countdown-screen'),
+    game: document.getElementById('geogame-game-screen')
+  };
   
-  const restartBtn = document.getElementById('btn-geogame-restart');
-  if (restartBtn) {
-    restartBtn.addEventListener('click', startNewGame);
-  }
-
-  mapContainer.addEventListener('click', handleMapClick);
+  mapContainer = document.getElementById('geogame-map-container');
+  
+  // Setup Intro Listeners
+  document.getElementById('btn-geogame-1p').addEventListener('click', () => setPlayerCount(1));
+  document.getElementById('btn-geogame-2p').addEventListener('click', () => setPlayerCount(2));
+  document.getElementById('btn-geogame-mouse').addEventListener('click', () => setInputMode('mouse'));
+  document.getElementById('btn-geogame-gamepad').addEventListener('click', () => setInputMode('gamepad'));
+  
+  const startBtn = document.getElementById('btn-geogame-start-intro');
+  startBtn.addEventListener('mousedown', startHoldProgress);
+  startBtn.addEventListener('mouseup', cancelHoldProgress);
+  startBtn.addEventListener('mouseleave', cancelHoldProgress);
+  startBtn.addEventListener('touchstart', startHoldProgress, {passive: true});
+  startBtn.addEventListener('touchend', cancelHoldProgress);
+  
+  document.getElementById('btn-geogame-cancel-binding').addEventListener('click', () => switchScreen('intro'));
+  document.getElementById('btn-geogame-restart').addEventListener('click', () => switchScreen('intro'));
+  
+  mapContainer.addEventListener('click', handleMouseClick);
+  
+  // Gamepad Global Events (from gamepad.js)
+  window.addEventListener('app_gamepad_btn', handleGamepadButton);
+  window.addEventListener('app_gamepad_binding', handleBindingStatus);
+  window.addEventListener('app_gamepad_start_down', () => {
+    if (screens.intro.classList.contains('active')) startHoldProgress();
+  });
+  window.addEventListener('app_gamepad_start_up', () => {
+    cancelHoldProgress();
+  });
+  
   loadMap();
 }
 
 export function startGeoGame() {
-  if (currentState === 'IDLE' || currentState === 'GAME_OVER') {
-    startNewGame();
-  }
+  switchScreen('intro');
+  setPlayerCount(1);
+  setInputMode('mouse');
+}
+
+function switchScreen(screenName) {
+  Object.values(screens).forEach(s => s.classList.remove('active'));
+  if (screens[screenName]) screens[screenName].classList.add('active');
+  currentState = screenName.toUpperCase();
 }
 
 // ==========================================
-// MAP LOADING - Static Carto Dark Image
+// CONFIGURATION FLOW
+// ==========================================
+
+function setPlayerCount(count) {
+  playerCount = count;
+  document.getElementById('btn-geogame-1p').classList.toggle('active', count === 1);
+  document.getElementById('btn-geogame-2p').classList.toggle('active', count === 2);
+  
+  if (count === 2) {
+    setInputMode('gamepad');
+    document.getElementById('btn-geogame-mouse').disabled = true;
+  } else {
+    document.getElementById('btn-geogame-mouse').disabled = false;
+  }
+}
+
+function setInputMode(mode) {
+  inputMode = mode;
+  document.getElementById('btn-geogame-mouse').classList.toggle('active', mode === 'mouse');
+  document.getElementById('btn-geogame-gamepad').classList.toggle('active', mode === 'gamepad');
+  document.getElementById('geogame-start-btn-text').innerText = mode === 'mouse' ? 'CLICK TO START' : 'HOLD TO START';
+}
+
+let holdTimer = null;
+function startHoldProgress() {
+  if (currentState !== 'INTRO') return;
+  if (inputMode === 'mouse') {
+    beginStartFlow();
+    return;
+  }
+  const fill = document.getElementById('geogame-start-btn-fill');
+  fill.style.transition = 'width 1s linear';
+  fill.style.width = '100%';
+  holdTimer = setTimeout(beginStartFlow, 1000);
+}
+
+function cancelHoldProgress() {
+  if (holdTimer) clearTimeout(holdTimer);
+  const fill = document.getElementById('geogame-start-btn-fill');
+  fill.style.transition = 'width 0.2s linear';
+  fill.style.width = '0%';
+}
+
+function beginStartFlow() {
+  cancelHoldProgress();
+  if (inputMode === 'gamepad') {
+    switchScreen('binding');
+    startBinding(playerCount);
+  } else {
+    startCountdown();
+  }
+}
+
+function handleBindingStatus(e) {
+  if (currentState !== 'BINDING') return;
+  const { ready, players_bound, target } = e.detail;
+  document.getElementById('geogame-binding-msg').innerText = `Press START to join... (${players_bound}/${target})`;
+  if (ready) startCountdown();
+}
+
+function startCountdown() {
+  switchScreen('countdown');
+  let count = 3;
+  const counter = document.getElementById('geogame-countdown-number');
+  counter.innerText = count;
+  
+  const tick = setInterval(() => {
+    count--;
+    if (count <= 0) {
+      clearInterval(tick);
+      startNewGame();
+    } else {
+      counter.innerText = count;
+    }
+  }, 1000);
+}
+
+// ==========================================
+// MAP & RETICLES
 // ==========================================
 
 function loadMap() {
@@ -80,33 +200,65 @@ function loadMap() {
   mapContainer.appendChild(mapSvg);
 }
 
+function setupReticles() {
+  if (p1Reticle) p1Reticle.remove();
+  if (p2Reticle) p2Reticle.remove();
+  
+  if (inputMode === 'gamepad') {
+    p1Reticle = createReticle("#3b82f6");
+    mapSvg.appendChild(p1Reticle);
+    if (playerCount === 2) {
+      p2Reticle = createReticle("#ef4444");
+      mapSvg.appendChild(p2Reticle);
+    }
+  }
+}
+
+function createReticle(color) {
+  const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  g.innerHTML = `
+    <circle cx="0" cy="0" r="10" fill="none" stroke="${color}" stroke-width="2"/>
+    <line x1="-15" y1="0" x2="-5" y2="0" stroke="${color}" stroke-width="2"/>
+    <line x1="5" y1="0" x2="15" y2="0" stroke="${color}" stroke-width="2"/>
+    <line x1="0" y1="-15" x2="0" y2="-5" stroke="${color}" stroke-width="2"/>
+    <line x1="0" y1="5" x2="0" y2="15" stroke="${color}" stroke-width="2"/>
+  `;
+  g.style.display = 'none';
+  return g;
+}
+
 // ==========================================
 // GAME LOOP
 // ==========================================
 
 async function startNewGame() {
+  switchScreen('game');
   document.getElementById('geogame-end-modal').classList.add('hidden');
-  totalScore = 0;
+  
+  p1Score = 0; p2Score = 0;
   currentRoundIndex = 0;
-  currentZoom = 0;
-  scoreDisplay.textContent = '0';
-  statusText.textContent = "Loading locations...";
+  
+  document.getElementById('geogame-score-display').style.display = playerCount === 1 ? 'block' : 'none';
+  document.getElementById('geogame-p2-score-box').style.display = playerCount === 2 ? 'flex' : 'none';
+  
+  updateScoreUI();
+  document.getElementById('geogame-status-text').textContent = "Loading locations...";
   
   clearPins();
   resetMapView();
+  setupReticles();
   
   try {
     const res = await fetch('/api/geogame/locations');
     const data = await res.json();
     if (data.status === 'success' && data.locations.length > 0) {
-      currentLocations = data.locations.slice(0, 5);
+      currentLocations = data.locations.slice(0, 5); // 5 rounds
       startRound();
     } else {
-      statusText.textContent = "Error: No locations found in database.";
+      document.getElementById('geogame-status-text').textContent = "Error: No locations found.";
     }
   } catch (e) {
-    console.error(e);
-    statusText.textContent = "Error fetching game data.";
+    document.getElementById('geogame-status-text').textContent = "Error fetching game data.";
   }
 }
 
@@ -118,24 +270,42 @@ function startRound() {
   
   currentState = 'GUESSING';
   currentZoom = 0;
+  p1HasGuessed = false;
+  p2HasGuessed = false;
+  p1Guess = null;
+  p2Guess = null;
+  
+  // Center reticles
+  p1Pos = { x: MAP_WIDTH/3, y: MAP_HEIGHT/2 };
+  p2Pos = { x: (MAP_WIDTH/3)*2, y: MAP_HEIGHT/2 };
+  
+  if (p1Reticle) p1Reticle.style.display = 'block';
+  if (p2Reticle) p2Reticle.style.display = playerCount === 2 ? 'block' : 'none';
   
   const loc = currentLocations[currentRoundIndex];
-  locationDisplay.textContent = loc.location_name;
-  roundDisplay.textContent = `${currentRoundIndex + 1}/${currentLocations.length}`;
-  statusText.textContent = `Click the map to guess! Worth ${loc.point_value} pts`;
+  document.getElementById('geogame-location-display').textContent = loc.location_name;
+  document.getElementById('geogame-round').textContent = `${currentRoundIndex + 1}/${currentLocations.length}`;
+  document.getElementById('geogame-status-text').textContent = 
+    inputMode === 'mouse' ? "Click the map to guess!" : "Use Analog Stick to move, 'A' to guess!";
   
   resetMapView();
   clearPins();
   startTimer(15);
+  
+  if (inputMode === 'gamepad') {
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    pollGamepadsForReticles();
+  }
 }
 
 function startTimer(seconds) {
   clearInterval(timerInterval);
-  timerFill.style.transition = 'none';
-  timerFill.style.width = '100%';
-  void timerFill.offsetWidth;
-  timerFill.style.transition = `width ${seconds}s linear`;
-  timerFill.style.width = '0%';
+  const fill = document.querySelector('#geogame-timer-bar .timer-fill');
+  fill.style.transition = 'none';
+  fill.style.width = '100%';
+  void fill.offsetWidth;
+  fill.style.transition = `width ${seconds}s linear`;
+  fill.style.width = '0%';
   
   let timeLeft = seconds;
   timerInterval = setInterval(() => {
@@ -149,12 +319,23 @@ function startTimer(seconds) {
 
 function handleTimeOut() {
   if (currentState !== 'GUESSING') return;
-  statusText.textContent = "⏰ Time's up!";
-  revealTarget(0);
+  document.getElementById('geogame-status-text').textContent = "⏰ Time's up!";
+  if (animationFrameId) cancelAnimationFrame(animationFrameId);
+  
+  // Both failed
+  if (!p1HasGuessed && !p2HasGuessed) {
+    revealTarget(0, 0, 'Nobody');
+  } else {
+    evaluateGuesses();
+  }
 }
 
-function handleMapClick(e) {
-  if (currentState !== 'GUESSING' || !mapSvg) return;
+// ==========================================
+// INPUT HANDLING
+// ==========================================
+
+function handleMouseClick(e) {
+  if (currentState !== 'GUESSING' || inputMode !== 'mouse' || !mapSvg) return;
   clearInterval(timerInterval);
   
   const pt = mapSvg.createSVGPoint();
@@ -162,87 +343,212 @@ function handleMapClick(e) {
   pt.y = e.clientY;
   const svgP = pt.matrixTransform(mapSvg.getScreenCTM().inverse());
   
-  const clickX = svgP.x;
-  const clickY = svgP.y;
-  
-  // Inverse Web Mercator
-  const guessLon = MAP_BOUNDS.minLon + (clickX / MAP_WIDTH) * (MAP_BOUNDS.maxLon - MAP_BOUNDS.minLon);
-  
-  const yMin = Math.log(Math.tan(Math.PI / 4 + (MAP_BOUNDS.minLat * Math.PI / 180) / 2));
-  const yMax = Math.log(Math.tan(Math.PI / 4 + (MAP_BOUNDS.maxLat * Math.PI / 180) / 2));
-  const yMerc = yMin + ((MAP_HEIGHT - clickY) / MAP_HEIGHT) * (yMax - yMin);
-  const guessLat = (2 * Math.atan(Math.exp(yMerc)) - Math.PI / 2) * 180 / Math.PI;
-  
-  checkGuess(guessLat, guessLon, clickX, clickY);
+  p1Guess = { x: svgP.x, y: svgP.y };
+  p1HasGuessed = true;
+  evaluateGuesses();
 }
 
-function checkGuess(guessLat, guessLon, clickX, clickY) {
-  const target = currentLocations[currentRoundIndex];
+function pollGamepadsForReticles() {
+  if (currentState !== 'GUESSING') return;
   
-  // Distance calc: 1° lat ≈ 111km, 1° lon ≈ 78km at 45°N
-  const latDiff = (target.lat - guessLat) * 111;
-  const lonDiff = (target.lon - guessLon) * 78;
-  const distanceKm = Math.sqrt(latDiff * latDiff + lonDiff * lonDiff);
+  const gps = navigator.getGamepads ? navigator.getGamepads() : [];
+  const speed = 10; // Pixels per frame
   
-  // Draw player's guess crosshair
-  drawGuessMarker(clickX, clickY);
+  // Use existing gamepad map from Quiz mode integration (gamepad.js sets gamepadToPlayerMap)
+  // But wait, gamepad.js doesn't export gamepadToPlayerMap!
+  // Fallback: Just assume the first two gamepads are P1 and P2 in order.
+  let activeGpIndices = [];
+  for (let i = 0; i < gps.length; i++) {
+    if (gps[i]) activeGpIndices.push(i);
+  }
   
-  let pointsEarned = 0;
-  if (distanceKm < 0.8) {
-    pointsEarned = target.point_value;
-    statusText.textContent = `🎯 Direct Hit! +${pointsEarned} pts (${(distanceKm * 1000).toFixed(0)}m)`;
-    revealTarget(pointsEarned);
-  } else if (distanceKm < 3.0 && currentZoom === 0) {
-    statusText.textContent = `Near Miss (${distanceKm.toFixed(1)}km). Zooming in...`;
-    pointsEarned = Math.floor(target.point_value / 2);
-    setTimeout(() => {
-      zoomMapTo(clickX, clickY, 2.5);
-      currentZoom = 1;
-      currentState = 'GUESSING';
-      statusText.textContent = `Try again! Worth ${pointsEarned} pts`;
-      startTimer(10);
-    }, 1500);
-  } else {
-    statusText.textContent = `❌ Missed! (${distanceKm.toFixed(1)}km away)`;
-    revealTarget(0);
+  const processGp = (gp, posObj) => {
+    if (!gp) return;
+    const axX = gp.axes[0];
+    const axY = gp.axes[1];
+    if (Math.abs(axX) > 0.1) posObj.x += axX * speed;
+    if (Math.abs(axY) > 0.1) posObj.y += axY * speed;
+    
+    // Bounds check
+    posObj.x = Math.max(0, Math.min(MAP_WIDTH, posObj.x));
+    posObj.y = Math.max(0, Math.min(MAP_HEIGHT, posObj.y));
+  };
+
+  if (!p1HasGuessed && activeGpIndices.length > 0) {
+    processGp(gps[activeGpIndices[0]], p1Pos);
+    p1Reticle.setAttribute('transform', `translate(${p1Pos.x}, ${p1Pos.y})`);
+  }
+  
+  if (playerCount === 2 && !p2HasGuessed && activeGpIndices.length > 1) {
+    processGp(gps[activeGpIndices[1]], p2Pos);
+    p2Reticle.setAttribute('transform', `translate(${p2Pos.x}, ${p2Pos.y})`);
+  }
+  
+  animationFrameId = requestAnimationFrame(pollGamepadsForReticles);
+}
+
+function handleGamepadButton(e) {
+  if (currentState !== 'GUESSING' || inputMode !== 'gamepad') return;
+  const { button, player } = e.detail;
+  
+  if (button === 'A') {
+    if (player === 0 && !p1HasGuessed) {
+      p1Guess = { ...p1Pos };
+      p1HasGuessed = true;
+      if (p1Reticle) p1Reticle.style.display = 'none';
+      drawGuessMarker(p1Guess.x, p1Guess.y, "#3b82f6");
+    } else if (player === 1 && !p2HasGuessed && playerCount === 2) {
+      p2Guess = { ...p2Pos };
+      p2HasGuessed = true;
+      if (p2Reticle) p2Reticle.style.display = 'none';
+      drawGuessMarker(p2Guess.x, p2Guess.y, "#ef4444");
+    }
+    
+    // Check if everyone has guessed
+    if (playerCount === 1 && p1HasGuessed) {
+      clearInterval(timerInterval);
+      evaluateGuesses();
+    } else if (playerCount === 2 && p1HasGuessed && p2HasGuessed) {
+      clearInterval(timerInterval);
+      evaluateGuesses();
+    }
   }
 }
 
-function revealTarget(points) {
+// ==========================================
+// SCORING
+// ==========================================
+
+function evaluateGuesses() {
+  currentState = 'SCORING';
+  if (animationFrameId) cancelAnimationFrame(animationFrameId);
+  const target = currentLocations[currentRoundIndex];
+  
+  let p1Dist = 999, p2Dist = 999;
+  
+  if (p1HasGuessed) {
+    const latLon = xyToLatLon(p1Guess.x, p1Guess.y);
+    p1Dist = calculateDistance(latLon.lat, latLon.lon, target.lat, target.lon);
+  }
+  if (p2HasGuessed) {
+    const latLon = xyToLatLon(p2Guess.x, p2Guess.y);
+    p2Dist = calculateDistance(latLon.lat, latLon.lon, target.lat, target.lon);
+  }
+  
+  // Single Player Zoom Logic
+  if (playerCount === 1) {
+    if (p1Dist < 0.8) {
+      const pts = 100;
+      document.getElementById('geogame-status-text').textContent = `🎯 Direct Hit! +${pts} pts (${(p1Dist * 1000).toFixed(0)}m)`;
+      revealTarget(pts, 0, 'Player 1');
+    } else if (p1Dist < 3.0 && currentZoom === 0) {
+      document.getElementById('geogame-status-text').textContent = `Near Miss (${p1Dist.toFixed(1)}km). Zooming in...`;
+      const pts = 50;
+      setTimeout(() => {
+        zoomMapTo(p1Guess.x, p1Guess.y, 2.5);
+        currentZoom = 1;
+        currentState = 'GUESSING';
+        p1HasGuessed = false; // reset
+        clearPins();
+        document.getElementById('geogame-status-text').textContent = `Try again! Worth ${pts} pts`;
+        startTimer(10);
+        if (inputMode === 'gamepad') {
+          p1Reticle.style.display = 'block';
+          pollGamepadsForReticles();
+        }
+      }, 1500);
+    } else {
+      document.getElementById('geogame-status-text').textContent = `❌ Missed! (${p1Dist.toFixed(1)}km away)`;
+      revealTarget(0, 0, 'Nobody');
+    }
+    return;
+  }
+  
+  // Multiplayer Steal Logic
+  if (playerCount === 2) {
+    const firstGuesser = p1HasGuessed ? 1 : 2; 
+    // In sudden death scenario, the first to click is handled implicitly if we don't wait for the second.
+    // Wait, the logic is: "First player that clicks gets points. if not exact, zoom in and 2nd player steals"
+    // So if someone clicked and isn't perfect, we zoom in for the other player.
+    // Let's implement the Steal:
+    
+    const bestDist = Math.min(p1Dist, p2Dist);
+    let winnerPts = 0;
+    let winnerStr = '';
+    
+    // If someone got a direct hit
+    if (bestDist < 0.8) {
+      winnerPts = 100;
+      if (p1Dist < p2Dist) {
+        winnerStr = 'Player 1';
+        revealTarget(winnerPts, 0, winnerStr);
+      } else {
+        winnerStr = 'Player 2';
+        revealTarget(0, winnerPts, winnerStr);
+      }
+      document.getElementById('geogame-status-text').textContent = `🎯 ${winnerStr} Direct Hit!`;
+    } 
+    // If it's the first zoom phase, zoom in on the best guess and allow steal
+    else if (bestDist < 3.0 && currentZoom === 0) {
+      const zoomX = p1Dist < p2Dist ? p1Guess.x : p2Guess.x;
+      const zoomY = p1Dist < p2Dist ? p1Guess.y : p2Guess.y;
+      
+      document.getElementById('geogame-status-text').textContent = `Near Miss! Zooming in for STEAL!`;
+      setTimeout(() => {
+        zoomMapTo(zoomX, zoomY, 2.5);
+        currentZoom = 1;
+        currentState = 'GUESSING';
+        
+        // Reset guesses
+        p1HasGuessed = false;
+        p2HasGuessed = false;
+        p1Guess = null; p2Guess = null;
+        clearPins();
+        
+        document.getElementById('geogame-status-text').textContent = `STEAL ROUND! First to hit wins 50 pts`;
+        startTimer(10);
+        if (p1Reticle) p1Reticle.style.display = 'block';
+        if (p2Reticle) p2Reticle.style.display = 'block';
+        pollGamepadsForReticles();
+      }, 1500);
+    } 
+    // Complete miss
+    else {
+      document.getElementById('geogame-status-text').textContent = `❌ Both missed!`;
+      revealTarget(0, 0, 'Nobody');
+    }
+  }
+}
+
+function revealTarget(pts1, pts2, winnerName) {
   currentState = 'SCORING';
   const target = currentLocations[currentRoundIndex];
   
-  totalScore += points;
-  scoreDisplay.textContent = totalScore;
+  p1Score += pts1;
+  p2Score += pts2;
+  updateScoreUI();
   
   const targetPt = latLonToXY(target.lat, target.lon);
   
-  // Draw actual location marker on the SVG
   const pinGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
   pinGroup.classList.add('game-pin');
   
-  // Pulsing ring
   const ring = document.createElementNS("http://www.w3.org/2000/svg", "circle");
   ring.setAttribute("cx", targetPt.x);
   ring.setAttribute("cy", targetPt.y);
   ring.setAttribute("r", "18");
   ring.setAttribute("fill", "none");
-  ring.setAttribute("stroke", points > 0 ? "#4ade80" : "#f87171");
+  ring.setAttribute("stroke", (pts1>0 || pts2>0) ? "#4ade80" : "#f87171");
   ring.setAttribute("stroke-width", "2");
-  ring.setAttribute("opacity", "0.7");
   pinGroup.appendChild(ring);
   
-  // Pin dot
   const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
   dot.setAttribute("cx", targetPt.x);
   dot.setAttribute("cy", targetPt.y);
   dot.setAttribute("r", "6");
-  dot.setAttribute("fill", points > 0 ? "#4ade80" : "#f87171");
-  dot.setAttribute("stroke", "white");
-  dot.setAttribute("stroke-width", "2");
+  dot.setAttribute("fill", (pts1>0 || pts2>0) ? "#4ade80" : "#f87171");
   pinGroup.appendChild(dot);
   
-  // Label
   const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
   label.setAttribute("x", targetPt.x);
   label.setAttribute("y", targetPt.y - 24);
@@ -250,22 +556,18 @@ function revealTarget(points) {
   label.setAttribute("fill", "white");
   label.setAttribute("font-size", "11");
   label.setAttribute("font-weight", "600");
-  label.setAttribute("font-family", "Outfit, sans-serif");
-  label.textContent = target.location_name.length > 30
-    ? target.location_name.substring(0, 27) + '...'
-    : target.location_name;
+  label.textContent = target.location_name;
   pinGroup.appendChild(label);
   
   mapSvg.appendChild(pinGroup);
   
-  // Save score to DB
   fetch('/api/geogame/score', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       location_name: target.location_name,
-      winner: 'Player 1',
-      points_awarded: points,
+      winner: winnerName,
+      points_awarded: pts1 + pts2,
       zoom_level: currentZoom
     })
   });
@@ -277,9 +579,18 @@ function revealTarget(points) {
 }
 
 function endGame() {
+  switchScreen('game'); // Ensure we stay here
   currentState = 'GAME_OVER';
-  statusText.textContent = "Game Over!";
-  document.getElementById('geogame-final-score').textContent = totalScore;
+  document.getElementById('geogame-status-text').textContent = "Game Over!";
+  
+  let endText = `${p1Score} pts`;
+  if (playerCount === 2) {
+    if (p1Score > p2Score) endText = `Player 1 Wins! (${p1Score} - ${p2Score})`;
+    else if (p2Score > p1Score) endText = `Player 2 Wins! (${p2Score} - ${p1Score})`;
+    else endText = `Tie Game! (${p1Score} - ${p2Score})`;
+  }
+  
+  document.getElementById('geogame-final-score').textContent = endText;
   document.getElementById('geogame-end-modal').classList.remove('hidden');
 }
 
@@ -289,38 +600,45 @@ function endGame() {
 
 function latLonToXY(lat, lon) {
   const x = ((lon - MAP_BOUNDS.minLon) / (MAP_BOUNDS.maxLon - MAP_BOUNDS.minLon)) * MAP_WIDTH;
-  
   const yMin = Math.log(Math.tan(Math.PI / 4 + (MAP_BOUNDS.minLat * Math.PI / 180) / 2));
   const yMax = Math.log(Math.tan(Math.PI / 4 + (MAP_BOUNDS.maxLat * Math.PI / 180) / 2));
   const yMerc = Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI / 180) / 2));
-  
   const y = MAP_HEIGHT - ((yMerc - yMin) / (yMax - yMin)) * MAP_HEIGHT;
   return { x, y };
 }
 
-function drawGuessMarker(x, y) {
+function xyToLatLon(x, y) {
+  const lon = MAP_BOUNDS.minLon + (x / MAP_WIDTH) * (MAP_BOUNDS.maxLon - MAP_BOUNDS.minLon);
+  const yMin = Math.log(Math.tan(Math.PI / 4 + (MAP_BOUNDS.minLat * Math.PI / 180) / 2));
+  const yMax = Math.log(Math.tan(Math.PI / 4 + (MAP_BOUNDS.maxLat * Math.PI / 180) / 2));
+  const yMerc = yMin + ((MAP_HEIGHT - y) / MAP_HEIGHT) * (yMax - yMin);
+  const lat = (2 * Math.atan(Math.exp(yMerc)) - Math.PI / 2) * 180 / Math.PI;
+  return { lat, lon };
+}
+
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const latDiff = (lat2 - lat1) * 111;
+  const lonDiff = (lon2 - lon1) * 78;
+  return Math.sqrt(latDiff * latDiff + lonDiff * lonDiff);
+}
+
+function drawGuessMarker(x, y, color = "#ef4444") {
   if (!mapSvg) return;
   const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
   group.classList.add('game-pin');
   
-  const size = 12;
+  const size = 8;
   const h = document.createElementNS("http://www.w3.org/2000/svg", "line");
   h.setAttribute("x1", x - size); h.setAttribute("y1", y);
   h.setAttribute("x2", x + size); h.setAttribute("y2", y);
-  h.setAttribute("stroke", "#ef4444"); h.setAttribute("stroke-width", "2");
+  h.setAttribute("stroke", color); h.setAttribute("stroke-width", "2");
   group.appendChild(h);
   
   const v = document.createElementNS("http://www.w3.org/2000/svg", "line");
   v.setAttribute("x1", x); v.setAttribute("y1", y - size);
   v.setAttribute("x2", x); v.setAttribute("y2", y + size);
-  v.setAttribute("stroke", "#ef4444"); v.setAttribute("stroke-width", "2");
+  v.setAttribute("stroke", color); v.setAttribute("stroke-width", "2");
   group.appendChild(v);
-  
-  const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-  dot.setAttribute("cx", x); dot.setAttribute("cy", y);
-  dot.setAttribute("r", "3");
-  dot.setAttribute("fill", "#ef4444");
-  group.appendChild(dot);
   
   mapSvg.appendChild(group);
 }
@@ -343,4 +661,10 @@ function zoomMapTo(x, y, scale) {
   const originY = (y / MAP_HEIGHT) * 100;
   mapSvg.style.transformOrigin = `${originX}% ${originY}%`;
   mapSvg.style.transform = `scale(${scale})`;
+}
+
+function updateScoreUI() {
+  document.getElementById('geogame-score').textContent = p1Score;
+  document.getElementById('geogame-p1-score-val').textContent = p1Score;
+  document.getElementById('geogame-p2-score-val').textContent = p2Score;
 }
