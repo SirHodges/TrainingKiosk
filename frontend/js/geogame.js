@@ -157,11 +157,13 @@ function handleMapClick(e) {
   if (currentState !== 'GUESSING' || !mapSvg) return;
   clearInterval(timerInterval);
   
-  const rect = mapSvg.getBoundingClientRect();
-  const scaleX = MAP_WIDTH / rect.width;
-  const scaleY = MAP_HEIGHT / rect.height;
-  const clickX = (e.clientX - rect.left) * scaleX;
-  const clickY = (e.clientY - rect.top) * scaleY;
+  const pt = mapSvg.createSVGPoint();
+  pt.x = e.clientX;
+  pt.y = e.clientY;
+  const svgP = pt.matrixTransform(mapSvg.getScreenCTM().inverse());
+  
+  const clickX = svgP.x;
+  const clickY = svgP.y;
   
   // Inverse Web Mercator
   const guessLon = MAP_BOUNDS.minLon + (clickX / MAP_WIDTH) * (MAP_BOUNDS.maxLon - MAP_BOUNDS.minLon);
