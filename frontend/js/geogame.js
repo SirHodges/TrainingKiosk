@@ -369,7 +369,7 @@ window.addEventListener('app_gamepad_axes', (e) => {
 function pollGamepadsForReticles() {
   if (currentState !== 'GUESSING') return;
   
-  const speed = 10; // Pixels per frame
+  const speed = 5; // Pixels per frame (lowered for higher precision)
   
   const processAxes = (axes, posObj) => {
     if (Math.abs(axes.x) > 0.1) posObj.x += axes.x * speed;
@@ -466,15 +466,15 @@ function evaluateGuesses() {
   
   // Single Player Zoom Logic
   if (playerCount === 1) {
-    if (p1Dist < 0.8) {
-      const pts = 100;
+    if (p1Dist <= 0.1) {
+      const pts = currentZoom === 0 ? 100 : 50;
       document.getElementById('geogame-status-text').textContent = `🎯 Direct Hit! +${pts} pts (${(p1Dist * 1000).toFixed(0)}m)`;
       revealTarget(pts, 0, 'Player 1');
-    } else if (p1Dist < 3.0 && currentZoom === 0) {
+    } else if (p1Dist < 2.0 && currentZoom === 0) {
       document.getElementById('geogame-status-text').textContent = `Near Miss (${p1Dist.toFixed(1)}km). Zooming in...`;
       const pts = 50;
       setTimeout(() => {
-        zoomMapTo(p1Guess.x, p1Guess.y, 2.5);
+        zoomMapTo(p1Guess.x, p1Guess.y, 4.0);
         currentZoom = 1;
         currentState = 'GUESSING';
         p1HasGuessed = false; // reset
@@ -506,8 +506,8 @@ function evaluateGuesses() {
     let winnerStr = '';
     
     // If someone got a direct hit
-    if (bestDist < 0.8) {
-      winnerPts = 100;
+    if (bestDist <= 0.1) {
+      winnerPts = currentZoom === 0 ? 100 : 50;
       if (p1Dist < p2Dist) {
         winnerStr = 'Player 1';
         revealTarget(winnerPts, 0, winnerStr);
@@ -515,16 +515,16 @@ function evaluateGuesses() {
         winnerStr = 'Player 2';
         revealTarget(0, winnerPts, winnerStr);
       }
-      document.getElementById('geogame-status-text').textContent = `🎯 ${winnerStr} Direct Hit!`;
+      document.getElementById('geogame-status-text').textContent = `🎯 ${winnerStr} Direct Hit! (${(bestDist * 1000).toFixed(0)}m)`;
     } 
     // If it's the first zoom phase, zoom in on the best guess and allow steal
-    else if (bestDist < 3.0 && currentZoom === 0) {
+    else if (bestDist < 2.0 && currentZoom === 0) {
       const zoomX = p1Dist < p2Dist ? p1Guess.x : p2Guess.x;
       const zoomY = p1Dist < p2Dist ? p1Guess.y : p2Guess.y;
       
       document.getElementById('geogame-status-text').textContent = `Near Miss! Zooming in for STEAL!`;
       setTimeout(() => {
-        zoomMapTo(zoomX, zoomY, 2.5);
+        zoomMapTo(zoomX, zoomY, 4.0);
         currentZoom = 1;
         currentState = 'GUESSING';
         
