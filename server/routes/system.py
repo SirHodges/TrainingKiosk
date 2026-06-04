@@ -58,6 +58,11 @@ def trigger_update():
         
     try:
         update_flag = Path('/tmp/trainingkiosk_update')
+        if update_flag.exists():
+            try:
+                update_flag.unlink()
+            except OSError:
+                pass
         update_flag.touch()
         
         return jsonify({

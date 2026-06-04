@@ -41,10 +41,10 @@ After=network.target
 
 [Service]
 User=$USER
-WorkingDirectory=$PROJECT_DIR
+WorkingDirectory="$PROJECT_DIR"
 Environment="PATH=$PROJECT_DIR/venv/bin"
 Environment="TRAININGKIOSK_CONTENT_PATH=/media/pi/TRAININGKIOSK/content"
-ExecStart=$PROJECT_DIR/venv/bin/python $PROJECT_DIR/server/app.py
+ExecStart="$PROJECT_DIR/venv/bin/python" "$PROJECT_DIR/server/app.py"
 Restart=always
 RestartSec=5
 
@@ -58,6 +58,10 @@ sudo systemctl enable trainingkiosk.service
 
 # 4.5. Create the systemd updater path and service
 echo "Creating systemd units for the updater..."
+
+# Ensure the update script is executable
+chmod +x "$PROJECT_DIR/scripts/update.sh"
+
 UPDATER_SERVICE_FILE="/tmp/trainingkiosk-updater.service"
 UPDATER_PATH_FILE="/tmp/trainingkiosk-updater.path"
 
@@ -67,7 +71,7 @@ Description=TrainingKiosk Updater Service
 
 [Service]
 Type=oneshot
-ExecStart=$PROJECT_DIR/scripts/update.sh
+ExecStart="$PROJECT_DIR/scripts/update.sh"
 User=root
 EOF
 
@@ -76,7 +80,7 @@ cat << EOF > $UPDATER_PATH_FILE
 Description=TrainingKiosk Updater Path Watcher
 
 [Path]
-PathModified=/tmp/trainingkiosk_update
+PathExists=/tmp/trainingkiosk_update
 
 [Install]
 WantedBy=multi-user.target
