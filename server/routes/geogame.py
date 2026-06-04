@@ -25,6 +25,49 @@ def get_locations():
         "locations": locations
     })
 
+@geogame_bp.route('/locations/all', methods=['GET'])
+def get_all_locations():
+    """
+    Fetch ALL locations for calibration mode, ordered by name.
+    """
+    with get_db() as db:
+        rows = db.execute('''
+            SELECT id, location_name, lat, lon, point_value, category, zone, hint, active
+            FROM geogame_locations
+            ORDER BY location_name ASC
+        ''').fetchall()
+        
+        locations = [dict(row) for row in rows]
+        
+    return jsonify({
+        "status": "success",
+        "locations": locations
+    })
+
+@geogame_bp.route('/locations/update', methods=['POST'])
+def update_location():
+    """
+    Update the latitude and longitude of a specific location.
+    """
+    data = request.json
+    if not data or 'id' not in data or 'lat' not in data or 'lon' not in data:
+        return jsonify({"status": "error", "message": "Missing required fields"}), 400
+        
+    loc_id = data['id']
+    lat = data['lat']
+    lon = data['lon']
+    
+    with get_db() as db:
+        db.execute('''
+            UPDATE geogame_locations
+            SET lat = ?, lon = ?
+            WHERE id = ?
+        ''', (lat, lon, loc_id))
+        db.commit()
+        
+    return jsonify({"status": "success"})
+
+
 @geogame_bp.route('/score', methods=['POST'])
 def save_score():
     """
