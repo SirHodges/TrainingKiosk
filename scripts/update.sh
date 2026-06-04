@@ -10,8 +10,9 @@ cd "$PROJECT_DIR"
 
 echo "Updating TrainingKiosk from repository..."
 
-# Pull latest changes
-git pull
+# Force discard any local changes and pull latest
+git fetch origin
+git reset --hard origin/main
 
 # Activate virtual environment and install any new dependencies
 source venv/bin/activate
