@@ -64,6 +64,12 @@ export function initGamepad() {
       window.dispatchEvent(new CustomEvent('raw_gamepad_backend', { detail: data }));
     });
     
+    socket.on('gamepad_axes', (data) => {
+      const playerIndex = (data.player || 1) - 1;
+      window.dispatchEvent(new CustomEvent('app_gamepad_axes', { detail: { player: playerIndex, axes: [data.x, data.y] } }));
+      window.dispatchEvent(new CustomEvent('raw_gamepad_backend', { detail: { action: 'AXES', ...data } }));
+    });
+    
     // Listen for backend binding events
     socket.on('gamepad_bound', (data) => {
       boundPlayers++;

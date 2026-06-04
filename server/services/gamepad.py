@@ -250,24 +250,56 @@ class GamepadHandler:
         if not player_id:
             return
             
+        # We also need to store axes state for smooth reticle movement
+        if not hasattr(self, 'axes_state'):
+            self.axes_state = {}
+            
+        if path not in self.axes_state:
+            self.axes_state[path] = {'x': 0.0, 'y': 0.0}
+            
         direction = None
+        state_changed = False
         
         # ABS_HAT0X / ABS_HAT0Y are the standard D-pad events
         if event.code == ecodes.ABS_HAT0X or event.code == ecodes.ABS_X:
+            val = 0.0
             if event.value < -100 or event.value == -1:
+                val = -1.0
                 direction = 'left'
             elif event.value > 100 or event.value == 1:
+                val = 1.0
                 direction = 'right'
+            
+            if self.axes_state[path]['x'] != val:
+                self.axes_state[path]['x'] = val
+                state_changed = True
+                
         elif event.code == ecodes.ABS_HAT0Y or event.code == ecodes.ABS_Y:
+            val = 0.0
             if event.value < -100 or event.value == -1:
+                val = -1.0
                 direction = 'up'
             elif event.value > 100 or event.value == 1:
+                val = 1.0
                 direction = 'down'
                 
+            if self.axes_state[path]['y'] != val:
+                self.axes_state[path]['y'] = val
+                state_changed = True
+                
         if direction:
+            # Emit discrete direction for UI navigation
             self._emit('gamepad_dpad', {
                 'player': player_id,
                 'direction': direction
+            })
+            
+        if state_changed:
+            # Emit continuous axes for game reticle movement
+            self._emit('gamepad_axes', {
+                'player': player_id,
+                'x': self.axes_state[path]['x'],
+                'y': self.axes_state[path]['y']
             })
 
     def shutdown(self):

@@ -273,8 +273,8 @@ function startRound() {
   p1Pos = { x: MAP_WIDTH/3, y: MAP_HEIGHT/2 };
   p2Pos = { x: (MAP_WIDTH/3)*2, y: MAP_HEIGHT/2 };
   
-  if (p1Reticle) p1Reticle.style.display = 'block';
-  if (p2Reticle) p2Reticle.style.display = playerCount === 2 ? 'block' : 'none';
+  if (p1Reticle) p1Reticle.style.display = 'inline';
+  if (p2Reticle) p2Reticle.style.display = playerCount === 2 ? 'inline' : 'none';
   
   const loc = currentLocations[currentRoundIndex];
   document.getElementById('geogame-location-display').textContent = loc.location_name;
@@ -342,39 +342,58 @@ function handleMouseClick(e) {
   evaluateGuesses();
 }
 
+let p1Axes = { x: 0, y: 0 };
+let p2Axes = { x: 0, y: 0 };
+
+window.addEventListener('app_gamepad_axes', (e) => {
+  if (e.detail.player === 0) {
+    p1Axes.x = e.detail.axes[0];
+    p1Axes.y = e.detail.axes[1];
+  } else if (e.detail.player === 1) {
+    p2Axes.x = e.detail.axes[0];
+    p2Axes.y = e.detail.axes[1];
+  }
+});
+
 function pollGamepadsForReticles() {
   if (currentState !== 'GUESSING') return;
   
-  const gps = navigator.getGamepads ? navigator.getGamepads() : [];
   const speed = 10; // Pixels per frame
   
-  // Use existing gamepad map from Quiz mode integration (gamepad.js sets gamepadToPlayerMap)
-  // But wait, gamepad.js doesn't export gamepadToPlayerMap!
-  // Fallback: Just assume the first two gamepads are P1 and P2 in order.
-  let activeGpIndices = [];
-  for (let i = 0; i < gps.length; i++) {
-    if (gps[i]) activeGpIndices.push(i);
-  }
-  
-  const processGp = (gp, posObj) => {
-    if (!gp) return;
-    const axX = gp.axes[0];
-    const axY = gp.axes[1];
-    if (Math.abs(axX) > 0.1) posObj.x += axX * speed;
-    if (Math.abs(axY) > 0.1) posObj.y += axY * speed;
+  const processAxes = (axes, posObj) => {
+    if (Math.abs(axes.x) > 0.1) posObj.x += axes.x * speed;
+    if (Math.abs(axes.y) > 0.1) posObj.y += axes.y * speed;
     
     // Bounds check
     posObj.x = Math.max(0, Math.min(MAP_WIDTH, posObj.x));
     posObj.y = Math.max(0, Math.min(MAP_HEIGHT, posObj.y));
   };
+  
+  if (!p1HasGuessed) processAxes(p1Axes, p1Pos);
+  if (playerCount === 2 && !p2HasGuessed) processAxes(p2Axes, p2Pos);
+  
+  // Also poll HTML5 Gamepads as fallback for local axes
+  const gps = navigator.getGamepads ? navigator.getGamepads() : [];
+  if (gps[0] && gps[0].axes.length >= 2) {
+      if (Math.abs(gps[0].axes[0]) > 0.1 || Math.abs(gps[0].axes[1]) > 0.1) {
+         p1Axes.x = gps[0].axes[0];
+         p1Axes.y = gps[0].axes[1];
+      }
+  }
+  if (gps[1] && gps[1].axes.length >= 2) {
+      if (Math.abs(gps[1].axes[0]) > 0.1 || Math.abs(gps[1].axes[1]) > 0.1) {
+         p2Axes.x = gps[1].axes[0];
+         p2Axes.y = gps[1].axes[1];
+      }
+  }
 
-  if (!p1HasGuessed && activeGpIndices.length > 0) {
-    processGp(gps[activeGpIndices[0]], p1Pos);
+  // Render Reticles
+  if (p1Reticle && !p1HasGuessed) {
+    p1Reticle.style.display = 'inline'; // Use inline for SVG elements, not block!
     p1Reticle.setAttribute('transform', `translate(${p1Pos.x}, ${p1Pos.y})`);
   }
-  
-  if (playerCount === 2 && !p2HasGuessed && activeGpIndices.length > 1) {
-    processGp(gps[activeGpIndices[1]], p2Pos);
+  if (p2Reticle && playerCount === 2 && !p2HasGuessed) {
+    p2Reticle.style.display = 'inline';
     p2Reticle.setAttribute('transform', `translate(${p2Pos.x}, ${p2Pos.y})`);
   }
   
