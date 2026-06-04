@@ -182,7 +182,7 @@
 
   /* ---------- LAYOUT DIMENSIONS ----------
      Fixed sizes for structural elements. */
-  --sidebar-width:   280px;   /* Width of the left sidebar */
+  --sidebar-width:   350px;   /* Width of the left sidebar */
   --topbar-height:   56px;    /* Height of the mode tab bar */
 
   /* ---------- Z-INDEX LAYERS ----------
