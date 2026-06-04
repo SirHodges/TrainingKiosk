@@ -19,7 +19,10 @@ source venv/bin/activate
 pip install -r requirements.txt
 
 echo "Rebooting system..."
-# Use reboot directly to bypass systemd scheduling delays
-sudo /sbin/reboot -f || sudo reboot -f || sudo systemctl reboot --force
+# Try standard reboot methods first
+sudo /sbin/reboot -f &
+sleep 5
+# Nuclear fallback: kernel sysrq reboot (bypasses everything)
+sudo bash -c 'echo 1 > /proc/sys/kernel/sysrq && echo b > /proc/sysrq-trigger'
 
 echo "Update complete!"
