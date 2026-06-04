@@ -308,6 +308,11 @@ function displayQuestion() {
   const container = document.getElementById('quiz-answers-container');
   container.innerHTML = '';
   
+  // Hide answers initially, prevent clicking
+  container.style.transition = 'none';
+  container.style.opacity = '0';
+  container.style.pointerEvents = 'none';
+  
   // Gamepad layout: Y (top), B (right), A (bottom), X (left)
   const letters = inputMode === 'gamepad' ? ['Y', 'B', 'A', 'X'] : ['A', 'B', 'C', 'D'];
   const btnClasses = inputMode === 'gamepad' ? ['btn-y', 'btn-b', 'btn-a', 'btn-x'] : [];
@@ -333,6 +338,13 @@ function displayQuestion() {
   players[0].locked = false;
   players[1].locked = false;
   document.getElementById('lock-overlay').classList.remove('active');
+  
+  // Reveal answers after 1 second
+  setTimeout(() => {
+    container.style.transition = 'opacity 0.3s ease-in';
+    container.style.opacity = '1';
+    container.style.pointerEvents = 'auto';
+  }, 1000);
 }
 
 function handleGamepadButton(e) {
@@ -550,16 +562,8 @@ function setupVirtualKeyboard(score, stats) {
   const input = document.getElementById('name-input');
   input.textContent = '';
   
-  // Prevent duplicate event listeners by cloning keys
   const keys = document.querySelectorAll('.vk-key');
   keys.forEach(k => {
-    const newK = k.cloneNode(true);
-    k.parentNode.replaceChild(newK, k);
-  });
-  
-  // Re-query fresh clones
-  const freshKeys = document.querySelectorAll('.vk-key');
-  freshKeys.forEach(k => {
     k.onclick = () => {
       if (input.textContent.length < 10) {
         input.textContent += k.textContent.trim();
@@ -568,30 +572,30 @@ function setupVirtualKeyboard(score, stats) {
   });
   
   const delBtn = document.getElementById('vk-del');
-  const newDel = delBtn.cloneNode(true);
-  delBtn.parentNode.replaceChild(newDel, delBtn);
-  document.getElementById('vk-del').onclick = () => {
+  delBtn.onclick = () => {
     input.textContent = input.textContent.slice(0, -1);
   };
   
   const submitBtn = document.getElementById('vk-submit');
-  const newSubmit = submitBtn.cloneNode(true);
-  submitBtn.parentNode.replaceChild(newSubmit, submitBtn);
-  document.getElementById('vk-submit').onclick = async () => {
+  submitBtn.onclick = async () => {
     const name = input.textContent.trim() || '???';
     if (name.length === 0) return;
     
-    document.getElementById('vk-submit').textContent = 'Saving...';
-    document.getElementById('vk-submit').disabled = true;
+    submitBtn.textContent = 'Saving...';
+    submitBtn.disabled = true;
     
     await submitScore(score, name, stats);
     
     document.getElementById('name-entry-section').style.display = 'none';
+    submitBtn.textContent = 'SUBMIT';
+    submitBtn.disabled = false;
+    
     await loadLeaderboard('end-leaderboard');
+    await loadLeaderboard('quiz-sidebar'); // Update the left sidebar too!
     setTimeout(resetToStart, 5000);
   };
   
-  registerFocusables('vk', Array.from(freshKeys).concat([document.getElementById('vk-del'), document.getElementById('vk-submit')]));
+  registerFocusables('vk', Array.from(keys).concat([delBtn, submitBtn]));
 }
 
 function resetToStart() {
