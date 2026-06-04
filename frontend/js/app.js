@@ -15,10 +15,6 @@ import { initGamepadTester } from './gamepad-tester.js';
 document.addEventListener('DOMContentLoaded', () => {
   console.log("App initializing...");
   
-  // Initialize modes
-  initAdmin();
-  initGamepadTester();
-  
   // Load saved theme
   const savedTheme = sessionStorage.getItem('kiosk_theme');
   if (savedTheme) {
@@ -51,6 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Init Admin panel
   initAdmin();
+  initGamepadTester();
   
   // Refresh btn
   const refreshMediaBtn = document.getElementById('btn-refresh-media');
