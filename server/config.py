@@ -27,11 +27,20 @@ QUESTIONS_FILE = DATA_DIR / "questions.json"
 env_path = os.environ.get("TRAININGKIOSK_CONTENT_PATH")
 
 # Priority 2: Standard USB mount path on a Linux Raspberry Pi
-usb_path = Path("/media/pi/TRAININGKIOSK/content")
+usb_path = None
+if sys.platform == "linux":
+    import glob
+    # Look for a 'content' folder on any USB drive mounted for the 'paramedictraining' user
+    potential_paths = glob.glob("/media/paramedictraining/*/content")
+    if not potential_paths:
+        # Fallback to the old 'pi' user just in case
+        potential_paths = glob.glob("/media/pi/*/content")
+    if potential_paths:
+        usb_path = Path(potential_paths[0])
 
 if env_path and Path(env_path).exists():
     CONTENT_DIR = Path(env_path)
-elif sys.platform == "linux" and usb_path.exists():
+elif usb_path and usb_path.exists():
     CONTENT_DIR = usb_path
 else:
     # Priority 3: A local "content" folder next to the app
