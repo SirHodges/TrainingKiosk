@@ -18,6 +18,6 @@ source venv/bin/activate
 pip install -r requirements.txt
 
 echo "Rebooting system..."
-sudo reboot
+sudo /sbin/shutdown -r now
 
 echo "Update complete!"
