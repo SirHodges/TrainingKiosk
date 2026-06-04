@@ -305,8 +305,19 @@
           </button>
         </div>
       </div>
+      <button id="btn-test-gamepads" class="btn-secondary" style="margin-bottom: 10px;">Test Gamepads</button>
       <button id="btn-update-reboot" class="btn-primary" style="margin-bottom: 10px;">Update & Reboot</button>
       <button id="btn-reset-scores" class="btn-danger">Reset Scores</button>
+    </div>
+  </div>
+
+  <!-- Gamepad Tester Modal -->
+  <div id="gamepad-tester-modal" class="modal hidden" style="z-index: 100;">
+    <div class="modal-content" style="max-width: 800px; width: 90%; max-height: 80vh; overflow-y: auto; text-align: left;">
+      <h2 style="margin-bottom: 16px;">Gamepad Diagnostics</h2>
+      <p style="margin-bottom: 16px; color: var(--text-secondary);">Press buttons on any connected controller. Note the Index number next to the button that lights up. This is the index the app needs.</p>
+      <div id="gamepad-tester-output" style="font-family: monospace; font-size: 16px; white-space: pre-wrap; margin-bottom: 20px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; min-height: 200px;">Waiting for gamepad interaction...</div>
+      <button id="btn-close-tester" class="btn-primary" style="display: block; width: 100%; text-align: center;">Close</button>
     </div>
   </div>
 

@@ -10,7 +10,15 @@ import { clearFocusables } from './navigation.js';
 
 let currentMode = 'skillplayer';
 
+import { initGamepadTester } from './gamepad-tester.js';
+
 document.addEventListener('DOMContentLoaded', () => {
+  console.log("App initializing...");
+  
+  // Initialize modes
+  initAdmin();
+  initGamepadTester();
+  
   // Load saved theme
   const savedTheme = sessionStorage.getItem('kiosk_theme');
   if (savedTheme) {
