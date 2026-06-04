@@ -497,27 +497,33 @@ async function endQuiz() {
   
   showScreen('quiz-end-screen');
   
-  const finalScore = players[0].score; // 1P score is what goes to leaderboard
+  const finalScore = players[0].score;
+  const finalStats = {
+    correct: players[0].stats.correct,
+    wrong: players[0].stats.wrong,
+    skips: players[0].stats.skips,
+    best_streak: players[0].bestStreak
+  };
+  
   document.getElementById('final-score-val').textContent = finalScore;
   
   if (playerCount === 1) {
+    // Load leaderboard immediately so user can see it
+    await loadLeaderboard('end-leaderboard');
+    
     const res = await checkTopScore(finalScore);
     if (res && res.is_top_score) {
       document.getElementById('name-entry-section').style.display = 'block';
-      setupVirtualKeyboard(finalScore, players[0].stats);
-      
-      const scores = await getLeaderboard();
-      displayScoresWithPlaceholder(scores, 'end-leaderboard', finalScore);
+      setupVirtualKeyboard(finalScore, finalStats);
     } else {
       document.getElementById('name-entry-section').style.display = 'none';
-      const scores = await getLeaderboard();
-      displayScoresWithPlaceholder(scores, 'end-leaderboard', -1); // Just show list
-      setTimeout(resetToStart, 10000); // auto reset
+      setTimeout(resetToStart, 10000);
     }
   } else {
     document.getElementById('name-entry-section').style.display = 'none';
     const winner = players[0].score > players[1].score ? 'PLAYER 1 WINS!' : (players[1].score > players[0].score ? 'PLAYER 2 WINS!' : 'TIE!');
     document.getElementById('final-score-val').textContent = winner;
+    await loadLeaderboard('end-leaderboard');
     setTimeout(resetToStart, 10000);
   }
 }
@@ -526,28 +532,48 @@ function setupVirtualKeyboard(score, stats) {
   const input = document.getElementById('name-input');
   input.textContent = '';
   
+  // Prevent duplicate event listeners by cloning keys
   const keys = document.querySelectorAll('.vk-key');
   keys.forEach(k => {
+    const newK = k.cloneNode(true);
+    k.parentNode.replaceChild(newK, k);
+  });
+  
+  // Re-query fresh clones
+  const freshKeys = document.querySelectorAll('.vk-key');
+  freshKeys.forEach(k => {
     k.onclick = () => {
       if (input.textContent.length < 10) {
-        input.textContent += k.textContent;
+        input.textContent += k.textContent.trim();
       }
     };
   });
   
+  const delBtn = document.getElementById('vk-del');
+  const newDel = delBtn.cloneNode(true);
+  delBtn.parentNode.replaceChild(newDel, delBtn);
   document.getElementById('vk-del').onclick = () => {
     input.textContent = input.textContent.slice(0, -1);
   };
   
+  const submitBtn = document.getElementById('vk-submit');
+  const newSubmit = submitBtn.cloneNode(true);
+  submitBtn.parentNode.replaceChild(newSubmit, submitBtn);
   document.getElementById('vk-submit').onclick = async () => {
-    const name = input.textContent || '???';
+    const name = input.textContent.trim() || '???';
+    if (name.length === 0) return;
+    
+    document.getElementById('vk-submit').textContent = 'Saving...';
+    document.getElementById('vk-submit').disabled = true;
+    
     await submitScore(score, name, stats);
+    
     document.getElementById('name-entry-section').style.display = 'none';
     await loadLeaderboard('end-leaderboard');
     setTimeout(resetToStart, 5000);
   };
   
-  registerFocusables('vk', Array.from(keys).concat([document.getElementById('vk-del'), document.getElementById('vk-submit')]));
+  registerFocusables('vk', Array.from(freshKeys).concat([document.getElementById('vk-del'), document.getElementById('vk-submit')]));
 }
 
 function resetToStart() {

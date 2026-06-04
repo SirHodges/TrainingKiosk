@@ -27,9 +27,10 @@ export async function loadLeaderboard(containerId) {
           <div class="score-val">${s.score}</div>
           <div class="score-date">${formatDate(s.date)}</div>
           <div class="score-tooltip">
-            <div class="stat-row"><span class="stat-label">Correct:</span><span class="stat-value">${s.stats?.correct || 0}</span></div>
-            <div class="stat-row"><span class="stat-label">Wrong:</span><span class="stat-value">${s.stats?.wrong || 0}</span></div>
-            <div class="stat-row"><span class="stat-label">Best Streak:</span><span class="stat-value">${s.stats?.best_streak || 0}</span></div>
+            <div class="stat-row"><span class="stat-label">✅ Correct:</span><span class="stat-value">${s.stats?.correct || 0}</span></div>
+            <div class="stat-row"><span class="stat-label">❌ Wrong:</span><span class="stat-value">${s.stats?.wrong || 0}</span></div>
+            <div class="stat-row"><span class="stat-label">⏭️ Skipped:</span><span class="stat-value">${s.stats?.skips || 0}</span></div>
+            <div class="stat-row"><span class="stat-label">🔥 Best Streak:</span><span class="stat-value">${s.stats?.best_streak || 0}</span></div>
           </div>
         </div>
       `;
