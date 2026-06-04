@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrainingKiosk</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="/frontend/css/variables.css?v=6">
+  <link rel="stylesheet" href="/frontend/css/base.css?v=6">
+  <link rel="stylesheet" href="/frontend/css/components.css?v=6">
+  <link rel="stylesheet" href="/frontend/css/media.css?v=6">
+  <link rel="stylesheet" href="/frontend/css/quiz.css?v=6">
+  <link rel="stylesheet" href="/frontend/css/leaderboard.css?v=6">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Top Mode Bar -->
+    <div class="app-mode-topbar">
+      <button class="app-mode-tab active" data-mode="skillplayer">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+        SkillPlayer
+      </button>
+      <button class="app-mode-tab" data-mode="quiz">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        Quiz Challenge
+      </button>
+    </div>
+    
+    <div class="app-body">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <!-- Media Sidebar -->
+        <div id="skillplayer-sidebar" class="sidebar-mode-content active">
+          <div class="sidebar-header">
+            <h2>Categories</h2>
+          </div>
+          <div id="category-tabs" class="category-tabs-container"></div>
+          <div class="sidebar-header">
+            <h2>Skills</h2>
+          </div>
+          <div id="skills-list" class="skills-list-container"></div>
+          
+          <div class="views-counter" id="total-views-counter">
+            0 Views
+          </div>
+        </div>
+        
+        <!-- Quiz Sidebar -->
+        <div id="quiz-sidebar" class="sidebar-mode-content">
+          <!-- Leaderboard will be injected here -->
+        </div>
+      </aside>
+      
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Media Content -->
+        <div id="skillplayer-content" class="app-mode-content active">
+          <div class="media-placeholder">
+            <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+            <h2>Select a Skill to Begin</h2>
+            <p>Choose a category and skill from the menu to watch training videos or read protocol PDFs.</p>
+          </div>
+        </div>
+        
+        <!-- Quiz Content -->
+        <div id="quiz-content" class="app-mode-content">
+          <div class="quiz-container">
+            
+            <!-- START SCREEN -->
+            <div id="quiz-start-screen" class="quiz-screen active">
+              <h1 class="quiz-title" style="font-size: var(--font-size-5xl); margin-bottom: var(--space-8); color: var(--accent-primary); text-shadow: var(--glow-primary);">QUIZ CHALLENGE</h1>
+              
+              <div class="player-mode-selector" style="display:flex; gap:10px; margin-bottom:20px;">
+                <button id="btn-mode-1p" class="btn-secondary active">1 Player (Leaderboard)</button>
+                <button id="btn-mode-2p" class="btn-secondary">2 Player (Vs Mode)</button>
+              </div>
+              
+              <div class="input-mode-toggle" style="display:flex; gap:10px; margin-bottom:40px;">
+                <button id="btn-input-mouse" class="btn-secondary">Mouse</button>
+                <button id="btn-input-gamepad" class="btn-secondary active">Gamepad</button>
+              </div>
+              
+              <div class="quiz-rules card" style="max-width: 600px; padding: var(--space-6); text-align: center; margin-bottom: var(--space-8);">
+                <p>Answer questions as fast as possible.</p>
+                <p><strong>Correct:</strong> +Time & Points.</p>
+                <p><strong>Wrong:</strong> -Time Penalty.</p>
+                <p>Build streaks for massive score multipliers!</p>
+              </div>
+              
+              <button id="btn-start-quiz" class="btn-primary" style="font-size: var(--font-size-2xl); padding: var(--space-4) var(--space-8);">
+                <span id="start-btn-text">HOLD TO START</span>
+                <div id="start-btn-fill" class="start-progress"></div>
+              </button>
+            </div>
+            
+            <!-- BINDING SCREEN -->
+            <div id="quiz-binding-screen" class="quiz-screen">
+              <h2 style="font-size: var(--font-size-4xl); margin-bottom: var(--space-6);">Connect Controllers</h2>
+              <p id="binding-msg" style="font-size: var(--font-size-2xl); color: var(--text-secondary);">Press START...</p>
+            </div>
+            
+            <!-- COUNTDOWN SCREEN -->
+            <div id="quiz-countdown-screen" class="quiz-screen">
+              <div id="countdown-number" class="countdown-number">3</div>
+            </div>
+            
+            <!-- GAME SCREEN -->
+            <div id="quiz-game-screen" class="quiz-screen">
+              <div class="quiz-timer-container">
+                <div id="quiz-timer-bar" class="quiz-timer-bar"></div>
+              </div>
+              
+              <!-- 2P Scores -->
+              <div id="p2-score-box" class="player-scores" style="display:none;">
+                <div class="player-score-container p1">
+                  <span class="player-badge p1">P1</span>
+                  <span id="p1-score-val" class="score-val">0</span>
+                </div>
+                <div class="player-score-container p2">
+                  <span class="player-badge p2">P2</span>
+                  <span id="p2-score-val" class="score-val">0</span>
+                </div>
+              </div>
+              
+              <!-- 1P Score -->
+              <div id="game-score-display" class="quiz-score-display" style="position: absolute; top: 40px; right: 40px;">
+                Score: <span id="p1-score-val-single">0</span>
+              </div>
+              
+              <!-- Streak Indicator -->
+              <div id="streak-indicator" class="streak-indicator">
+                <div id="streak-ring" class="streak-ring">
+                  <span class="streak-icon">⭐</span>
+                </div>
+                <div id="streak-text" class="streak-text">Streak!</div>
+              </div>
+              
+              <div id="quiz-question-text" class="quiz-question">Loading question...</div>
+              
+              <div id="quiz-answers-container" class="diamond-layout">
+                <!-- Buttons injected via JS -->
+              </div>
+              
+              <div class="quiz-controls">
+                <button id="btn-skip-q" class="quiz-btn-skip"><span id="skip-btn-text">Skip (RB)</span></button>
+                <button id="btn-stop-quiz" class="quiz-btn-stop">
+                  Hold to Stop
+                  <div id="stop-btn-fill" class="start-progress"></div>
+                </button>
+              </div>
+              
+              <div id="lock-overlay" class="lock-overlay">LOCKED</div>
+            </div>
+            
+            <!-- END SCREEN -->
+            <div id="quiz-end-screen" class="quiz-screen">
+              <h1 style="font-size: var(--font-size-5xl); color: var(--accent-primary); margin-bottom: var(--space-4);">TIME'S UP!</h1>
+              <div style="font-size: var(--font-size-3xl); margin-bottom: var(--space-8);">
+                Final Score: <span id="final-score-val" style="font-weight:bold; color:var(--color-success);">0</span>
+              </div>
+              
+              <div id="name-entry-section" style="display:none; text-align:center;">
+                <h3 style="color:var(--color-warning); margin-bottom:var(--space-4);">🏆 NEW HIGH SCORE! 🏆</h3>
+                <div id="name-input" style="font-size:var(--font-size-4xl); letter-spacing:10px; margin-bottom:var(--space-6); border-bottom:2px solid var(--text-primary); width:100%; max-width:500px; margin-left:auto; margin-right:auto; height:60px; word-break: break-all;"></div>
+                
+                <div class="virtual-keyboard" style="display:grid; grid-template-columns:repeat(10, 1fr); gap:10px; max-width:800px; margin:0 auto;">
+                  <!-- Row 1 -->
+                  <button class="vk-key btn-secondary">Q</button><button class="vk-key btn-secondary">W</button><button class="vk-key btn-secondary">E</button><button class="vk-key btn-secondary">R</button><button class="vk-key btn-secondary">T</button><button class="vk-key btn-secondary">Y</button><button class="vk-key btn-secondary">U</button><button class="vk-key btn-secondary">I</button><button class="vk-key btn-secondary">O</button><button class="vk-key btn-secondary">P</button>
+                  <!-- Row 2 -->
+                  <button class="vk-key btn-secondary">A</button><button class="vk-key btn-secondary">S</button><button class="vk-key btn-secondary">D</button><button class="vk-key btn-secondary">F</button><button class="vk-key btn-secondary">G</button><button class="vk-key btn-secondary">H</button><button class="vk-key btn-secondary">J</button><button class="vk-key btn-secondary">K</button><button class="vk-key btn-secondary">L</button><button id="vk-del" class="btn-danger">DEL</button>
+                  <!-- Row 3 -->
+                  <div style="grid-column: span 1;"></div>
+                  <button class="vk-key btn-secondary">Z</button><button class="vk-key btn-secondary">X</button><button class="vk-key btn-secondary">C</button><button class="vk-key btn-secondary">V</button><button class="vk-key btn-secondary">B</button><button class="vk-key btn-secondary">N</button><button class="vk-key btn-secondary">M</button>
+                  <div style="grid-column: span 2;"></div>
+                </div>
+                <button id="vk-submit" class="btn-primary" style="margin-top:20px; width:200px;">SUBMIT</button>
+              </div>
+              
+              <div id="end-leaderboard" style="margin-top:var(--space-8); width:100%; max-width:800px; height:300px;"></div>
+            </div>
+            
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+  
+  <!-- Admin Panel -->
+  <div class="admin-container">
+    <button id="admin-btn" class="admin-btn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+      v2.0
+    </button>
+    <div id="admin-popup" class="admin-popup hidden">
+      <h3>Admin Settings</h3>
+      <button id="btn-update-reboot" class="btn-primary" style="margin-bottom: 10px;">Update & Reboot</button>
+      <button id="btn-reset-scores" class="btn-danger">Reset Scores</button>
+    </div>
+  </div>
+
+  <!-- SocketIO (loaded before app modules) -->
+  <!-- <script src="/frontend/assets/socket.io.min.js"></script> -->
+  <script>
+    // Mock io if socket.io is not loaded to prevent errors
+    if(typeof io === 'undefined') {
+      window.io = function() {
+        return {
+          on: function() {},
+          emit: function() {}
+        };
+      };
+    }
+  </script>
+  
+  <!-- App modules -->
+  <script type="module" src="/frontend/js/app.js?v=2"></script>
+</body>
+</html>

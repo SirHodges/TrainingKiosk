@@ -1,0 +1,327 @@
+/* ==========================================================================
+   MEDIA.CSS — SkillPlayer Mode Styles
+   ==========================================================================
+   Styles for the media browser / video player mode.
+   This mode lets users browse skill categories, select skills,
+   and watch training videos or view PDF documents.
+
+   LAYOUT:
+   ┌─────────────┬──────────────────────────────────┐
+   │  Sidebar    │   Video/PDF Player Area (top)    │
+   │  - Skills   │                                   │
+   │  - List     ├──────────────────────────────────┤
+   │             │   Content Grid (bottom)           │
+   │             │   - Video/PDF cards               │
+   └─────────────┴──────────────────────────────────┘
+   ========================================================================== */
+
+
+/* ---------- SIDEBAR SKILL BUTTONS ----------
+   Each skill appears as a button in the sidebar.
+   Shows a small logo icon + skill name. */
+
+.skills-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;       /* Very tight gap between skill buttons */
+}
+
+/* Individual skill button */
+.skill-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-3) var(--space-3);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: left;
+  position: relative;
+  min-height: 44px;    /* Touch target minimum */
+}
+
+/* Small logo icon to the left of skill name */
+.skill-logo {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--bg-quaternary);
+}
+
+/* Fallback when no logo is available */
+.skill-logo-placeholder {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-quaternary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+/* Skill name text */
+.skill-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Hover state */
+.skill-btn:hover {
+  background: var(--glass-bg);
+  color: var(--text-primary);
+  border-color: var(--glass-border);
+}
+
+/* Active/selected skill — highlighted with accent */
+.skill-btn.active {
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--accent-primary-light);
+  border-color: rgba(99, 102, 241, 0.25);
+}
+
+/* NEW badge positioned to the right */
+.skill-btn .badge-new {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+
+/* ---------- MAIN CONTENT LAYOUT ----------
+   SkillPlayer main area has video player on top and content list below. */
+
+.skillplayer-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: var(--space-4);
+  gap: var(--space-4);
+}
+
+
+/* ---------- VIDEO CONTAINER ----------
+   The main viewing area. Shows either a video, PDF, or placeholder. */
+
+.video-container {
+  flex: 1;
+  min-height: 0;         /* Allow flex shrinking */
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Video placeholder — shown when no content is selected */
+.video-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  color: var(--text-muted);
+  padding: var(--space-8);
+  text-align: center;
+}
+
+/* Large logo in placeholder */
+.video-placeholder-logo {
+  width: 120px;
+  height: auto;
+  opacity: 0.3;
+  margin-bottom: var(--space-4);
+}
+
+.video-placeholder-text {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-muted);
+}
+
+.video-placeholder-hint {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+/* The actual HTML5 video player */
+.video-player {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;       /* Fit video within bounds, no cropping */
+  background: #000;
+  border-radius: var(--radius-xl);
+}
+
+/* PDF viewer iframe */
+.pdf-viewer {
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: var(--radius-xl);
+  background: white;
+}
+
+/* Content info bar above the player */
+.content-info-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) 0;
+  flex-shrink: 0;
+}
+
+.content-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.content-meta {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+
+/* ---------- CONTENT GRID ----------
+   Horizontal scrollable row of video/PDF cards below the player. */
+
+.content-grid-wrapper {
+  flex-shrink: 0;
+}
+
+.content-grid-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-2);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.content-grid {
+  display: flex;
+  gap: var(--space-3);
+  overflow-x: auto;
+  padding-bottom: var(--space-2);
+  /* Hide scrollbar for clean look */
+  scrollbar-width: none;
+}
+
+.content-grid::-webkit-scrollbar {
+  display: none;
+}
+
+/* Individual video/PDF card */
+.video-card {
+  min-width: 200px;
+  max-width: 200px;
+  padding: var(--space-3);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.video-card:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--accent-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.15);
+}
+
+/* Currently playing card */
+.video-card.active {
+  background: rgba(99, 102, 241, 0.12);
+  border-color: var(--accent-primary);
+  box-shadow: var(--glow-primary);
+}
+
+/* Thumbnail area of the video card */
+.video-card-thumb {
+  width: 100%;
+  height: 80px;
+  border-radius: var(--radius-md);
+  background: var(--bg-quaternary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Type icon overlay (play button for video, PDF icon for documents) */
+.video-card-icon {
+  width: 32px;
+  height: 32px;
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+.video-card:hover .video-card-icon {
+  color: var(--accent-primary-light);
+  opacity: 1;
+}
+
+/* Card title */
+.video-card-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* File type indicator */
+.video-card-type {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+/* NEW badge on video card */
+.video-card .badge-new {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+}
+
+/* Empty state when no content is available for selected skill */
+.no-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8);
+  color: var(--text-muted);
+  text-align: center;
+  gap: var(--space-3);
+}
+
+.no-content svg {
+  width: 48px;
+  height: 48px;
+  opacity: 0.3;
+}

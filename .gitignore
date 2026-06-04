@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+venv/
+.venv/
+
+# Database (generated at runtime, not tracked)
+*.db
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# Content (media files are too large for git)
+content/Skills/*
+content/Equipment/*
+content/Other/*
+!content/Skills/.gitkeep
+!content/Equipment/.gitkeep
+!content/Other/.gitkeep

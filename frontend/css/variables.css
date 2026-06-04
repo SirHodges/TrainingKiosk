@@ -1,0 +1,197 @@
+/* ==========================================================================
+   VARIABLES.CSS — Design Tokens for TrainingKiosk
+   ==========================================================================
+   This file defines ALL visual design values used across the app.
+   Think of it as the "control panel" for the entire look and feel.
+   Changing a color here changes it EVERYWHERE in the app.
+
+   HOW CSS VARIABLES WORK:
+   We define them as --name: value inside :root (the whole page).
+   Then any CSS file can use them with var(--name).
+   ========================================================================== */
+
+:root {
+
+  /* ---------- BACKGROUND COLORS ----------
+     These are the dark navy/blue backgrounds that give the app its depth.
+     We use multiple layers from darkest (bg-primary) to lightest (bg-quaternary)
+     to create visual hierarchy — like stacking dark glass panes. */
+  --bg-primary:      #0a0e1a;    /* Deepest background — the body/canvas */
+  --bg-secondary:    #0f1429;    /* Slightly lighter — sidebar, panels */
+  --bg-tertiary:     #151b33;    /* Cards, elevated surfaces */
+  --bg-quaternary:   #1c2340;    /* Hover states, active items */
+  --bg-elevated:     #222a4a;    /* Highest elevation — tooltips, popups */
+
+  /* ---------- ACCENT COLORS ----------
+     These are the vibrant pops of color used for buttons, highlights,
+     active states, and interactive elements. */
+  --accent-primary:       #6366f1;  /* Electric indigo — main brand color */
+  --accent-primary-light: #818cf8;  /* Lighter indigo for hover states */
+  --accent-primary-dark:  #4f46e5;  /* Darker indigo for active/pressed states */
+  --accent-secondary:     #a855f7;  /* Vibrant purple — secondary actions */
+  --accent-secondary-light:#c084fc;  /* Lighter purple */
+
+  /* ---------- SEMANTIC COLORS ----------
+     Colors with specific meanings — success, danger, warning.
+     Used for quiz feedback, alerts, and status indicators. */
+  --color-success:        #10b981;  /* Emerald green — correct answers, good status */
+  --color-success-light:  #34d399;  /* Lighter green for glows/highlights */
+  --color-success-dark:   #059669;  /* Darker green */
+  --color-danger:         #f43f5e;  /* Rose red — wrong answers, destructive actions */
+  --color-danger-light:   #fb7185;  /* Lighter red */
+  --color-danger-dark:    #e11d48;  /* Darker red */
+  --color-warning:        #f59e0b;  /* Amber — warnings, streaks "on fire" */
+  --color-warning-light:  #fbbf24;  /* Lighter amber */
+  --color-warning-dark:   #d97706;  /* Darker amber */
+
+  /* ---------- STREAK COLORS ----------
+     The quiz has a streak system where consecutive correct answers
+     unlock escalating visual tiers. Each tier gets its own color. */
+  --streak-basic:     #6366f1;  /* 3 in a row — indigo "Streak!" */
+  --streak-fire:      #f59e0b;  /* 4 in a row — amber "On Fire!" */
+  --streak-mega:      #f43f5e;  /* 5 in a row — red "Megastreak!" */
+  --streak-ultra:     #a855f7;  /* 6 in a row — purple "ULTRASTREAK!" */
+  /* 7+ = PARAGOD — uses a rainbow gradient (defined below) */
+
+  /* ---------- PLAYER COLORS ----------
+     For 2-player quiz mode, each player has a distinct color. */
+  --player1-color:    #6366f1;  /* Player 1 — blue/indigo */
+  --player1-bg:       rgba(99, 102, 241, 0.15);  /* P1 background tint */
+  --player2-color:    #f43f5e;  /* Player 2 — red/rose */
+  --player2-bg:       rgba(244, 63, 94, 0.15);   /* P2 background tint */
+
+  /* ---------- TEXT COLORS ----------
+     Three levels of text emphasis, from brightest to most subtle. */
+  --text-primary:     #f1f5f9;  /* Brightest — headings, important text */
+  --text-secondary:   #94a3b8;  /* Medium — descriptions, labels */
+  --text-muted:       #475569;  /* Dimmest — placeholders, disabled text */
+  --text-inverse:     #0a0e1a;  /* Dark text on light backgrounds */
+
+  /* ---------- GLASS EFFECT (Glassmorphism) ----------
+     This creates the frosted-glass look that makes the UI feel premium.
+     We layer a semi-transparent white over a blurred background. */
+  --glass-bg:         rgba(255, 255, 255, 0.05);  /* Very subtle white tint */
+  --glass-bg-hover:   rgba(255, 255, 255, 0.08);  /* Slightly brighter on hover */
+  --glass-bg-active:  rgba(255, 255, 255, 0.12);  /* Even brighter when active */
+  --glass-blur:       12px;     /* How much to blur the background behind */
+  --glass-border:     rgba(255, 255, 255, 0.08);  /* Subtle border to define edges */
+  --glass-border-hover: rgba(255, 255, 255, 0.15);
+
+  /* ---------- BORDERS ---------- */
+  --border-color:     rgba(255, 255, 255, 0.08);
+  --border-color-hover: rgba(255, 255, 255, 0.15);
+  --border-color-focus: rgba(99, 102, 241, 0.5);
+
+  /* ---------- FONT FAMILY ----------
+     Outfit is a clean, modern geometric sans-serif from Google Fonts.
+     It's very readable on screens and looks great at all sizes. */
+  --font-family:      'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* ---------- FONT SIZES ----------
+     A consistent type scale from tiny (xs) to massive (4xl).
+     Using rem units so everything scales proportionally. */
+  --font-size-xs:     0.75rem;   /* 12px — tiny labels */
+  --font-size-sm:     0.875rem;  /* 14px — small text */
+  --font-size-base:   1rem;      /* 16px — body text */
+  --font-size-md:     1.125rem;  /* 18px — slightly larger */
+  --font-size-lg:     1.25rem;   /* 20px — subheadings */
+  --font-size-xl:     1.5rem;    /* 24px — section headings */
+  --font-size-2xl:    1.875rem;  /* 30px — big headings */
+  --font-size-3xl:    2.25rem;   /* 36px — hero text */
+  --font-size-4xl:    2.5rem;    /* 40px — countdown numbers */
+  --font-size-5xl:    3.5rem;    /* 56px — massive display text */
+  --font-size-6xl:    5rem;      /* 80px — countdown animation */
+
+  /* ---------- FONT WEIGHTS ---------- */
+  --font-weight-light:    300;
+  --font-weight-normal:   400;
+  --font-weight-medium:   500;
+  --font-weight-semibold: 600;
+  --font-weight-bold:     700;
+  --font-weight-extrabold:800;
+
+  /* ---------- SPACING SCALE ----------
+     Consistent spacing used for margins, padding, gaps.
+     Based on a 4px grid (each step = 4px multiplied). */
+  --space-1:    0.25rem;   /* 4px */
+  --space-2:    0.5rem;    /* 8px */
+  --space-3:    0.75rem;   /* 12px */
+  --space-4:    1rem;      /* 16px */
+  --space-5:    1.25rem;   /* 20px */
+  --space-6:    1.5rem;    /* 24px */
+  --space-8:    2rem;      /* 32px */
+  --space-10:   2.5rem;    /* 40px */
+  --space-12:   3rem;      /* 48px */
+  --space-16:   4rem;      /* 64px */
+  --space-20:   5rem;      /* 80px */
+
+  /* ---------- BORDER RADIUS ----------
+     Rounded corners at various scales. */
+  --radius-sm:    4px;     /* Subtle rounding */
+  --radius-md:    8px;     /* Standard cards */
+  --radius-lg:    12px;    /* Larger panels */
+  --radius-xl:    16px;    /* Very rounded */
+  --radius-2xl:   24px;    /* Pills, large buttons */
+  --radius-full:  9999px;  /* Perfect circle / capsule shape */
+
+  /* ---------- TRANSITIONS ----------
+     Speed presets for animations. Using cubic-bezier for
+     that satisfying "snappy" feel. */
+  --transition-fast:   150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow:   400ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-spring: 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ---------- BOX SHADOWS ----------
+     Glow effects that make elements "pop" off the dark background.
+     Using colored shadows to create neon-like effects. */
+  --shadow-sm:      0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md:      0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg:      0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-xl:      0 16px 48px rgba(0, 0, 0, 0.6);
+
+  /* Glow shadows — colored light that spills around elements */
+  --glow-primary:   0 0 20px rgba(99, 102, 241, 0.3),
+                    0 0 40px rgba(99, 102, 241, 0.1);
+  --glow-success:   0 0 20px rgba(16, 185, 129, 0.3),
+                    0 0 40px rgba(16, 185, 129, 0.1);
+  --glow-danger:    0 0 20px rgba(244, 63, 94, 0.3),
+                    0 0 40px rgba(244, 63, 94, 0.1);
+  --glow-warning:   0 0 20px rgba(245, 158, 11, 0.3),
+                    0 0 40px rgba(245, 158, 11, 0.1);
+  --glow-focus:     0 0 0 2px rgba(99, 102, 241, 0.5),
+                    0 0 20px rgba(99, 102, 241, 0.25);
+
+  /* ---------- GRADIENTS ----------
+     Eye-catching gradient combinations for buttons, backgrounds, streaks. */
+  --gradient-primary:   linear-gradient(135deg, #6366f1, #818cf8);
+  --gradient-secondary: linear-gradient(135deg, #a855f7, #c084fc);
+  --gradient-success:   linear-gradient(135deg, #10b981, #34d399);
+  --gradient-danger:    linear-gradient(135deg, #f43f5e, #fb7185);
+  --gradient-warning:   linear-gradient(135deg, #f59e0b, #fbbf24);
+  --gradient-dark:      linear-gradient(180deg, #0a0e1a 0%, #151b33 100%);
+
+  /* The legendary rainbow gradient for PARAGOD streak (7+ in a row) */
+  --gradient-rainbow:   linear-gradient(90deg,
+                          #f43f5e, #f59e0b, #10b981, #6366f1, #a855f7, #f43f5e);
+
+  /* Subtle mesh gradient for backgrounds */
+  --gradient-mesh:      radial-gradient(ellipse at 20% 50%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
+                        radial-gradient(ellipse at 80% 20%, rgba(168, 85, 247, 0.06) 0%, transparent 50%),
+                        radial-gradient(ellipse at 50% 80%, rgba(16, 185, 129, 0.04) 0%, transparent 50%);
+
+  /* ---------- LAYOUT DIMENSIONS ----------
+     Fixed sizes for structural elements. */
+  --sidebar-width:   280px;   /* Width of the left sidebar */
+  --topbar-height:   56px;    /* Height of the mode tab bar */
+
+  /* ---------- Z-INDEX LAYERS ----------
+     Controls what overlaps what. Higher number = on top. */
+  --z-base:       1;
+  --z-sidebar:    10;
+  --z-topbar:     20;
+  --z-modal:      100;
+  --z-tooltip:    200;
+  --z-admin:      300;
+  --z-overlay:    500;
+}

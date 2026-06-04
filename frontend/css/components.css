@@ -1,0 +1,706 @@
+/* ==========================================================================
+   COMPONENTS.CSS — Reusable UI Components
+   ==========================================================================
+   Buttons, cards, badges, tabs, modals, virtual keyboard, and animations.
+   These components are used across both SkillPlayer and Quiz modes.
+   ========================================================================== */
+
+
+/* ==========================================================================
+   BUTTONS
+   ==========================================================================
+   Large, touch-friendly buttons with glow effects.
+   Kiosk buttons need big hit areas (min 48px tall). */
+
+/* Base button styles shared by all button types */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-6);
+  min-height: 48px;              /* Minimum touch target size */
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--radius-lg);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle shine effect on hover — a white gradient sweeps across */
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: all 0.5s ease;
+}
+
+button:disabled, .btn:disabled {
+  opacity: 0.6;
+  background: #450a0a !important; /* dark muted red */
+  color: #fca5a5 !important; /* light red text */
+  border: 1px solid #7f1d1d !important;
+  box-shadow: none !important;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.btn:hover::before {
+  left: 100%;
+}
+
+/* Primary button — gradient indigo, the main call-to-action */
+.btn-primary {
+  background: var(--gradient-primary);
+  color: white;
+  box-shadow: var(--shadow-md), 0 0 20px rgba(99, 102, 241, 0.2);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg), var(--glow-primary);
+}
+
+.btn-primary:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Secondary button — outlined glass style */
+.btn-secondary {
+  background: var(--glass-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+}
+
+.btn-secondary:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+  transform: translateY(-1px);
+}
+
+.btn-secondary:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.btn-secondary.active {
+  background: var(--accent-primary);
+  color: white;
+  border-color: var(--accent-primary-light);
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+}
+
+/* Danger button — red for destructive actions */
+.btn-danger {
+  background: var(--gradient-danger);
+  color: white;
+  box-shadow: var(--shadow-md), 0 0 20px rgba(244, 63, 94, 0.2);
+}
+
+.btn-danger:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg), var(--glow-danger);
+}
+
+.btn-danger:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Success button — green for confirmations */
+.btn-success {
+  background: var(--gradient-success);
+  color: white;
+  box-shadow: var(--shadow-md), 0 0 20px rgba(16, 185, 129, 0.2);
+}
+
+.btn-success:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg), var(--glow-success);
+}
+
+/* Large button variant — for main quiz actions */
+.btn-lg {
+  padding: var(--space-4) var(--space-8);
+  min-height: 56px;
+  font-size: var(--font-size-lg);
+  border-radius: var(--radius-xl);
+}
+
+/* Small button variant */
+.btn-sm {
+  padding: var(--space-2) var(--space-4);
+  min-height: 36px;
+  font-size: var(--font-size-sm);
+  border-radius: var(--radius-md);
+}
+
+/* Icon-only button (square) */
+.btn-icon {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+/* ==========================================================================
+   CARDS
+   ==========================================================================
+   Glass-effect cards with subtle borders and hover effects.
+   Used for content items, info panels, and rule cards. */
+
+.card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  transition: all var(--transition-normal);
+}
+
+/* Hover lift effect — card rises up slightly */
+.card:hover {
+  background: var(--glass-bg-hover);
+  border-color: var(--glass-border-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* Clickable card variant (cursor indicates interactivity) */
+.card-interactive {
+  cursor: pointer;
+}
+
+.card-interactive:active {
+  transform: translateY(0) scale(0.98);
+}
+
+
+/* ==========================================================================
+   BADGES
+   ==========================================================================
+   Small indicator labels, primarily for "NEW" content markers. */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  line-height: 1.4;
+}
+
+/* "NEW" badge — green with pulse animation to catch the eye */
+.badge-new {
+  background: var(--color-success);
+  color: white;
+  animation: badgePulse 2s ease-in-out infinite;
+  font-size: 10px;
+  padding: 1px 6px;
+}
+
+/* Pulsing glow animation for the NEW badge */
+@keyframes badgePulse {
+  0%, 100% {
+    box-shadow: 0 0 4px rgba(16, 185, 129, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
+  }
+}
+
+
+/* ==========================================================================
+   CATEGORY TABS
+   ==========================================================================
+   Horizontal scrolling pills for media categories (e.g., "ALS", "BLS"). */
+
+.category-tabs {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  overflow-x: auto;
+  flex-shrink: 0;
+  /* Hide scrollbar but keep scrolling */
+  scrollbar-width: none;
+}
+
+.category-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+/* Individual category pill */
+.category-tab {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.category-tab:hover {
+  background: var(--glass-bg-hover);
+  color: var(--text-primary);
+  border-color: var(--glass-border-hover);
+}
+
+/* Active category — filled with accent color */
+.category-tab.active {
+  background: var(--accent-primary);
+  color: white;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
+}
+
+
+/* ==========================================================================
+   VIRTUAL KEYBOARD
+   ==========================================================================
+   On-screen keyboard for entering player names after a quiz.
+   Large keys for kiosk touch interaction. */
+
+.virtual-keyboard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+/* Each row of keys */
+.vk-row {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+/* Individual key button */
+.vk-key {
+  min-width: 44px;
+  min-height: 52px;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  background: var(--bg-quaternary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vk-key:hover {
+  background: var(--bg-elevated);
+  border-color: var(--accent-primary);
+  transform: translateY(-1px);
+}
+
+.vk-key:active {
+  transform: translateY(0) scale(0.95);
+  background: var(--accent-primary);
+}
+
+/* Space bar — wider key */
+.vk-key-space {
+  min-width: 200px;
+  flex: 1;
+  max-width: 280px;
+}
+
+/* Backspace key */
+.vk-key-backspace {
+  min-width: 80px;
+  background: var(--bg-elevated);
+}
+
+/* Submit key — green accent */
+.vk-key-submit {
+  min-width: 100px;
+  background: var(--color-success);
+  color: white;
+  font-weight: var(--font-weight-bold);
+}
+
+.vk-key-submit:hover {
+  background: var(--color-success-light);
+  border-color: var(--color-success);
+}
+
+/* Name input display above keyboard */
+.vk-input-display {
+  text-align: center;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  padding: var(--space-3) var(--space-6);
+  background: var(--bg-tertiary);
+  border: 2px solid var(--accent-primary);
+  border-radius: var(--radius-lg);
+  min-height: 56px;
+  margin-bottom: var(--space-3);
+  letter-spacing: 0.1em;
+  box-shadow: var(--glow-primary);
+}
+
+/* Blinking cursor in input */
+.vk-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.2em;
+  background: var(--accent-primary);
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: cursorBlink 1s steps(1) infinite;
+}
+
+@keyframes cursorBlink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+
+/* ==========================================================================
+   MODAL
+   ==========================================================================
+   Centered overlay for dialogs, confirmations, and alerts. */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-modal);
+  animation: fadeIn 200ms ease-out;
+}
+
+.modal {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8);
+  max-width: 500px;
+  width: 90%;
+  animation: modalSlideUp 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modal-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--space-4);
+}
+
+.modal-body {
+  color: var(--text-secondary);
+  margin-bottom: var(--space-6);
+}
+
+.modal-actions {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: flex-end;
+}
+
+
+/* ==========================================================================
+   ADMIN PANEL
+   ==========================================================================
+   Small floating button and slide-out panel in bottom-right corner.
+   Used for system updates and score resets. */
+
+.admin-container {
+  position: fixed;
+  bottom: var(--space-4);
+  right: var(--space-4);
+  z-index: var(--z-admin);
+}
+
+/* Small gear button */
+.admin-btn {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  opacity: 0.5;
+}
+
+.admin-btn:hover {
+  opacity: 1;
+  color: var(--text-secondary);
+  border-color: var(--glass-border-hover);
+}
+
+/* Slide-out admin popup */
+.admin-popup {
+  position: absolute;
+  bottom: calc(100% + var(--space-2));
+  right: 0;
+  width: 260px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  animation: slideUp 200ms ease-out;
+}
+
+.admin-popup.hidden {
+  display: none;
+}
+
+.admin-popup .btn {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+
+/* ==========================================================================
+   VOLUME CONTROL
+   ==========================================================================
+   Custom range slider that matches the dark theme. */
+
+.volume-control {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+}
+
+.volume-control svg {
+  width: 18px;
+  height: 18px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+/* Custom range input */
+.volume-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  background: var(--bg-quaternary);
+  border-radius: var(--radius-full);
+  outline: none;
+  cursor: pointer;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: var(--accent-primary);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(99, 102, 241, 0.4);
+  transition: transform var(--transition-fast);
+}
+
+.volume-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.volume-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: var(--accent-primary);
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+}
+
+
+/* ==========================================================================
+   VIEW COUNTER
+   ==========================================================================
+   Shows total content views in the sidebar footer. */
+
+.view-counter {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+}
+
+.view-counter svg {
+  width: 16px;
+  height: 16px;
+}
+
+.view-count-number {
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+}
+
+
+/* ==========================================================================
+   ANIMATION KEYFRAMES
+   ==========================================================================
+   Reusable animations used throughout the app. */
+
+/* Fade in from transparent */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Fade out to transparent */
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+/* Slide up from below */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Slide down from above */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Modal-specific slide up with spring effect */
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Pop in — scale up with bounce */
+@keyframes pop {
+  0%   { transform: scale(0.5); opacity: 0; }
+  70%  { transform: scale(1.1); }
+  100% { transform: scale(1);   opacity: 1; }
+}
+
+/* Shake left-right — for wrong answers */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+
+/* Gentle pulse — for attention-grabbing elements */
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+/* Continuous glow — for active/important elements */
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(99, 102, 241, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.6); }
+}
+
+/* Rotate continuously — for loading spinners */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Float up and fade — for +score animations */
+@keyframes floatUp {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-60px) scale(1.2);
+  }
+}
+
+/* Bounce in from scale 0 */
+@keyframes bounceIn {
+  0%   { transform: scale(0);   opacity: 0; }
+  50%  { transform: scale(1.15); }
+  70%  { transform: scale(0.95); }
+  100% { transform: scale(1);   opacity: 1; }
+}
+
+/* Rainbow hue rotation for PARAGOD streak */
+@keyframes rainbowShift {
+  0%   { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
+}
+
+/* Countdown number pop-and-disappear */
+@keyframes countdownPop {
+  0%   { transform: scale(0.3); opacity: 0; }
+  30%  { transform: scale(1.2); opacity: 1; }
+  80%  { transform: scale(1);   opacity: 1; }
+  100% { transform: scale(0.8); opacity: 0; }
+}
+
+/* Progress bar fill animation */
+@keyframes fillUp {
+  from { height: 0%; }
+  to   { height: 100%; }
+}
+
+/* Shimmer loading effect */
+@keyframes shimmer {
+  0%   { background-position: -200px 0; }
+  100% { background-position: 200px 0; }
+}
