@@ -50,12 +50,12 @@ export async function loadSkills(category) {
     btn.className = 'skill-btn';
     btn.innerHTML = `
       <div class="skill-logo">
-        <img src="/api/media/file/${category}/${skill.id}/${skill.logo}" alt="${skill.name}" onerror="this.style.display='none'">
+        <img src="/api/media/file/${encodeURIComponent(category)}/${encodeURIComponent(skill.name)}/${encodeURIComponent(skill.logo)}" alt="${skill.name}" onerror="this.style.display='none'">
       </div>
       <span class="skill-name">${skill.name}</span>
       ${skill.is_new ? '<span class="badge-new">NEW</span>' : ''}
     `;
-    btn.onclick = () => selectSkill(skill.id, skill.name);
+    btn.onclick = () => selectSkill(skill.name, skill.name);
     container.appendChild(btn);
     focusables.push(btn);
   });
