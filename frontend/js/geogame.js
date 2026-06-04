@@ -226,12 +226,24 @@ function createLockIcon(color) {
   const group = document.createElementNS(svgNS, "g");
   group.style.display = 'none';
   
+  // Background circle (dark translucent)
+  const bg = document.createElementNS(svgNS, "circle");
+  bg.setAttribute("r", "20");
+  bg.setAttribute("fill", "rgba(0,0,0,0.6)");
+  group.appendChild(bg);
+  
+  // The wipe path (pie slice)
+  const path = document.createElementNS(svgNS, "path");
+  path.setAttribute("fill", color || "white");
+  path.classList.add('wipe-path'); // to query it later
+  group.appendChild(path);
+  
   const textLabel = document.createElementNS(svgNS, "text");
   textLabel.setAttribute("font-size", "14");
   textLabel.setAttribute("font-weight", "bold");
   textLabel.setAttribute("text-anchor", "middle");
   textLabel.setAttribute("dominant-baseline", "central");
-  textLabel.setAttribute("fill", color || "white");
+  textLabel.setAttribute("fill", "white");
   textLabel.setAttribute("y", "0");
   textLabel.textContent = "Wild Guess!";
   textLabel.style.textShadow = "1px 1px 2px black, -1px -1px 2px black";
@@ -436,6 +448,24 @@ function pollGamepadsForReticles() {
   }
 
   // Render Reticles
+  // Helper to calculate SVG pie slice path
+  const describeArc = (x, y, radius, startAngle, endAngle) => {
+      const polarToCartesian = (cx, cy, r, angleInDegrees) => {
+        const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
+        return { x: cx + (r * Math.cos(angleInRadians)), y: cy + (r * Math.sin(angleInRadians)) };
+      };
+      
+      const start = polarToCartesian(x, y, radius, endAngle);
+      const end = polarToCartesian(x, y, radius, startAngle);
+      const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+      return [
+          "M", x, y,
+          "L", start.x, start.y,
+          "A", radius, radius, 0, largeArcFlag, 0, end.x, end.y,
+          "Z"
+      ].join(" ");
+  };
+
   const renderFeedback = (pos, lockedUntil, lockMsg, feedbackIcon, reticle, hasGuessed, eliminated) => {
      if (eliminated || hasGuessed) {
         if (reticle) reticle.style.display = 'none';
@@ -450,11 +480,24 @@ function pollGamepadsForReticles() {
            feedbackIcon.setAttribute('transform', `translate(${pos.x}, ${pos.y})`);
            
            const txt = feedbackIcon.querySelector('text');
+           const path = feedbackIcon.querySelector('path');
+           const bg = feedbackIcon.querySelector('circle');
+           
            if (lockMsg === "COUNTDOWN") {
-              const secsLeft = Math.ceil((lockedUntil - now) / 1000);
+              if (bg) bg.style.display = 'inline';
+              if (path) path.style.display = 'inline';
+              const remainingMs = lockedUntil - now;
+              const secsLeft = Math.ceil(remainingMs / 1000);
               txt.textContent = secsLeft.toString();
-              txt.setAttribute('font-size', '36');
+              txt.setAttribute('font-size', '20');
+              
+              // Draw the circular wipe
+              const progress = Math.max(0, Math.min(1, remainingMs / 3000));
+              const angle = progress * 360;
+              if (path) path.setAttribute('d', describeArc(0, 0, 20, 0, angle));
            } else {
+              if (bg) bg.style.display = 'none';
+              if (path) path.style.display = 'none';
               txt.textContent = lockMsg;
               txt.setAttribute('font-size', '14');
            }
@@ -518,21 +561,24 @@ function handleGamepadButton(e) {
           document.getElementById('geogame-status-text').textContent = `🎯 Player ${isP1 ? 1 : 2} Direct Hit! (${(dist*1000).toFixed(0)}m)`;
           revealTarget(isP1 ? pts : 0, isP1 ? 0 : pts, `Player ${isP1 ? 1 : 2}`);
        } else {
-          if (currentZoom === 0) {
+          if (currentZoom < 2) {
              // Near Miss -> Zoom and let the other player steal!
              clearInterval(timerInterval);
              document.getElementById('geogame-status-text').textContent = `Player ${isP1 ? 1 : 2} is ${(dist*1000).toFixed(0)}m away. Zooming in for STEAL!`;
              // Don't eliminate yet! Give them a countdown lock!
              if (isP1) p1Eliminated = false; else p2Eliminated = false;
-             drawGuessMarker(pos.x, pos.y, isP1 ? "#3b82f6" : "#ef4444");
+             const tempPin = drawGuessMarker(pos.x, pos.y, isP1 ? "#3b82f6" : "#ef4444"); // Bright initial pin
              
              setTimeout(() => {
                 const targetPt = latLonToXY(target.lat, target.lon);
                 const center = zoomMapToBounds(pos.x, pos.y, targetPt.x, targetPt.y);
-                currentZoom = 1;
+                currentZoom++;
                 currentState = 'GUESSING';
-                clearPins();
-                drawGuessMarker(pos.x, pos.y, isP1 ? "#3b82f6" : "#ef4444");
+                
+                // Instead of clearPins, remove the bright temp pin, and add a persistent dark one
+                if (tempPin && tempPin.parentNode) tempPin.parentNode.removeChild(tempPin);
+                const ghostPin = drawGuessMarker(pos.x, pos.y, isP1 ? "#1e3a8a" : "#7f1d1d");
+                if (ghostPin) ghostPin.style.opacity = '0.5';
                 
                 // Teleport BOTH players into the zoomed area!
                 p1Pos.x = center.x; p1Pos.y = center.y;
@@ -615,17 +661,22 @@ function evaluateGuesses() {
       const pts = calculatePoints(p1Dist);
       document.getElementById('geogame-status-text').textContent = `🎯 Direct Hit! +${pts} pts (${(p1Dist * 1000).toFixed(0)}m)`;
       revealTarget(pts, 0, 'Player 1');
-    } else if (p1Dist < 4.0 && currentZoom === 0) {
+    } else if (p1Dist < 4.0 && currentZoom < 2) {
       document.getElementById('geogame-status-text').textContent = `Near Miss (${p1Dist.toFixed(1)}km). Zooming in...`;
       const pts = calculatePoints(p1Dist);
+      const tempPin = drawGuessMarker(p1Guess.x, p1Guess.y, "#3b82f6");
       setTimeout(() => {
         const targetPt = latLonToXY(target.lat, target.lon);
         const center = zoomMapToBounds(p1Guess.x, p1Guess.y, targetPt.x, targetPt.y);
         p1Pos.x = center.x; p1Pos.y = center.y; // Teleport
-        currentZoom = 1;
+        
+        if (tempPin && tempPin.parentNode) tempPin.parentNode.removeChild(tempPin);
+        const ghostPin = drawGuessMarker(p1Guess.x, p1Guess.y, "#1e3a8a");
+        if (ghostPin) ghostPin.style.opacity = '0.5';
+        
+        currentZoom++;
         currentState = 'GUESSING';
         p1HasGuessed = false; // reset
-        clearPins();
         document.getElementById('geogame-status-text').textContent = `Try again! Worth ${pts} pts`;
         startTimer(10);
         if (inputMode === 'gamepad') {
@@ -759,7 +810,7 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 }
 
 function drawGuessMarker(x, y, color = "#ef4444") {
-  if (!mapSvg) return;
+  if (!mapSvg) return null;
   const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
   group.classList.add('game-pin');
   
@@ -777,6 +828,7 @@ function drawGuessMarker(x, y, color = "#ef4444") {
   group.appendChild(v);
   
   mapSvg.appendChild(group);
+  return group;
 }
 
 function clearPins() {
@@ -801,7 +853,7 @@ function zoomMapToBounds(x1, y1, x2, y2) {
   
   const w = maxX - minX;
   const h = maxY - minY;
-  const scale = Math.min(MAP_WIDTH / w, MAP_HEIGHT / h, 6.0);
+  const scale = Math.min(MAP_WIDTH / w, MAP_HEIGHT / h, 20.0);
   
   const centerX = (minX + maxX) / 2;
   const centerY = (minY + maxY) / 2;
