@@ -5,13 +5,14 @@
 set -e
 
 # Ensure we always reboot on exit
-trap '/sbin/reboot' EXIT TERM INT
+trap '/sbin/reboot' EXIT
+trap 'exit 1' TERM INT
 
 # Remove the update flag file
 rm -f /tmp/trainingkiosk_update
 
 # Change to the project root directory
-PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." >/dev/null 2>&1 && pwd)"
+PROJECT_DIR="${PROJECT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." >/dev/null 2>&1 && pwd)}"
 cd "$PROJECT_DIR" || exit 1
 
 # Determine the owner of the project directory to run git/pip as that user

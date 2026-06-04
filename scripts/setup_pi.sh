@@ -59,8 +59,10 @@ sudo systemctl enable trainingkiosk.service
 # 4.5. Create the systemd updater path and service
 echo "Creating systemd units for the updater..."
 
-# Ensure the update script is executable
-chmod +x "$PROJECT_DIR/scripts/update.sh"
+# Ensure the update script is executable and secure from LPE
+sudo cp "$PROJECT_DIR/scripts/update.sh" /usr/local/bin/trainingkiosk-update
+sudo chown root:root /usr/local/bin/trainingkiosk-update
+sudo chmod +x /usr/local/bin/trainingkiosk-update
 
 UPDATER_SERVICE_FILE="/tmp/trainingkiosk-updater.service"
 UPDATER_PATH_FILE="/tmp/trainingkiosk-updater.path"
@@ -71,7 +73,8 @@ Description=TrainingKiosk Updater Service
 
 [Service]
 Type=oneshot
-ExecStart=$PROJECT_DIR/scripts/update.sh
+Environment="PROJECT_DIR=$PROJECT_DIR"
+ExecStart=/usr/local/bin/trainingkiosk-update
 User=root
 EOF
 
