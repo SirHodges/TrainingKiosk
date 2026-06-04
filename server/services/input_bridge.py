@@ -24,20 +24,21 @@ def setup_input_bridge(socketio, gamepad_handler):
     gamepad_handler.set_callback(handle_gamepad_event)
     
     # 2. Handle commands coming FROM the Browser TO the Backend
-    @socketio.on('start_gamepad_binding')
-    def handle_start_binding():
+    @socketio.on('start_binding')
+    def handle_start_binding(data=None):
         """Frontend is telling us a game is about to start, get ready."""
-        # For now, binding happens automatically on first button press,
-        # but we could add logic here to explicitly enter a "binding mode".
-        pass
+        # Clear all existing sessions so players must re-bind
+        for p_id in list(gamepad_handler.sessions.keys()):
+            gamepad_handler.sessions[p_id] = None
+            socketio.emit('binding_status', {'player': p_id, 'bound': False})
 
-    @socketio.on('end_gamepad_session')
-    def handle_end_session(data):
+    @socketio.on('end_session')
+    def handle_end_session(data=None):
         """
         Frontend is telling us the game is over.
         We free up the player slots so new controllers can join next time.
         """
-        player = data.get('player')
+        player = data.get('player') if data else None
         
         # Iterate over a copy of items to avoid dictionary changed size during iteration
         for p_id, path in list(gamepad_handler.sessions.items()):
