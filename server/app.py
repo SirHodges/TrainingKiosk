@@ -25,13 +25,14 @@ except ImportError:
 
 # Import our settings and database tools
 from server.config import BASE_DIR
-from server.database import init_db, import_questions, get_db
+from server.database import init_db, import_questions, import_geogame_locations, get_db
 
 # Import the different sections (blueprints) of our website
 from server.routes.media import media_bp
 from server.routes.quiz import quiz_bp
 from server.routes.leaderboard import leaderboard_bp
 from server.routes.system import system_bp
+from server.routes.geogame import geogame_bp
 
 def create_app():
     """
@@ -51,6 +52,7 @@ def create_app():
     app.register_blueprint(quiz_bp, url_prefix='/api/quiz')
     app.register_blueprint(leaderboard_bp, url_prefix='/api/leaderboard')
     app.register_blueprint(system_bp, url_prefix='/api/system')
+    app.register_blueprint(geogame_bp, url_prefix='/api/geogame')
 
     # Add a route to serve the main HTML page
     @app.route('/')
@@ -70,6 +72,11 @@ def create_app():
             count = db.execute("SELECT COUNT(*) FROM questions").fetchone()[0]
             if count == 0:
                 import_questions()
+            
+            # Seed the geogame_locations table
+            geogame_count = db.execute("SELECT COUNT(*) FROM geogame_locations").fetchone()[0]
+            if geogame_count == 0:
+                import_geogame_locations()
 
     return app
 

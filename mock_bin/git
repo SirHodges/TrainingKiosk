@@ -1,0 +1,4 @@
+#!/bin/bash
+echo "MOCK_GIT_CALLED: $*"
+sleep 5
+exit 0

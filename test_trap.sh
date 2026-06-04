@@ -1,4 +1,3 @@
-trap 'echo TRAPPED' EXIT
-kill -TERM 
-sleep 5
-echo FINISHED
+set -e
+trap 'true' EXIT
+false

@@ -1,0 +1,5 @@
+Updating TrainingKiosk from repository...
+MOCK_GIT_CALLED: fetch origin
+MOCK_GIT_CALLED: reset --hard origin/main
+/c/Users/sirho/Desktop/Kiosk v2/trainingkiosk/mock_bin/sudo: line 8: sirho: command not found
+scripts/update.sh: line 1: /sbin/reboot: No such file or directory

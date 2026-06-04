@@ -8,9 +8,9 @@
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
-| 1 | Update Script | Bash script for update and reboot | none | PLANNED |
-| 2 | Systemd Service & Sudoers | Systemd service definition and necessary system configuration | M1 | PLANNED |
-| 3 | Flask Web API Integration | Python endpoint `/api/system/update` triggering the service | M2 | PLANNED |
+| 1 | Update Script | Bash script for update and reboot | none | DONE |
+| 2 | Systemd Service & Sudoers | Systemd service definition and necessary system configuration | M1 | DONE |
+| 3 | Flask Web API Integration | Python endpoint `/api/system/update` triggering the service | M2 | DONE |
 
 ## Interface Contracts
 ### Web API ↔ Systemd

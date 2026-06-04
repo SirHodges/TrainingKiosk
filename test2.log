@@ -1,0 +1,4 @@
+Updating TrainingKiosk from repository...
+MOCK_GIT_CALLED: fetch origin
+Failing git intentionally
+scripts/update.sh: line 1: /sbin/reboot: No such file or directory

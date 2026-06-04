@@ -1,0 +1,8 @@
+#!/bin/bash
+shift # remove -u
+shift # remove user
+if [ "$1" = "-H" ]; then
+    shift
+    shift
+fi
+"$@"

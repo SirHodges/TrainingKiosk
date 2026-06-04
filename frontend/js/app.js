@@ -3,6 +3,7 @@
 import { loadCategories, loadSkills } from './media.js';
 import { initQuiz, resetQuiz } from './quiz.js';
 import { loadLeaderboard } from './leaderboard.js';
+import { initGeoGame, startGeoGame } from './geogame.js';
 import { initGamepad } from './gamepad.js';
 import { triggerUpdate, clearLeaderboard } from './api.js';
 import { clearFocusables } from './navigation.js';
@@ -34,8 +35,11 @@ document.addEventListener('DOMContentLoaded', () => {
   loadCategories();
   loadLeaderboard('quiz-sidebar');
   
-  // Init gamepad client
+  // Init Gamepad
   initGamepad();
+  
+  // Init GeoGame
+  initGeoGame();
   
   // Init Admin panel
   initAdmin();
@@ -189,6 +193,8 @@ export function switchMode(mode) {
   if (mode === 'quiz') {
     initQuiz();
     loadLeaderboard('quiz-sidebar');
+  } else if (mode === 'geogame') {
+    startGeoGame();
   } else if (mode === 'skillplayer') {
     // Media navigation re-init handled by media.js
   }

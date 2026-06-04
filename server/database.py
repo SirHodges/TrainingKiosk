@@ -101,7 +101,66 @@ def init_db():
             )
         ''')
         
+        # Ottawa GeoGame Tables
+        db.execute('''
+            CREATE TABLE IF NOT EXISTS geogame_locations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                location_name TEXT UNIQUE,
+                lat REAL,
+                lon REAL,
+                point_value INTEGER,
+                category TEXT,
+                zone TEXT,
+                hint TEXT,
+                active BOOLEAN DEFAULT TRUE
+            )
+        ''')
+        
+        db.execute('''
+            CREATE TABLE IF NOT EXISTS geogame_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                location_name TEXT,
+                played_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                winner TEXT,
+                points_awarded INTEGER,
+                zoom_level INTEGER,
+                FOREIGN KEY(location_name) REFERENCES geogame_locations(location_name)
+            )
+        ''')
+        
         db.commit()
+
+def import_geogame_locations():
+    """
+    Seeds the geogame_locations table from ottawa_locations.json if available.
+    """
+    locations_file = BASE_DIR / "server" / "ottawa_locations.json"
+    if not locations_file.exists():
+        return
+
+    try:
+        with open(locations_file, 'r', encoding='utf-8') as f:
+            locations = json.load(f)
+            
+        with get_db() as db:
+            for loc in locations:
+                db.execute('''
+                    INSERT OR IGNORE INTO geogame_locations 
+                    (location_name, lat, lon, point_value, category, zone, hint, active)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (
+                    loc.get('location_name'),
+                    loc.get('lat'),
+                    loc.get('lon'),
+                    loc.get('point_value', 10),
+                    loc.get('category', 'General'),
+                    loc.get('zone', 'Central'),
+                    loc.get('hint', ''),
+                    loc.get('active', True)
+                ))
+            db.commit()
+    except Exception as e:
+        print(f"Error importing GeoGame locations: {e}")
 
 def import_questions():
     """

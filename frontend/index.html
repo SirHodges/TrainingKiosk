@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="/frontend/css/media.css?v=6">
   <link rel="stylesheet" href="/frontend/css/quiz.css?v=6">
   <link rel="stylesheet" href="/frontend/css/leaderboard.css?v=6">
+  <link rel="stylesheet" href="/frontend/css/geogame.css?v=6">
 </head>
 <body>
   <div class="app-container">
@@ -23,7 +24,11 @@
       </button>
       <button class="app-mode-tab" data-mode="quiz">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-        Quiz Challenge
+        QuizChallenge
+      </button>
+      <button class="app-mode-tab" data-mode="geogame">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line></svg>
+        Ottawa GeoGame
       </button>
     </div>
     
@@ -192,6 +197,36 @@
         </div>
       </main>
     </div>
+
+    <!-- GeoGame Mode Container -->
+    <div id="geogame-mode" class="app-view hidden">
+      <div class="geogame-container">
+        <!-- Map and Game UI will be rendered here by geogame.js -->
+        <div id="geogame-ui-top" class="geogame-overlay">
+          <h2 id="geogame-location-display">Loading locations...</h2>
+          <div id="geogame-score-display">Score: <span id="geogame-score">0</span></div>
+          <div id="geogame-round-display">Round: <span id="geogame-round">1/5</span></div>
+        </div>
+        
+        <div id="geogame-map-container">
+          <!-- The SVG map will be injected here -->
+        </div>
+
+        <div id="geogame-ui-bottom" class="geogame-overlay">
+          <div id="geogame-timer-bar" class="timer-bar"><div class="timer-fill"></div></div>
+          <p id="geogame-status-text" class="status-text">Click the map to guess the location!</p>
+        </div>
+        
+        <!-- Game Over Modal -->
+        <div id="geogame-end-modal" class="modal hidden">
+          <div class="modal-content">
+            <h2>Game Over</h2>
+            <p>Final Score: <span id="geogame-final-score">0</span></p>
+            <button id="btn-geogame-restart" class="btn-primary">Play Again</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
   
   <!-- Admin Panel -->
@@ -236,6 +271,8 @@
   </script>
   
   <!-- App modules -->
-  <script type="module" src="/frontend/js/app.js?v=2"></script>
+  <script type="module" src="/frontend/js/leaderboard.js"></script>
+  <script type="module" src="/frontend/js/geogame.js"></script>
+  <script type="module" src="/frontend/js/app.js"></script>
 </body>
 </html>

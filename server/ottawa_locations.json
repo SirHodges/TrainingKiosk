@@ -1,0 +1,212 @@
+[
+  {
+    "location_name": "The Ottawa Hospital - Civic Campus",
+    "lat": 45.3892,
+    "lon": -75.7224,
+    "point_value": 10,
+    "category": "Hospital",
+    "zone": "Central",
+    "hint": "Major trauma centre on Carling Ave",
+    "active": true
+  },
+  {
+    "location_name": "The Ottawa Hospital - General Campus",
+    "lat": 45.4022,
+    "lon": -75.6515,
+    "point_value": 10,
+    "category": "Hospital",
+    "zone": "East",
+    "hint": "Located on Smyth Road",
+    "active": true
+  },
+  {
+    "location_name": "Children's Hospital of Eastern Ontario (CHEO)",
+    "lat": 45.4011,
+    "lon": -75.6496,
+    "point_value": 15,
+    "category": "Hospital",
+    "zone": "East",
+    "hint": "Pediatric health and research center",
+    "active": true
+  },
+  {
+    "location_name": "Queensway Carleton Hospital",
+    "lat": 45.3332,
+    "lon": -75.7951,
+    "point_value": 10,
+    "category": "Hospital",
+    "zone": "West",
+    "hint": "Serving the west end of Ottawa",
+    "active": true
+  },
+  {
+    "location_name": "Montfort Hospital",
+    "lat": 45.4452,
+    "lon": -75.6385,
+    "point_value": 10,
+    "category": "Hospital",
+    "zone": "East",
+    "hint": "Francophone academic hospital",
+    "active": true
+  },
+  {
+    "location_name": "Royal Ottawa Mental Health Centre",
+    "lat": 45.3857,
+    "lon": -75.7314,
+    "point_value": 10,
+    "category": "Hospital",
+    "zone": "Central",
+    "hint": "Located on Carling Ave",
+    "active": true
+  },
+  {
+    "location_name": "Ottawa Paramedic Service Headquarters",
+    "lat": 45.3813,
+    "lon": -75.6322,
+    "point_value": 20,
+    "category": "Paramedic Station",
+    "zone": "South",
+    "hint": "Located on Don Reid Drive",
+    "active": true
+  },
+  {
+    "location_name": "Gladstone Paramedic Station",
+    "lat": 45.4093,
+    "lon": -75.7061,
+    "point_value": 15,
+    "category": "Paramedic Station",
+    "zone": "Central",
+    "hint": "Located at 738 Gladstone Ave",
+    "active": true
+  },
+  {
+    "location_name": "The Ottawa Mission",
+    "lat": 45.4261,
+    "lon": -75.6885,
+    "point_value": 5,
+    "category": "Shelter",
+    "zone": "Central",
+    "hint": "Located on Waller Street near the ByWard Market",
+    "active": true
+  },
+  {
+    "location_name": "Shepherds of Good Hope",
+    "lat": 45.4316,
+    "lon": -75.6881,
+    "point_value": 5,
+    "category": "Shelter",
+    "zone": "Central",
+    "hint": "Large shelter on King Edward Ave",
+    "active": true
+  },
+  {
+    "location_name": "Cornerstone Housing for Women",
+    "lat": 45.4005,
+    "lon": -75.7077,
+    "point_value": 5,
+    "category": "Shelter",
+    "zone": "Central",
+    "hint": "Located on Booth Street",
+    "active": true
+  },
+  {
+    "location_name": "Salvation Army Ottawa Booth Centre",
+    "lat": 45.4294,
+    "lon": -75.6879,
+    "point_value": 5,
+    "category": "Shelter",
+    "zone": "Central",
+    "hint": "Located on George Street in the ByWard Market",
+    "active": true
+  },
+  {
+    "location_name": "Parliament Hill",
+    "lat": 45.4236,
+    "lon": -75.7009,
+    "point_value": 5,
+    "category": "Landmark",
+    "zone": "Central",
+    "hint": "Seat of Canada's federal government",
+    "active": true
+  },
+  {
+    "location_name": "National Gallery of Canada",
+    "lat": 45.4295,
+    "lon": -75.6989,
+    "point_value": 5,
+    "category": "Landmark",
+    "zone": "Central",
+    "hint": "Features the giant Maman spider sculpture outside",
+    "active": true
+  },
+  {
+    "location_name": "Canadian Museum of Nature",
+    "lat": 45.4132,
+    "lon": -75.6881,
+    "point_value": 5,
+    "category": "Landmark",
+    "zone": "Central",
+    "hint": "Housed in the Victoria Memorial Museum Building",
+    "active": true
+  },
+  {
+    "location_name": "Canadian War Museum",
+    "lat": 45.4171,
+    "lon": -75.7169,
+    "point_value": 5,
+    "category": "Landmark",
+    "zone": "Central",
+    "hint": "Located on LeBreton Flats",
+    "active": true
+  },
+  {
+    "location_name": "Rideau Hall",
+    "lat": 45.4435,
+    "lon": -75.6855,
+    "point_value": 5,
+    "category": "Landmark",
+    "zone": "East",
+    "hint": "Official residence of the Governor General",
+    "active": true
+  },
+  {
+    "location_name": "Lansdowne Park",
+    "lat": 45.3985,
+    "lon": -75.6835,
+    "point_value": 5,
+    "category": "Landmark",
+    "zone": "Central",
+    "hint": "Home to TD Place Stadium",
+    "active": true
+  },
+  {
+    "location_name": "ByWard Market Building",
+    "lat": 45.4276,
+    "lon": -75.6924,
+    "point_value": 5,
+    "category": "Landmark",
+    "zone": "Central",
+    "hint": "Historic public market in Lower Town",
+    "active": true
+  },
+  {
+    "location_name": "National Arts Centre",
+    "lat": 45.4234,
+    "lon": -75.6930,
+    "point_value": 5,
+    "category": "Landmark",
+    "zone": "Central",
+    "hint": "Major performing arts venue near the Rideau Canal",
+    "active": true
+  },
+  {
+    "location_name": "Supreme Court of Canada",
+    "lat": 45.4221,
+    "lon": -75.7056,
+    "point_value": 5,
+    "category": "Landmark",
+    "zone": "Central",
+    "hint": "Highest court in Canada, west of Parliament Hill",
+    "active": true
+  }
+]

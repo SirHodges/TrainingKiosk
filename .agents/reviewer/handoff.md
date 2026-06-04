@@ -1,42 +1,59 @@
-## Review Summary
+# Handoff Report
 
-**Verdict**: REQUEST_CHANGES
+## Observation
+I examined the `scripts/update.sh` file, which was modified to fix an issue where the script continued running after receiving `TERM` or `INT` signals. The implemented fix is:
 
-## Findings
+```bash
+do_reboot() {
+    /sbin/reboot
+    exit 0
+}
+trap 'do_reboot' EXIT TERM INT
+```
 
-### [Critical] Bash Safety Violation (Shell Injection) in `update.sh`
-- **Where**: `scripts/update.sh` line 25
-- **What**: `sudo -u "$APP_USER" bash -c "\"$PROJECT_DIR/venv/bin/pip\" install -r requirements.txt"`
-- **Why**: Passing interpolated strings containing file paths to an inner `bash -c` introduces a shell evaluation vulnerability. If `PROJECT_DIR` contains characters like `$`, they are improperly evaluated by the inner shell (e.g. `/path/to/my$dir` becomes `/path/to/my/venv/bin/pip`).
-- **Suggestion**: Bypass `bash -c` entirely and run directly: `sudo -u "$APP_USER" "$PROJECT_DIR/venv/bin/pip" install -r requirements.txt`
+## Logic Chain
+While the addition of `exit 0` prevents the script from continuing after a signal, it introduces two new robustness/correctness issues:
 
-### [Critical] Path Unit Trigger Reliability (`PathModified=`)
-- **Where**: `scripts/setup_pi.sh` line 79 (`PathModified=/tmp/trainingkiosk_update`) and `server/routes/system.py` line 61 (`update_flag.touch()`)
-- **What**: The script relies on `PathModified=` (which maps to `IN_MODIFY` or `IN_CLOSE_WRITE`) combined with python's `Path.touch()`. 
-- **Why**: While creating a non-existent file with `touch()` works, if the file already exists, `Path.touch()` in Python simply updates the file timestamps (`os.utime`). This generates an `IN_ATTRIB` inotify event. `PathModified=` ignores `IN_ATTRIB`, so the update will silently fail to trigger.
-- **Suggestion**: Use `PathExists=/tmp/trainingkiosk_update` in the systemd path unit. This perfectly matches the semantics of a flag file that gets removed by the triggered script.
+1. **Recursive Trap Execution (Double Reboot)**: Because `do_reboot` is trapped to both signals and `EXIT`, receiving a `TERM` or `INT` signal executes `do_reboot()`. Inside `do_reboot()`, `/sbin/reboot` runs, followed by `exit 0`. The `exit 0` command then triggers the `EXIT` trap, which calls `do_reboot()` *again*, resulting in `/sbin/reboot` being executed twice in rapid succession.
+2. **Exit Code Masking**: The script uses `set -e` so that it will fail if commands like `pip install` fail. However, because the `EXIT` trap triggers `do_reboot()`, and `do_reboot()` explicitly runs `exit 0`, any failure will result in the script exiting with status code 0. This masks the failure from systemd or whatever caller initiated the script, incorrectly signaling a successful update.
 
-### [Major] Pip Cache Permission Issue
-- **Where**: `scripts/update.sh` line 25
-- **What**: Running `pip` with `sudo -u "$APP_USER"` without the `-H` flag.
-- **Why**: Since `update.sh` runs under a root systemd service, the `$HOME` environment variable remains `/root`. `pip install` will attempt to use `/root/.cache/pip`, causing permission warnings/errors for `$APP_USER`.
-- **Suggestion**: Use the `-H` flag: `sudo -H -u "$APP_USER" "$PROJECT_DIR/venv/bin/pip" ...`
-
-### [Major] Missing Execution Permissions for `update.sh`
-- **Where**: `scripts/setup_pi.sh`
-- **What**: systemd `ExecStart=` requires an executable script, but the setup script does not explicitly `chmod +x` the target.
-- **Why**: If the repository loses the executable bit or is downloaded outside git, the updater unit will crash with `203/EXEC`.
-- **Suggestion**: Add `chmod +x "$PROJECT_DIR/scripts/update.sh"` in `setup_pi.sh` before defining the service.
-
-### [Minor] Missing `set -e` in `update.sh`
-- **Where**: `scripts/update.sh`
-- **What**: The script lacks `set -e` or failure checks.
-- **Why**: If `cd "$PROJECT_DIR"` fails (e.g., directory moved), the script will blindly execute `git reset` and `pip install` in the root directory, then execute the trap to reboot. 
-- **Suggestion**: Add `set -e` at the top of the script.
-
-## Verified Claims
-- **Reboot via trap**: `trap '/sbin/reboot' EXIT` reliably ensures a reboot executes even if intermediate commands fail or if the script receives a standard termination signal.
-- **Python Exception Handling**: `trigger_update()` correctly wraps the file operation in a `try/except` block returning a 500 status on failure.
+## Caveats
+- The double execution of `/sbin/reboot` may not cause a fatal crash on all systems (as the first call initiates shutdown), but it is sloppy and could lead to race conditions or confusing system logs.
+- The masking of the exit code might be ignored if the system is going down anyway, but it violates standard shell script semantics and interface conformance where a caller would expect a correct failure status.
 
 ## Conclusion
-While the structural implementation of the update mechanism is correct, there are critical Bash injection flaws and reliability issues with the systemd Path unit triggers. The code requires modifications before approval.
+**Verdict: Veto (REQUEST_CHANGES)**
+
+The current fix creates recursive trap execution and masks error codes. The implementation should separate the `EXIT` trap from the signal traps to avoid these issues. 
+
+A correct and robust implementation would be:
+```bash
+do_reboot() {
+    /sbin/reboot
+}
+# Only trap EXIT to do the reboot
+trap 'do_reboot' EXIT
+# Trap signals to exit immediately (which naturally triggers the EXIT trap)
+trap 'exit 1' TERM INT
+```
+This ensures `/sbin/reboot` runs exactly once and preserves the original exit code on failure.
+
+## Verification Method
+To verify the recursive execution:
+```bash
+#!/bin/bash
+do_reboot() { echo "rebooting"; exit 0; }
+trap 'do_reboot' EXIT TERM INT
+kill -TERM $$
+```
+Running this will print "rebooting" twice.
+
+To verify exit code masking:
+```bash
+#!/bin/bash
+set -e
+do_reboot() { echo "rebooting"; exit 0; }
+trap 'do_reboot' EXIT TERM INT
+false # simulate an error
+```
+Running this will return an exit code of 0 instead of 1.
