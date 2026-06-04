@@ -14,7 +14,7 @@ from contextlib import contextmanager
 from pathlib import Path
 
 # Import our settings to get the database path
-from server.config import DATABASE_PATH, QUESTIONS_FILE, DATA_DIR
+from server.config import DATABASE_PATH, QUESTIONS_FILE, DATA_DIR, BASE_DIR
 
 def get_db_connection():
     """
