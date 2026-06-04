@@ -19,6 +19,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 
 echo "Rebooting system..."
-sudo systemctl reboot --force
+# Use reboot directly to bypass systemd scheduling delays
+sudo /sbin/reboot -f || sudo reboot -f || sudo systemctl reboot --force
 
 echo "Update complete!"
