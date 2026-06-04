@@ -44,35 +44,10 @@ def health_check():
             'error': str(e)
         }), 500
 
-def _run_update_and_reboot():
-    """
-    Background thread that runs git pull, pip install, then reboots.
-    Runs in a separate thread so the HTTP response can return first.
-    """
-    try:
-        project_dir = str(BASE_DIR)
-        pip_path = os.path.join(project_dir, 'venv', 'bin', 'pip')
-        
-        # Git fetch and reset
-        subprocess.run(['git', 'fetch', 'origin'], cwd=project_dir, timeout=60)
-        subprocess.run(['git', 'reset', '--hard', 'origin/main'], cwd=project_dir, timeout=30)
-        
-        # Install deps using venv pip directly
-        subprocess.run([pip_path, 'install', '-r', 'requirements.txt'], cwd=project_dir, timeout=120)
-        
-        # Small delay to let things settle
-        time.sleep(2)
-        
-        # Reboot using os.system which directly invokes the shell
-        os.system('sudo /sbin/reboot -f')
-        
-    except Exception as e:
-        print(f"Update error: {e}")
-
 @system_bp.route('/update', methods=['POST'])
 def trigger_update():
     """
-    Initiates a software update: git pull, pip install, then reboot.
+    Initiates a software update: triggers systemd path unit to update and reboot.
     Only works on Linux (Raspberry Pi).
     """
     if sys.platform != "linux":
@@ -82,9 +57,8 @@ def trigger_update():
         }), 400
         
     try:
-        # Run update in a background thread so we can return the response immediately
-        thread = threading.Thread(target=_run_update_and_reboot, daemon=True)
-        thread.start()
+        update_flag = Path('/tmp/trainingkiosk_update')
+        update_flag.touch()
         
         return jsonify({
             'success': True,

@@ -218,12 +218,21 @@ function runCountdown() {
   const countEl = document.getElementById('countdown-number');
   let count = 3;
   countEl.textContent = count;
-  countEl.style.animation = 'popInOut 1s ease-in-out infinite';
+  
+  // Reset and trigger animation
+  countEl.style.animation = 'none';
+  void countEl.offsetWidth; // trigger reflow
+  countEl.style.animation = 'popInOut 1s ease-in-out forwards';
   
   const intv = setInterval(() => {
     count--;
     if (count > 0) {
       countEl.textContent = count;
+      
+      // Re-trigger animation in sync with number change
+      countEl.style.animation = 'none';
+      void countEl.offsetWidth;
+      countEl.style.animation = 'popInOut 1s ease-in-out forwards';
     } else if (count === 0) {
       clearInterval(intv);
       countEl.textContent = 'GO!';
@@ -479,13 +488,15 @@ function hideStreak() {
 }
 
 function showLockout(playerIdx) {
-  const overlay = document.getElementById('lock-overlay');
-  overlay.classList.add('active');
-  overlay.textContent = `PLAYER ${playerIdx + 1} LOCKED`;
-  overlay.style.color = playerIdx === 0 ? 'var(--player1-color)' : 'var(--player2-color)';
+  const containers = document.querySelectorAll('.player-score-container');
+  if (containers[playerIdx]) {
+    containers[playerIdx].classList.add('locked');
+  }
   
   setTimeout(() => {
-    overlay.classList.remove('active');
+    if (containers[playerIdx]) {
+      containers[playerIdx].classList.remove('locked');
+    }
     players[playerIdx].locked = false;
   }, 3000);
 }

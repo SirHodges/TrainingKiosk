@@ -56,6 +56,38 @@ sudo mv $SERVICE_FILE /etc/systemd/system/trainingkiosk.service
 sudo systemctl daemon-reload
 sudo systemctl enable trainingkiosk.service
 
+# 4.5. Create the systemd updater path and service
+echo "Creating systemd units for the updater..."
+UPDATER_SERVICE_FILE="/tmp/trainingkiosk-updater.service"
+UPDATER_PATH_FILE="/tmp/trainingkiosk-updater.path"
+
+cat << EOF > $UPDATER_SERVICE_FILE
+[Unit]
+Description=TrainingKiosk Updater Service
+
+[Service]
+Type=oneshot
+ExecStart=$PROJECT_DIR/scripts/update.sh
+User=root
+EOF
+
+cat << EOF > $UPDATER_PATH_FILE
+[Unit]
+Description=TrainingKiosk Updater Path Watcher
+
+[Path]
+PathModified=/tmp/trainingkiosk_update
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo mv $UPDATER_SERVICE_FILE /etc/systemd/system/trainingkiosk-updater.service
+sudo mv $UPDATER_PATH_FILE /etc/systemd/system/trainingkiosk-updater.path
+sudo systemctl daemon-reload
+sudo systemctl enable trainingkiosk-updater.path
+sudo systemctl start trainingkiosk-updater.path
+
 # 5. Configure Chromium Kiosk Autostart
 echo "Configuring Chromium to autostart in Kiosk mode..."
 AUTOSTART_DIR="$HOME/.config/autostart"
