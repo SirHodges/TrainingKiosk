@@ -14,7 +14,7 @@ echo "Project directory is: $PROJECT_DIR"
 # 1. Update system and install prerequisites
 echo "Installing system packages..."
 sudo apt-get update
-sudo apt-get install -y python3-venv python3-pip chromium-browser git
+sudo apt-get install -y python3-venv python3-pip chromium git
 
 # 2. Set up Python Virtual Environment
 echo "Setting up Python virtual environment..."
@@ -65,7 +65,7 @@ cat << EOF > "$AUTOSTART_DIR/trainingkiosk.desktop"
 [Desktop Entry]
 Type=Application
 Name=TrainingKiosk Frontend
-Exec=chromium-browser --kiosk --noerrdialogs --disable-infobars --check-for-update-interval=31536000 http://127.0.0.1:5000/
+Exec=chromium --kiosk --noerrdialogs --disable-infobars --check-for-update-interval=31536000 http://127.0.0.1:5000/
 X-GNOME-Autostart-enabled=true
 EOF
 
