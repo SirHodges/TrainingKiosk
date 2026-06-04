@@ -236,42 +236,13 @@ function drawMap() {
   mapSvg.setAttribute("viewBox", `0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`);
   mapSvg.setAttribute("preserveAspectRatio", "xMidYMid slice");
   
-  // Background
-  const bg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-  bg.setAttribute("width", MAP_WIDTH);
-  bg.setAttribute("height", MAP_HEIGHT);
-  bg.setAttribute("class", "map-background");
-  mapSvg.appendChild(bg);
-  
-  // Draw Ottawa River (rough procedural approximation)
-  // We'll draw a thick path crossing from top-left to mid-right
-  const river = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  // Rough coordinates for the Ottawa River through the bounded box
-  const r1 = latLonToXY(45.40, -75.95);
-  const r2 = latLonToXY(45.35, -75.80);
-  const r3 = latLonToXY(45.42, -75.71); // Parliament area
-  const r4 = latLonToXY(45.45, -75.60);
-  const r5 = latLonToXY(45.50, -75.45);
-  
-  river.setAttribute("d", `M ${r1.x} ${r1.y} Q ${r2.x} ${r2.y+50} ${r3.x} ${r3.y} T ${r5.x} ${r5.y}`);
-  river.setAttribute("class", "map-river");
-  river.setAttribute("stroke", "var(--accent-secondary)");
-  river.setAttribute("stroke-width", "40");
-  river.setAttribute("stroke-linecap", "round");
-  river.setAttribute("fill", "none");
-  mapSvg.appendChild(river);
-  
-  // Draw Highway 417
-  const hwy = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  const h1 = latLonToXY(45.30, -75.95); // Kanata
-  const h2 = latLonToXY(45.35, -75.75); // Pinecrest
-  const h3 = latLonToXY(45.40, -75.68); // Core
-  const h4 = latLonToXY(45.42, -75.60); // Split
-  const h5 = latLonToXY(45.48, -75.45); // Orleans
-  
-  hwy.setAttribute("d", `M ${h1.x} ${h1.y} Q ${h2.x} ${h2.y-20} ${h3.x} ${h3.y} T ${h5.x} ${h5.y}`);
-  hwy.setAttribute("class", "map-road");
-  mapSvg.appendChild(hwy);
+  // Background Image
+  const bgImage = document.createElementNS("http://www.w3.org/2000/svg", "image");
+  bgImage.setAttribute("href", "/frontend/assets/ottawa_map_bg.png");
+  bgImage.setAttribute("width", MAP_WIDTH);
+  bgImage.setAttribute("height", MAP_HEIGHT);
+  bgImage.setAttribute("preserveAspectRatio", "xMidYMid slice");
+  mapSvg.appendChild(bgImage);
   
   mapContainer.appendChild(mapSvg);
 }
