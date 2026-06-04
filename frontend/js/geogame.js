@@ -39,6 +39,8 @@ let p2LockedUntil = 0;
 let p1Eliminated = false;
 let p2Eliminated = false;
 let p1LockIcon, p2LockIcon;
+let p1LockMessage = "Wild Guess!";
+let p2LockMessage = "Wild Guess!";
 
 // DOM Elements
 let container, mapContainer, mapSvg;
@@ -224,22 +226,16 @@ function createLockIcon(color) {
   const group = document.createElementNS(svgNS, "g");
   group.style.display = 'none';
   
-  const textIcon = document.createElementNS(svgNS, "text");
-  textIcon.setAttribute("font-size", "28");
-  textIcon.setAttribute("text-anchor", "middle");
-  textIcon.setAttribute("y", "0");
-  textIcon.textContent = "🔒";
-  
   const textLabel = document.createElementNS(svgNS, "text");
-  textLabel.setAttribute("font-size", "12");
+  textLabel.setAttribute("font-size", "14");
   textLabel.setAttribute("font-weight", "bold");
   textLabel.setAttribute("text-anchor", "middle");
+  textLabel.setAttribute("dominant-baseline", "central");
   textLabel.setAttribute("fill", color || "white");
-  textLabel.setAttribute("y", "20");
+  textLabel.setAttribute("y", "0");
   textLabel.textContent = "Wild Guess!";
   textLabel.style.textShadow = "1px 1px 2px black, -1px -1px 2px black";
   
-  group.appendChild(textIcon);
   group.appendChild(textLabel);
   return group;
 }
@@ -421,8 +417,8 @@ function pollGamepadsForReticles() {
   };
   
   const now = Date.now();
-  if (!p1Eliminated && now >= p1LockedUntil) processAxes(p1Axes, p1Pos);
-  if (playerCount === 2 && !p2Eliminated && now >= p2LockedUntil) processAxes(p2Axes, p2Pos);
+  if (!p1Eliminated && !p1HasGuessed && now >= p1LockedUntil) processAxes(p1Axes, p1Pos);
+  if (playerCount === 2 && !p2Eliminated && !p2HasGuessed && now >= p2LockedUntil) processAxes(p2Axes, p2Pos);
   
   // Also poll HTML5 Gamepads as fallback for local axes
   const gps = navigator.getGamepads ? navigator.getGamepads() : [];
@@ -440,38 +436,41 @@ function pollGamepadsForReticles() {
   }
 
   // Render Reticles
-  if (p1Reticle && !p1Eliminated) {
-    if (now < p1LockedUntil) {
-       p1Reticle.style.display = 'none';
-       if (p1LockIcon) {
-          p1LockIcon.style.display = 'inline';
-          p1LockIcon.setAttribute('transform', `translate(${p1Pos.x}, ${p1Pos.y})`);
-       }
-    } else {
-       p1Reticle.style.display = 'inline';
-       if (p1LockIcon) p1LockIcon.style.display = 'none';
-       p1Reticle.setAttribute('transform', `translate(${p1Pos.x}, ${p1Pos.y})`);
-    }
-  } else if (p1Eliminated) {
-    if (p1Reticle) p1Reticle.style.display = 'none';
-    if (p1LockIcon) p1LockIcon.style.display = 'none';
-  }
-  
-  if (p2Reticle && playerCount === 2 && !p2Eliminated) {
-    if (now < p2LockedUntil) {
-       p2Reticle.style.display = 'none';
-       if (p2LockIcon) {
-          p2LockIcon.style.display = 'inline';
-          p2LockIcon.setAttribute('transform', `translate(${p2Pos.x}, ${p2Pos.y})`);
-       }
-    } else {
-       p2Reticle.style.display = 'inline';
-       if (p2LockIcon) p2LockIcon.style.display = 'none';
-       p2Reticle.setAttribute('transform', `translate(${p2Pos.x}, ${p2Pos.y})`);
-    }
-  } else if (p2Eliminated) {
-    if (p2Reticle) p2Reticle.style.display = 'none';
-    if (p2LockIcon) p2LockIcon.style.display = 'none';
+  const renderFeedback = (pos, lockedUntil, lockMsg, feedbackIcon, reticle, hasGuessed, eliminated) => {
+     if (eliminated || hasGuessed) {
+        if (reticle) reticle.style.display = 'none';
+        if (feedbackIcon) feedbackIcon.style.display = 'none';
+        return;
+     }
+     
+     if (now < lockedUntil) {
+        if (reticle) reticle.style.display = 'none';
+        if (feedbackIcon) {
+           feedbackIcon.style.display = 'inline';
+           feedbackIcon.setAttribute('transform', `translate(${pos.x}, ${pos.y})`);
+           
+           const txt = feedbackIcon.querySelector('text');
+           if (lockMsg === "COUNTDOWN") {
+              const secsLeft = Math.ceil((lockedUntil - now) / 1000);
+              txt.textContent = secsLeft.toString();
+              txt.setAttribute('font-size', '36');
+           } else {
+              txt.textContent = lockMsg;
+              txt.setAttribute('font-size', '14');
+           }
+        }
+     } else {
+        if (reticle) {
+           reticle.style.display = 'inline';
+           reticle.setAttribute('transform', `translate(${pos.x}, ${pos.y})`);
+        }
+        if (feedbackIcon) feedbackIcon.style.display = 'none';
+     }
+  };
+
+  renderFeedback(p1Pos, p1LockedUntil, p1LockMessage, p1LockIcon, p1Reticle, p1HasGuessed, p1Eliminated);
+  if (playerCount === 2) {
+     renderFeedback(p2Pos, p2LockedUntil, p2LockMessage, p2LockIcon, p2Reticle, p2HasGuessed, p2Eliminated);
   }
   
   animationFrameId = requestAnimationFrame(pollGamepadsForReticles);
@@ -499,8 +498,8 @@ function handleGamepadButton(e) {
     const dist = calculateDistance(latLon.lat, latLon.lon, target.lat, target.lon);
     
     if (playerCount === 2 && dist > 4.0) {
-      if (isP1) p1LockedUntil = now + 2000;
-      else p2LockedUntil = now + 2000;
+      if (isP1) { p1LockedUntil = now + 2000; p1LockMessage = "Wild guess"; }
+      else { p2LockedUntil = now + 2000; p2LockMessage = "Wild guess"; }
       return;
     }
     
@@ -523,7 +522,8 @@ function handleGamepadButton(e) {
              // Near Miss -> Zoom and let the other player steal!
              clearInterval(timerInterval);
              document.getElementById('geogame-status-text').textContent = `Player ${isP1 ? 1 : 2} is ${(dist*1000).toFixed(0)}m away. Zooming in for STEAL!`;
-             if (isP1) p1Eliminated = true; else p2Eliminated = true;
+             // Don't eliminate yet! Give them a countdown lock!
+             if (isP1) p1Eliminated = false; else p2Eliminated = false;
              drawGuessMarker(pos.x, pos.y, isP1 ? "#3b82f6" : "#ef4444");
              
              setTimeout(() => {
@@ -534,12 +534,21 @@ function handleGamepadButton(e) {
                 clearPins();
                 drawGuessMarker(pos.x, pos.y, isP1 ? "#3b82f6" : "#ef4444");
                 
-                // Teleport the active player's reticle into the zoomed area!
-                if (isP1) { p2Pos.x = center.x; p2Pos.y = center.y; }
-                else { p1Pos.x = center.x; p1Pos.y = center.y; }
+                // Teleport BOTH players into the zoomed area!
+                p1Pos.x = center.x; p1Pos.y = center.y;
+                p2Pos.x = center.x; p2Pos.y = center.y;
                 
-                document.getElementById('geogame-status-text').textContent = `STEAL ROUND! Player ${isP1 ? 2 : 1}, find it!`;
-                startTimer(15); // Give them 15s to steal
+                // Set the penalty lock for the person who guessed
+                const lockTime = Date.now() + 3000;
+                if (isP1) { p1LockedUntil = lockTime; p1LockMessage = "COUNTDOWN"; }
+                else { p2LockedUntil = lockTime; p2LockMessage = "COUNTDOWN"; }
+                
+                // Also reset their "guessed" status so they can guess again
+                if (isP1) { p1HasGuessed = false; p1Guess = null; }
+                else { p2HasGuessed = false; p2Guess = null; }
+                
+                document.getElementById('geogame-status-text').textContent = `STEAL ROUND! Player ${isP1 ? 2 : 1} gets a head start!`;
+                startTimer(15);
                 pollGamepadsForReticles();
              }, 2000);
           } else {
