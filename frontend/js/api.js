@@ -100,6 +100,10 @@ export async function checkTopScore(score) {
   });
 }
 
+export async function clearLeaderboard() {
+  return await fetchJson('/leaderboard/nuke', { method: 'POST' });
+}
+
 export async function triggerUpdate() {
   return await fetchJson('/system/update', { method: 'POST' });
 }

@@ -4,6 +4,7 @@ import { loadCategories, loadSkills } from './media.js';
 import { initQuiz, resetQuiz } from './quiz.js';
 import { loadLeaderboard } from './leaderboard.js';
 import { initGamepad } from './gamepad.js';
+import { triggerUpdate, clearLeaderboard } from './api.js';
 import { clearFocusables } from './navigation.js';
 
 let currentMode = 'skillplayer';
@@ -26,9 +27,31 @@ document.addEventListener('DOMContentLoaded', () => {
 function initAdmin() {
   const adminBtn = document.getElementById('admin-btn');
   const adminPopup = document.getElementById('admin-popup');
+  
   if (adminBtn && adminPopup) {
     adminBtn.addEventListener('click', () => {
       adminPopup.classList.toggle('hidden');
+    });
+  }
+  
+  const updateBtn = document.getElementById('btn-update-reboot');
+  if (updateBtn) {
+    updateBtn.addEventListener('click', async () => {
+      if (confirm('Are you sure you want to pull the latest updates and reboot the system?')) {
+        updateBtn.textContent = 'Rebooting...';
+        await triggerUpdate();
+      }
+    });
+  }
+  
+  const resetBtn = document.getElementById('btn-reset-scores');
+  if (resetBtn) {
+    resetBtn.addEventListener('click', async () => {
+      if (confirm('Are you sure you want to permanently delete all leaderboard scores?')) {
+        await clearLeaderboard();
+        loadLeaderboard('quiz-sidebar');
+        alert('Scores reset successfully.');
+      }
     });
   }
 }
