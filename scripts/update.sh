@@ -19,6 +19,6 @@ source venv/bin/activate
 pip install -r requirements.txt
 
 echo "Rebooting system..."
-sudo systemctl reboot
+sudo systemctl reboot --force
 
 echo "Update complete!"
