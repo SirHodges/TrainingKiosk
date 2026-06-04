@@ -121,31 +121,19 @@ function setInputMode(mode) {
   inputMode = mode;
   document.getElementById('btn-geogame-mouse').classList.toggle('active', mode === 'mouse');
   document.getElementById('btn-geogame-gamepad').classList.toggle('active', mode === 'gamepad');
-  document.getElementById('geogame-start-btn-text').innerText = mode === 'mouse' ? 'CLICK TO START' : 'HOLD TO START';
+  document.getElementById('geogame-start-btn-text').innerText = mode === 'mouse' ? 'CLICK TO START' : 'PRESS ANY BUTTON TO START';
 }
 
-let holdTimer = null;
 function startHoldProgress() {
   if (currentState !== 'INTRO') return;
-  if (inputMode === 'mouse') {
-    beginStartFlow();
-    return;
-  }
-  const fill = document.getElementById('geogame-start-btn-fill');
-  fill.style.transition = 'width 1s linear';
-  fill.style.width = '100%';
-  holdTimer = setTimeout(beginStartFlow, 1000);
+  beginStartFlow();
 }
 
 function cancelHoldProgress() {
-  if (holdTimer) clearTimeout(holdTimer);
-  const fill = document.getElementById('geogame-start-btn-fill');
-  fill.style.transition = 'width 0.2s linear';
-  fill.style.width = '0%';
+  // No-op now since we removed the hold timer
 }
 
 function beginStartFlow() {
-  cancelHoldProgress();
   if (inputMode === 'gamepad') {
     switchScreen('binding');
     startBinding(playerCount);
@@ -157,7 +145,13 @@ function beginStartFlow() {
 function handleBindingStatus(e) {
   if (currentState !== 'BINDING') return;
   const { ready, players_bound, target } = e.detail;
-  document.getElementById('geogame-binding-msg').innerText = `Press START to join... (${players_bound}/${target})`;
+  
+  if (players_bound === 0) {
+    document.getElementById('geogame-binding-msg').innerText = "Player One, press any button on your controller";
+  } else if (players_bound === 1 && target === 2) {
+    document.getElementById('geogame-binding-msg').innerText = "Player Two, press any button on your controller";
+  }
+  
   if (ready) startCountdown();
 }
 
@@ -388,6 +382,11 @@ function pollGamepadsForReticles() {
 }
 
 function handleGamepadButton(e) {
+  if (currentState === 'INTRO' && inputMode === 'gamepad') {
+    beginStartFlow();
+    return;
+  }
+  
   if (currentState !== 'GUESSING' || inputMode !== 'gamepad') return;
   const { button, player } = e.detail;
   
