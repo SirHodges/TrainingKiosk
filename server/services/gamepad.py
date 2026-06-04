@@ -260,28 +260,38 @@ class GamepadHandler:
         direction = None
         state_changed = False
         
+        device = self.devices.get(path)
+        if not device:
+            return
+            
+        def get_axis_state(code, value):
+            try:
+                absinfo = device.absinfo(code)
+                center = (absinfo.min + absinfo.max) / 2
+                threshold = max((absinfo.max - absinfo.min) * 0.2, 0.5) # At least 0.5 for HAT (-1, 0, 1)
+                
+                if value < center - threshold: return -1.0
+                elif value > center + threshold: return 1.0
+                else: return 0.0
+            except:
+                if value < 0: return -1.0
+                if value > 0: return 1.0
+                return 0.0
+
         # ABS_HAT0X / ABS_HAT0Y are the standard D-pad events
         if event.code == ecodes.ABS_HAT0X or event.code == ecodes.ABS_X:
-            val = 0.0
-            if event.value < -100 or event.value == -1:
-                val = -1.0
-                direction = 'left'
-            elif event.value > 100 or event.value == 1:
-                val = 1.0
-                direction = 'right'
+            val = get_axis_state(event.code, event.value)
+            if val == -1.0: direction = 'left'
+            elif val == 1.0: direction = 'right'
             
             if self.axes_state[path]['x'] != val:
                 self.axes_state[path]['x'] = val
                 state_changed = True
                 
         elif event.code == ecodes.ABS_HAT0Y or event.code == ecodes.ABS_Y:
-            val = 0.0
-            if event.value < -100 or event.value == -1:
-                val = -1.0
-                direction = 'up'
-            elif event.value > 100 or event.value == 1:
-                val = 1.0
-                direction = 'down'
+            val = get_axis_state(event.code, event.value)
+            if val == -1.0: direction = 'up'
+            elif val == 1.0: direction = 'down'
                 
             if self.axes_state[path]['y'] != val:
                 self.axes_state[path]['y'] = val
