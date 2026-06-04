@@ -17,6 +17,20 @@ export function initGamepadTester() {
     modal.classList.add('hidden');
     stopTesterLoop();
   });
+  
+  window.addEventListener('raw_gamepad_backend', (e) => {
+    const rawBox = document.getElementById('gamepad-tester-raw-output');
+    if (rawBox) {
+      let msg = '';
+      if (e.detail.action === 'RAW_EVDEV_SCANCODE') {
+         msg = `<span style="color: #f59e0b; font-weight: bold;">[RAW EVDEV] SCANCODE: ${e.detail.scancode}</span> (Path: ${e.detail.path})`;
+      } else {
+         msg = `[MAPPED EVENT] player: ${e.detail.player}, action: ${e.detail.action}, btn_index: ${e.detail.button_index}, dir: ${e.detail.direction}`;
+      }
+      rawBox.innerHTML += `<div>${msg}</div>`;
+      rawBox.scrollTop = rawBox.scrollHeight;
+    }
+  });
 }
 
 function startTesterLoop() {

@@ -160,6 +160,13 @@ class GamepadHandler:
             
         is_pressed = (event.keystate == 1)
         
+        # ALWAYS emit the raw event for diagnostics (so the frontend tester can see unknown buttons)
+        if is_pressed:
+            self._emit('raw_evdev_button', {
+                'scancode': event.scancode,
+                'path': path
+            })
+            
         # Default mapping for many generic controllers
         # Map raw codes to standard index: 0=A, 1=B, 2=X, 3=Y
         button_map = {

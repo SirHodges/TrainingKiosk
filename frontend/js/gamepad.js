@@ -34,12 +34,35 @@ export function initGamepad() {
     socket.on('gamepad_dpad', (data) => moveFocus(data.direction));
     
     socket.on('gamepad_button', (data) => {
-      if (data.button === 'A') selectFocused();
-      window.dispatchEvent(new CustomEvent('app_gamepad_btn', { detail: data }));
+      let btnName = null;
+      if (data.button_index === 0) btnName = 'A';
+      else if (data.button_index === 1) btnName = 'B';
+      else if (data.button_index === 2) btnName = 'X';
+      else if (data.button_index === 3) btnName = 'Y';
+      
+      const playerIndex = (data.player || 1) - 1; // Convert backend 1-index to frontend 0-index
+      
+      if (btnName) {
+        if (btnName === 'A') selectFocused();
+        window.dispatchEvent(new CustomEvent('app_gamepad_btn', { detail: { button: btnName, player: playerIndex } }));
+      }
+      
+      // Also dispatch raw event for tester
+      window.dispatchEvent(new CustomEvent('raw_gamepad_backend', { detail: data }));
     });
     
-    socket.on('gamepad_start_down', () => window.dispatchEvent(new CustomEvent('app_gamepad_start_down')));
-    socket.on('gamepad_start_up', () => window.dispatchEvent(new CustomEvent('app_gamepad_start_up')));
+    socket.on('gamepad_start_down', (data) => {
+      window.dispatchEvent(new CustomEvent('app_gamepad_start_down'));
+      window.dispatchEvent(new CustomEvent('raw_gamepad_backend', { detail: { action: 'start_down', ...data } }));
+    });
+    socket.on('gamepad_start_up', (data) => {
+      window.dispatchEvent(new CustomEvent('app_gamepad_start_up'));
+      window.dispatchEvent(new CustomEvent('raw_gamepad_backend', { detail: { action: 'start_up', ...data } }));
+    });
+    socket.on('gamepad_dpad', (data) => {
+      moveFocus(data.direction);
+      window.dispatchEvent(new CustomEvent('raw_gamepad_backend', { detail: data }));
+    });
     
     // Listen for backend binding events
     socket.on('gamepad_bound', (data) => {
@@ -50,6 +73,10 @@ export function initGamepad() {
         target: playersNeeded
       }}));
       if (boundPlayers >= playersNeeded) bindingActive = false;
+    });
+    
+    socket.on('raw_evdev_button', (data) => {
+      window.dispatchEvent(new CustomEvent('raw_gamepad_backend', { detail: { action: 'RAW_EVDEV_SCANCODE', ...data } }));
     });
   } else {
     console.warn('Socket.IO not found. Proceeding with Local HTML5 Gamepad support only.');

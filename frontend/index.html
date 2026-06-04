@@ -316,13 +316,19 @@
     <div class="modal-content" style="max-width: 800px; width: 90%; max-height: 80vh; overflow-y: auto; text-align: left;">
       <h2 style="margin-bottom: 16px;">Gamepad Diagnostics</h2>
       <p style="margin-bottom: 16px; color: var(--text-secondary);">Press buttons on any connected controller. Note the Index number next to the button that lights up. This is the index the app needs.</p>
-      <div id="gamepad-tester-output" style="font-family: monospace; font-size: 16px; white-space: pre-wrap; margin-bottom: 20px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; min-height: 200px;">Waiting for gamepad interaction...</div>
+      
+      <h3>1. HTML5 Browser API Detection:</h3>
+      <div id="gamepad-tester-output" style="font-family: monospace; font-size: 14px; white-space: pre-wrap; margin-bottom: 20px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; min-height: 100px;">Waiting for gamepad interaction...</div>
+      
+      <h3>2. Backend evdev (Python) Socket Detection:</h3>
+      <div id="gamepad-tester-raw-output" style="font-family: monospace; font-size: 14px; margin-bottom: 20px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; height: 150px; overflow-y: auto;">Waiting for backend socket events...<br></div>
+      
       <button id="btn-close-tester" class="btn-primary" style="display: block; width: 100%; text-align: center;">Close</button>
     </div>
   </div>
 
   <!-- SocketIO (loaded before app modules) -->
-  <!-- <script src="/frontend/assets/socket.io.min.js"></script> -->
+  <script src="/frontend/assets/socket.io.min.js"></script>
   <script>
     // Mock io if socket.io is not loaded to prevent errors
     if(typeof io === 'undefined') {
