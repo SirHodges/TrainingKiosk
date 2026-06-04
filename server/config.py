@@ -23,28 +23,23 @@ DATABASE_PATH = DATA_DIR / "trainingkiosk.db"
 QUESTIONS_FILE = DATA_DIR / "questions.json"
 
 # Resolve the content directory where videos and PDFs are stored
-# Priority 1: Environment variable set by the user
-env_path = os.environ.get("TRAININGKIOSK_CONTENT_PATH")
+def get_content_dir() -> Path:
+    env_path = os.environ.get("TRAININGKIOSK_CONTENT_PATH")
+    usb_path = None
+    if sys.platform == "linux":
+        import glob
+        potential_paths = glob.glob("/media/paramedictraining/*/content")
+        if not potential_paths:
+            potential_paths = glob.glob("/media/pi/*/content")
+        if potential_paths:
+            usb_path = Path(potential_paths[0])
 
-# Priority 2: Standard USB mount path on a Linux Raspberry Pi
-usb_path = None
-if sys.platform == "linux":
-    import glob
-    # Look for a 'content' folder on any USB drive mounted for the 'paramedictraining' user
-    potential_paths = glob.glob("/media/paramedictraining/*/content")
-    if not potential_paths:
-        # Fallback to the old 'pi' user just in case
-        potential_paths = glob.glob("/media/pi/*/content")
-    if potential_paths:
-        usb_path = Path(potential_paths[0])
-
-if env_path and Path(env_path).exists():
-    CONTENT_DIR = Path(env_path)
-elif usb_path and usb_path.exists():
-    CONTENT_DIR = usb_path
-else:
-    # Priority 3: A local "content" folder next to the app
-    CONTENT_DIR = BASE_DIR / "content"
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+    elif usb_path and usb_path.exists():
+        return usb_path
+    else:
+        return BASE_DIR / "content"
 
 # Game and application constants
 MAX_SCORES = 10                  # Maximum number of high scores to show on the leaderboard

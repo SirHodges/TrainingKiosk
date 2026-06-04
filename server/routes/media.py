@@ -10,7 +10,7 @@ It also handles tracking how many times a file has been viewed.
 import mimetypes
 from flask import Blueprint, jsonify, send_from_directory, request
 
-from server.config import CONTENT_DIR
+from server.config import get_content_dir
 from server.database import get_db
 from server.services.media_scanner import scan_categories, scan_skills, scan_files
 
@@ -20,19 +20,19 @@ media_bp = Blueprint('media', __name__)
 @media_bp.route('/categories', methods=['GET'])
 def get_categories():
     """Returns a list of all available categories."""
-    categories = scan_categories(CONTENT_DIR)
+    categories = scan_categories(get_content_dir())
     return jsonify(categories)
 
 @media_bp.route('/<category>/skills', methods=['GET'])
 def get_skills(category):
     """Returns a list of all skills within a specific category."""
-    skills = scan_skills(CONTENT_DIR, category)
+    skills = scan_skills(get_content_dir(), category)
     return jsonify(skills)
 
 @media_bp.route('/<category>/<skill>/files', methods=['GET'])
 def get_files(category, skill):
     """Returns a list of all playable files within a specific skill."""
-    files = scan_files(CONTENT_DIR, category, skill)
+    files = scan_files(get_content_dir(), category, skill)
     return jsonify(files)
 
 @media_bp.route('/file/<category>/<skill>/<filename>', methods=['GET'])
@@ -41,7 +41,7 @@ def serve_file(category, skill, filename):
     Serves the actual media file (video or PDF) to the browser.
     Flask handles sending the correct MIME type so the browser knows how to play it.
     """
-    directory = CONTENT_DIR / category / skill
+    directory = get_content_dir() / category / skill
     
     # Try to guess the correct mime type, though Flask usually handles this well
     mimetype, _ = mimetypes.guess_type(filename)

@@ -13,7 +13,7 @@ import time
 from pathlib import Path
 from flask import Blueprint, jsonify
 
-from server.config import BASE_DIR, CONTENT_DIR
+from server.config import BASE_DIR, get_content_dir
 from server.database import get_db
 
 system_bp = Blueprint('system', __name__)
@@ -31,8 +31,8 @@ def health_check():
             
         status = {
             'status': 'ok',
-            'content_dir': str(CONTENT_DIR),
-            'content_dir_exists': CONTENT_DIR.exists(),
+            'content_dir': str(get_content_dir()),
+            'content_dir_exists': get_content_dir().exists(),
             'question_count': question_count,
             'score_count': score_count,
             'platform': sys.platform
