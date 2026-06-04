@@ -14,6 +14,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const savedTheme = localStorage.getItem('kiosk_theme');
   if (savedTheme) {
     document.body.className = savedTheme;
+    if (savedTheme === 'theme-lucky') {
+      const luckyColors = localStorage.getItem('kiosk_lucky_colors');
+      if (luckyColors) {
+        Object.assign(document.documentElement.style, JSON.parse(luckyColors));
+      }
+    }
   }
 
   // Initialize modes
@@ -75,11 +81,53 @@ function initAdmin() {
   const themeBtns = document.querySelectorAll('.theme-btn');
   themeBtns.forEach(btn => {
     btn.addEventListener('click', (e) => {
+      document.documentElement.style.cssText = ''; // Clear lucky inline styles
       const themeClass = e.target.getAttribute('data-theme');
       document.body.className = themeClass;
       localStorage.setItem('kiosk_theme', themeClass);
     });
   });
+
+  const luckyBtn = document.getElementById('btn-lucky-theme');
+  if (luckyBtn) {
+    luckyBtn.addEventListener('click', applyLuckyTheme);
+  }
+}
+
+function applyLuckyTheme() {
+  const h = Math.floor(Math.random() * 360);
+  const isDark = Math.random() > 0.3; // 70% chance of dark mode
+  
+  const bgL = isDark ? 12 : 95;
+  const textL = isDark ? 95 : 15;
+  
+  const colors = {
+    '--bg-primary': `hsl(${h}, 30%, ${bgL}%)`,
+    '--bg-secondary': `hsl(${h}, 30%, ${isDark ? bgL+4 : bgL-4}%)`,
+    '--bg-tertiary': `hsl(${h}, 25%, ${isDark ? bgL+8 : bgL-8}%)`,
+    '--bg-quaternary': `hsl(${h}, 25%, ${isDark ? bgL+12 : bgL-12}%)`,
+    '--bg-elevated': `hsl(${h}, 25%, ${isDark ? bgL+12 : bgL-12}%)`,
+    '--accent-primary': `hsl(${(h+180)%360}, 85%, 55%)`,
+    '--accent-primary-light': `hsl(${(h+180)%360}, 85%, 65%)`,
+    '--accent-primary-dark': `hsl(${(h+180)%360}, 85%, 45%)`,
+    '--accent-secondary': `hsl(${(h+60)%360}, 85%, 55%)`,
+    '--accent-secondary-light': `hsl(${(h+60)%360}, 85%, 65%)`,
+    '--text-primary': `hsl(${h}, 10%, ${textL}%)`,
+    '--text-secondary': `hsl(${h}, 10%, ${isDark ? 70 : 40}%)`,
+    '--text-muted': `hsl(${h}, 10%, 55%)`,
+    '--glass-bg': `hsla(0, 0%, ${isDark ? 255 : 0}%, 0.05)`,
+    '--glass-bg-hover': `hsla(0, 0%, ${isDark ? 255 : 0}%, 0.1)`,
+    '--glass-bg-active': `hsla(0, 0%, ${isDark ? 255 : 0}%, 0.15)`,
+    '--glass-border': `hsla(0, 0%, ${isDark ? 255 : 0}%, 0.1)`,
+    '--glass-border-hover': `hsla(0, 0%, ${isDark ? 255 : 0}%, 0.2)`,
+    '--bg-gradient': `linear-gradient(135deg, hsl(${h}, 30%, ${bgL}%) 0%, hsl(${h}, 25%, ${isDark ? bgL+12 : bgL-12}%) 100%)`
+  };
+
+  document.body.className = 'theme-lucky';
+  Object.assign(document.documentElement.style, colors);
+  
+  localStorage.setItem('kiosk_theme', 'theme-lucky');
+  localStorage.setItem('kiosk_lucky_colors', JSON.stringify(colors));
 }
 
 function initModeTabs() {
