@@ -1,13 +1,9 @@
 // geogame.js - Ottawa GeoGame Logic
-// Complete rewrite with geographically accurate SVG map
+// Uses pre-built SVG map from real OpenStreetMap data
 
 // ==========================================
-// BOUNDING BOX - Tighter focus on urban Ottawa
+// BOUNDING BOX - Must match convert_osm_to_svg.py exactly
 // ==========================================
-// West: past Queensway Carleton (~-75.82)
-// East: past Montfort (~-75.58)
-// North: past Gatineau shore (~45.46)
-// South: past Queensway Carleton (~45.31)
 const MAP_BOUNDS = {
   minLon: -75.82,
   maxLon: -75.58,
@@ -18,167 +14,6 @@ const MAP_BOUNDS = {
 const MAP_WIDTH = 1200;
 const MAP_HEIGHT = 800;
 const MAP_PADDING = 20;
-
-// ==========================================
-// REAL GEOGRAPHIC DATA - Ottawa features traced from actual coordinates
-// ==========================================
-
-// Ottawa River - south bank shoreline (Ontario side), west to east
-const OTTAWA_RIVER_SOUTH_BANK = [
-  [45.389, -75.82],
-  [45.390, -75.80],
-  [45.395, -75.78],
-  [45.400, -75.76],
-  [45.405, -75.74],
-  [45.410, -75.73],
-  [45.414, -75.72],
-  [45.418, -75.715],
-  [45.420, -75.710],
-  [45.424, -75.705], // Parliament area
-  [45.428, -75.700],
-  [45.432, -75.695],
-  [45.435, -75.690],
-  [45.437, -75.685],
-  [45.440, -75.675],
-  [45.443, -75.665],
-  [45.446, -75.655],
-  [45.448, -75.645],
-  [45.450, -75.635],
-  [45.452, -75.625],
-  [45.453, -75.615],
-  [45.455, -75.600],
-  [45.456, -75.590],
-  [45.458, -75.580]
-];
-
-// Ottawa River - north bank (Gatineau side)
-const OTTAWA_RIVER_NORTH_BANK = [
-  [45.400, -75.82],
-  [45.405, -75.80],
-  [45.410, -75.78],
-  [45.418, -75.76],
-  [45.425, -75.74],
-  [45.430, -75.73],
-  [45.434, -75.72],
-  [45.438, -75.715],
-  [45.440, -75.710],
-  [45.443, -75.705],
-  [45.446, -75.700],
-  [45.449, -75.695],
-  [45.452, -75.690],
-  [45.454, -75.685],
-  [45.456, -75.675],
-  [45.458, -75.665],
-  [45.459, -75.655],
-  [45.460, -75.645],
-  [45.460, -75.635],
-  [45.460, -75.625],
-  [45.460, -75.615],
-  [45.460, -75.600],
-  [45.460, -75.590],
-  [45.460, -75.580]
-];
-
-// Rideau Canal - from Ottawa River south to Dow's Lake area
-const RIDEAU_CANAL = [
-  [45.426, -75.695], // Locks at Ottawa River
-  [45.424, -75.694],
-  [45.422, -75.693],
-  [45.420, -75.693],
-  [45.418, -75.692],
-  [45.415, -75.691],
-  [45.412, -75.690],
-  [45.408, -75.690],
-  [45.405, -75.691],
-  [45.402, -75.692],
-  [45.399, -75.694],
-  [45.396, -75.697],
-  [45.393, -75.700],
-  [45.390, -75.705], // Dow's Lake area
-  [45.387, -75.710],
-  [45.384, -75.715]
-];
-
-// Rideau River - flows from south through the east side
-const RIDEAU_RIVER = [
-  [45.310, -75.650],
-  [45.315, -75.648],
-  [45.320, -75.650],
-  [45.325, -75.652],
-  [45.330, -75.655],
-  [45.335, -75.658],
-  [45.340, -75.660],
-  [45.345, -75.661],
-  [45.350, -75.660],
-  [45.355, -75.658],
-  [45.360, -75.656],
-  [45.365, -75.654],
-  [45.370, -75.653],
-  [45.375, -75.652],
-  [45.380, -75.651],
-  [45.385, -75.650],
-  [45.390, -75.650],
-  [45.395, -75.652],
-  [45.400, -75.656],
-  [45.405, -75.660],
-  [45.410, -75.665],
-  [45.415, -75.670],
-  [45.420, -75.680],
-  [45.424, -75.690],
-  [45.426, -75.695] // Meets canal/Ottawa River
-];
-
-// Highway 417 (Queensway) - main east-west through Ottawa
-const HWY_417 = [
-  [45.345, -75.82],
-  [45.345, -75.80],
-  [45.348, -75.78],
-  [45.352, -75.76],
-  [45.358, -75.74],
-  [45.365, -75.72],
-  [45.375, -75.71],
-  [45.385, -75.70],
-  [45.392, -75.69],
-  [45.398, -75.68],
-  [45.403, -75.67],
-  [45.408, -75.66],
-  [45.413, -75.65],
-  [45.418, -75.64],
-  [45.425, -75.63],
-  [45.430, -75.62],
-  [45.435, -75.61],
-  [45.440, -75.60],
-  [45.445, -75.59],
-  [45.448, -75.58]
-];
-
-// Highway 416 - goes south from the 417
-const HWY_416 = [
-  [45.345, -75.82],
-  [45.340, -75.82],
-  [45.335, -75.82],
-  [45.330, -75.82],
-  [45.325, -75.82],
-  [45.320, -75.82],
-  [45.315, -75.82],
-  [45.310, -75.82]
-];
-
-// Neighbourhood labels with positions
-const NEIGHBOURHOOD_LABELS = [
-  { name: "Kanata", lat: 45.345, lon: -75.80 },
-  { name: "Westboro", lat: 45.395, lon: -75.745 },
-  { name: "Centretown", lat: 45.415, lon: -75.700 },
-  { name: "ByWard Mkt", lat: 45.430, lon: -75.692 },
-  { name: "Glebe", lat: 45.400, lon: -75.693 },
-  { name: "Alta Vista", lat: 45.390, lon: -75.660 },
-  { name: "Vanier", lat: 45.435, lon: -75.660 },
-  { name: "Barrhaven", lat: 45.320, lon: -75.76 },
-  { name: "Gatineau", lat: 45.450, lon: -75.72 },
-  { name: "Sandy Hill", lat: 45.422, lon: -75.680 },
-  { name: "LeBreton", lat: 45.416, lon: -75.718 },
-  { name: "Dow's Lake", lat: 45.393, lon: -75.705 }
-];
 
 // ==========================================
 // GAME STATE
@@ -215,12 +50,35 @@ export function initGeoGame() {
   }
 
   mapContainer.addEventListener('click', handleMapClick);
-  drawMap();
+  loadMap();
 }
 
 export function startGeoGame() {
   if (currentState === 'IDLE' || currentState === 'GAME_OVER') {
     startNewGame();
+  }
+}
+
+// ==========================================
+// MAP LOADING - Fetch the pre-built SVG
+// ==========================================
+
+async function loadMap() {
+  try {
+    const response = await fetch('/frontend/assets/ottawa_map.svg');
+    const svgText = await response.text();
+    mapContainer.innerHTML = svgText;
+    mapSvg = mapContainer.querySelector('svg');
+    if (mapSvg) {
+      mapSvg.setAttribute('id', 'ottawa-map-svg');
+      mapSvg.style.width = '100%';
+      mapSvg.style.height = '100%';
+      mapSvg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+      console.log('Ottawa map SVG loaded successfully');
+    }
+  } catch (e) {
+    console.error('Failed to load map SVG:', e);
+    statusText.textContent = 'Error loading map.';
   }
 }
 
@@ -236,8 +94,9 @@ async function startNewGame() {
   scoreDisplay.textContent = '0';
   statusText.textContent = "Loading locations...";
   
-  // Redraw map fresh (clears old pins)
-  drawMap();
+  // Clear old game pins from the SVG
+  clearPins();
+  resetMapView();
   
   try {
     const res = await fetch('/api/geogame/locations');
@@ -293,23 +152,26 @@ function startTimer(seconds) {
 
 function handleTimeOut() {
   if (currentState !== 'GUESSING') return;
-  statusText.textContent = "Time's up!";
+  statusText.textContent = "⏰ Time's up!";
   revealTarget(0);
 }
 
 function handleMapClick(e) {
-  if (currentState !== 'GUESSING') return;
+  if (currentState !== 'GUESSING' || !mapSvg) return;
   clearInterval(timerInterval);
   
+  // Get the SVG's bounding rect in screen pixels
   const rect = mapSvg.getBoundingClientRect();
+  
+  // Convert screen click to SVG viewBox coordinates
   const scaleX = MAP_WIDTH / rect.width;
   const scaleY = MAP_HEIGHT / rect.height;
-  
   const clickX = (e.clientX - rect.left) * scaleX;
   const clickY = (e.clientY - rect.top) * scaleY;
   
-  const guessLon = MAP_BOUNDS.minLon + (clickX / MAP_WIDTH) * (MAP_BOUNDS.maxLon - MAP_BOUNDS.minLon);
-  const guessLat = MAP_BOUNDS.maxLat - (clickY / MAP_HEIGHT) * (MAP_BOUNDS.maxLat - MAP_BOUNDS.minLat);
+  // Convert SVG coordinates back to lat/lon using the same projection
+  const guessLon = MAP_BOUNDS.minLon + ((clickX - MAP_PADDING) / (MAP_WIDTH - 2 * MAP_PADDING)) * (MAP_BOUNDS.maxLon - MAP_BOUNDS.minLon);
+  const guessLat = MAP_BOUNDS.maxLat - ((clickY - MAP_PADDING) / (MAP_HEIGHT - 2 * MAP_PADDING)) * (MAP_BOUNDS.maxLat - MAP_BOUNDS.minLat);
   
   checkGuess(guessLat, guessLon, clickX, clickY);
 }
@@ -317,17 +179,18 @@ function handleMapClick(e) {
 function checkGuess(guessLat, guessLon, clickX, clickY) {
   const target = currentLocations[currentRoundIndex];
   
+  // Distance calc: 1° lat ≈ 111km, 1° lon ≈ 78km at 45°N
   const latDiff = (target.lat - guessLat) * 111;
   const lonDiff = (target.lon - guessLon) * 78;
   const distanceKm = Math.sqrt(latDiff * latDiff + lonDiff * lonDiff);
   
-  // Draw player guess
+  // Draw player's guess crosshair
   drawGuessMarker(clickX, clickY);
   
   let pointsEarned = 0;
   if (distanceKm < 0.8) {
     pointsEarned = target.point_value;
-    statusText.textContent = `🎯 Direct Hit! +${pointsEarned} Points (${(distanceKm * 1000).toFixed(0)}m)`;
+    statusText.textContent = `🎯 Direct Hit! +${pointsEarned} pts (${(distanceKm * 1000).toFixed(0)}m)`;
     revealTarget(pointsEarned);
   } else if (distanceKm < 3.0 && currentZoom === 0) {
     statusText.textContent = `Near Miss (${distanceKm.toFixed(1)}km). Zooming in...`;
@@ -354,9 +217,9 @@ function revealTarget(points) {
   
   const targetPt = latLonToXY(target.lat, target.lon);
   
-  // Draw the real location marker on the SVG
+  // Draw actual location marker on the SVG
   const pinGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
-  pinGroup.classList.add('svg-target-pin');
+  pinGroup.classList.add('game-pin');
   
   // Pulsing ring
   const ring = document.createElementNS("http://www.w3.org/2000/svg", "circle");
@@ -388,14 +251,14 @@ function revealTarget(points) {
   label.setAttribute("font-size", "11");
   label.setAttribute("font-weight", "600");
   label.setAttribute("font-family", "Outfit, sans-serif");
-  label.textContent = target.location_name.length > 25 
-    ? target.location_name.substring(0, 22) + '...' 
+  label.textContent = target.location_name.length > 30
+    ? target.location_name.substring(0, 27) + '...'
     : target.location_name;
   pinGroup.appendChild(label);
   
   mapSvg.appendChild(pinGroup);
   
-  // Save score
+  // Save score to DB
   fetch('/api/geogame/score', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -421,181 +284,6 @@ function endGame() {
 }
 
 // ==========================================
-// MAP RENDERING - All geo-accurate SVG
-// ==========================================
-
-function drawMap() {
-  mapContainer.innerHTML = '';
-  
-  mapSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  mapSvg.setAttribute("id", "ottawa-map-svg");
-  mapSvg.setAttribute("viewBox", `0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`);
-  mapSvg.setAttribute("preserveAspectRatio", "xMidYMid meet");
-  mapSvg.style.width = '100%';
-  mapSvg.style.height = '100%';
-  
-  // Dark background
-  const bg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-  bg.setAttribute("width", MAP_WIDTH);
-  bg.setAttribute("height", MAP_HEIGHT);
-  bg.setAttribute("fill", "#0f1923");
-  mapSvg.appendChild(bg);
-  
-  // Grid lines for reference (subtle)
-  drawGrid();
-  
-  // Ottawa River (filled shape between north & south banks)
-  drawRiver();
-  
-  // Rideau Canal
-  drawPolyline(RIDEAU_CANAL, "#3b82f6", 4, "0.6");
-  
-  // Rideau River
-  drawPolyline(RIDEAU_RIVER, "#2563eb", 3, "0.4");
-  
-  // Highways
-  drawPolyline(HWY_417, "#fbbf24", 2, "0.4");
-  drawPolyline(HWY_416, "#fbbf24", 2, "0.3");
-  
-  // Highway labels
-  drawHwyLabel(45.398, -75.68, "417");
-  drawHwyLabel(45.330, -75.815, "416");
-  
-  // Neighbourhood labels
-  NEIGHBOURHOOD_LABELS.forEach(n => {
-    drawNeighbourhoodLabel(n.lat, n.lon, n.name);
-  });
-  
-  mapContainer.appendChild(mapSvg);
-}
-
-function drawGrid() {
-  // Draw subtle lat/lon grid lines
-  const gridGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
-  gridGroup.setAttribute("opacity", "0.08");
-  
-  // Longitude lines every 0.02 degrees
-  for (let lon = -75.82; lon <= -75.58; lon += 0.02) {
-    const p1 = latLonToXY(MAP_BOUNDS.maxLat, lon);
-    const p2 = latLonToXY(MAP_BOUNDS.minLat, lon);
-    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-    line.setAttribute("x1", p1.x); line.setAttribute("y1", p1.y);
-    line.setAttribute("x2", p2.x); line.setAttribute("y2", p2.y);
-    line.setAttribute("stroke", "#ffffff");
-    line.setAttribute("stroke-width", "0.5");
-    gridGroup.appendChild(line);
-  }
-  
-  // Latitude lines every 0.02 degrees
-  for (let lat = 45.31; lat <= 45.46; lat += 0.02) {
-    const p1 = latLonToXY(lat, MAP_BOUNDS.minLon);
-    const p2 = latLonToXY(lat, MAP_BOUNDS.maxLon);
-    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-    line.setAttribute("x1", p1.x); line.setAttribute("y1", p1.y);
-    line.setAttribute("x2", p2.x); line.setAttribute("y2", p2.y);
-    line.setAttribute("stroke", "#ffffff");
-    line.setAttribute("stroke-width", "0.5");
-    gridGroup.appendChild(line);
-  }
-  
-  mapSvg.appendChild(gridGroup);
-}
-
-function drawRiver() {
-  // Create a filled polygon between north and south banks
-  const southPoints = OTTAWA_RIVER_SOUTH_BANK.map(c => {
-    const p = latLonToXY(c[0], c[1]);
-    return `${p.x},${p.y}`;
-  });
-  const northPoints = OTTAWA_RIVER_NORTH_BANK.slice().reverse().map(c => {
-    const p = latLonToXY(c[0], c[1]);
-    return `${p.x},${p.y}`;
-  });
-  
-  const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-  polygon.setAttribute("points", [...southPoints, ...northPoints].join(' '));
-  polygon.setAttribute("fill", "#1e3a5f");
-  polygon.setAttribute("stroke", "#2563eb");
-  polygon.setAttribute("stroke-width", "1");
-  polygon.setAttribute("opacity", "0.7");
-  mapSvg.appendChild(polygon);
-  
-  // Label
-  const mid = latLonToXY(45.440, -75.72);
-  const riverLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
-  riverLabel.setAttribute("x", mid.x);
-  riverLabel.setAttribute("y", mid.y);
-  riverLabel.setAttribute("text-anchor", "middle");
-  riverLabel.setAttribute("fill", "#60a5fa");
-  riverLabel.setAttribute("font-size", "13");
-  riverLabel.setAttribute("font-style", "italic");
-  riverLabel.setAttribute("font-family", "Outfit, sans-serif");
-  riverLabel.setAttribute("opacity", "0.6");
-  riverLabel.textContent = "Ottawa River";
-  mapSvg.appendChild(riverLabel);
-}
-
-function drawPolyline(coords, color, width, opacity) {
-  const points = coords.map(c => {
-    const p = latLonToXY(c[0], c[1]);
-    return `${p.x},${p.y}`;
-  }).join(' ');
-  
-  const line = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
-  line.setAttribute("points", points);
-  line.setAttribute("fill", "none");
-  line.setAttribute("stroke", color);
-  line.setAttribute("stroke-width", width);
-  line.setAttribute("stroke-linecap", "round");
-  line.setAttribute("stroke-linejoin", "round");
-  line.setAttribute("opacity", opacity);
-  mapSvg.appendChild(line);
-}
-
-function drawHwyLabel(lat, lon, text) {
-  const pt = latLonToXY(lat, lon);
-  
-  // Shield background
-  const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-  rect.setAttribute("x", pt.x - 14);
-  rect.setAttribute("y", pt.y - 9);
-  rect.setAttribute("width", 28);
-  rect.setAttribute("height", 18);
-  rect.setAttribute("rx", 3);
-  rect.setAttribute("fill", "#78350f");
-  rect.setAttribute("stroke", "#fbbf24");
-  rect.setAttribute("stroke-width", "1");
-  rect.setAttribute("opacity", "0.8");
-  mapSvg.appendChild(rect);
-  
-  const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
-  label.setAttribute("x", pt.x);
-  label.setAttribute("y", pt.y + 4);
-  label.setAttribute("text-anchor", "middle");
-  label.setAttribute("fill", "#fbbf24");
-  label.setAttribute("font-size", "11");
-  label.setAttribute("font-weight", "bold");
-  label.setAttribute("font-family", "Outfit, sans-serif");
-  label.textContent = text;
-  mapSvg.appendChild(label);
-}
-
-function drawNeighbourhoodLabel(lat, lon, name) {
-  const pt = latLonToXY(lat, lon);
-  const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
-  label.setAttribute("x", pt.x);
-  label.setAttribute("y", pt.y);
-  label.setAttribute("text-anchor", "middle");
-  label.setAttribute("fill", "#94a3b8");
-  label.setAttribute("font-size", "11");
-  label.setAttribute("font-weight", "400");
-  label.setAttribute("font-family", "Outfit, sans-serif");
-  label.setAttribute("opacity", "0.5");
-  label.textContent = name;
-  mapSvg.appendChild(label);
-}
-
-// ==========================================
 // PROJECTION & UTILITIES
 // ==========================================
 
@@ -606,11 +294,10 @@ function latLonToXY(lat, lon) {
 }
 
 function drawGuessMarker(x, y) {
-  // Draw directly on the SVG so it stays in coordinate space
+  if (!mapSvg) return;
   const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
-  group.classList.add('svg-guess-pin');
+  group.classList.add('game-pin');
   
-  // Crosshair lines
   const size = 12;
   const h = document.createElementNS("http://www.w3.org/2000/svg", "line");
   h.setAttribute("x1", x - size); h.setAttribute("y1", y);
@@ -635,7 +322,7 @@ function drawGuessMarker(x, y) {
 
 function clearPins() {
   if (!mapSvg) return;
-  mapSvg.querySelectorAll('.svg-target-pin, .svg-guess-pin').forEach(p => p.remove());
+  mapSvg.querySelectorAll('.game-pin').forEach(p => p.remove());
 }
 
 function resetMapView() {
@@ -646,6 +333,7 @@ function resetMapView() {
 }
 
 function zoomMapTo(x, y, scale) {
+  if (!mapSvg) return;
   const originX = (x / MAP_WIDTH) * 100;
   const originY = (y / MAP_HEIGHT) * 100;
   mapSvg.style.transformOrigin = `${originX}% ${originY}%`;
