@@ -209,14 +209,25 @@ function setupReticles() {
 }
 
 function createReticle(color) {
-  const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-  g.innerHTML = `
-    <circle cx="0" cy="0" r="10" fill="none" stroke="${color}" stroke-width="2"/>
-    <line x1="-15" y1="0" x2="-5" y2="0" stroke="${color}" stroke-width="2"/>
-    <line x1="5" y1="0" x2="15" y2="0" stroke="${color}" stroke-width="2"/>
-    <line x1="0" y1="-15" x2="0" y2="-5" stroke="${color}" stroke-width="2"/>
-    <line x1="0" y1="5" x2="0" y2="15" stroke="${color}" stroke-width="2"/>
-  `;
+  const svgNS = "http://www.w3.org/2000/svg";
+  const g = document.createElementNS(svgNS, "g");
+  
+  const c = document.createElementNS(svgNS, "circle");
+  c.setAttribute("cx", "0"); c.setAttribute("cy", "0"); c.setAttribute("r", "10");
+  c.setAttribute("fill", "none"); c.setAttribute("stroke", color); c.setAttribute("stroke-width", "2");
+  g.appendChild(c);
+  
+  const addLine = (x1, y1, x2, y2) => {
+    const l = document.createElementNS(svgNS, "line");
+    l.setAttribute("x1", x1); l.setAttribute("y1", y1); l.setAttribute("x2", x2); l.setAttribute("y2", y2);
+    l.setAttribute("stroke", color); l.setAttribute("stroke-width", "2");
+    g.appendChild(l);
+  };
+  addLine("-15", "0", "-5", "0");
+  addLine("5", "0", "15", "0");
+  addLine("0", "-15", "0", "-5");
+  addLine("0", "5", "0", "15");
+  
   g.style.display = 'none';
   return g;
 }
@@ -280,7 +291,7 @@ function startRound() {
   document.getElementById('geogame-location-display').textContent = loc.location_name;
   document.getElementById('geogame-round').textContent = `${currentRoundIndex + 1}/${currentLocations.length}`;
   document.getElementById('geogame-status-text').textContent = 
-    inputMode === 'mouse' ? "Click the map to guess!" : "Use Analog Stick to move, 'A' to guess!";
+    inputMode === 'mouse' ? "Click the map to guess!" : "Use D-Pad/Stick to move, press ANY BUTTON to guess!";
   
   resetMapView();
   clearPins();
@@ -409,7 +420,7 @@ function handleGamepadButton(e) {
   if (currentState !== 'GUESSING' || inputMode !== 'gamepad') return;
   const { button, player } = e.detail;
   
-  if (button === 'A') {
+  if (['A', 'B', 'X', 'Y'].includes(button)) {
     if (player === 0 && !p1HasGuessed) {
       p1Guess = { ...p1Pos };
       p1HasGuessed = true;
