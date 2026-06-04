@@ -65,7 +65,7 @@ cat << EOF > "$AUTOSTART_DIR/trainingkiosk.desktop"
 [Desktop Entry]
 Type=Application
 Name=TrainingKiosk Frontend
-Exec=chromium --kiosk --noerrdialogs --disable-infobars --check-for-update-interval=31536000 http://127.0.0.1:5000/
+Exec=chromium --password-store=basic --kiosk --noerrdialogs --disable-infobars --check-for-update-interval=31536000 http://127.0.0.1:5000/
 X-GNOME-Autostart-enabled=true
 EOF
 
