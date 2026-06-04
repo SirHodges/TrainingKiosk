@@ -11,11 +11,11 @@ let currentMode = 'skillplayer';
 
 document.addEventListener('DOMContentLoaded', () => {
   // Load saved theme
-  const savedTheme = localStorage.getItem('kiosk_theme');
+  const savedTheme = sessionStorage.getItem('kiosk_theme');
   if (savedTheme) {
     document.body.className = savedTheme;
     if (savedTheme === 'theme-lucky') {
-      const luckyColors = localStorage.getItem('kiosk_lucky_colors');
+      const luckyColors = sessionStorage.getItem('kiosk_lucky_colors');
       if (luckyColors) {
         const parsed = JSON.parse(luckyColors);
         Object.keys(parsed).forEach(key => {
@@ -23,6 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
     }
+  } else {
+    document.body.className = 'theme-emergency-response';
   }
 
   // Initialize modes
@@ -80,14 +82,27 @@ function initAdmin() {
     });
   }
 
-  // Theme settings
+  // Theme settings toggle
+  const toggleThemesBtn = document.getElementById('btn-toggle-themes');
+  const themeSubmenu = document.getElementById('theme-submenu');
+  const themeCaret = document.getElementById('theme-caret');
+  
+  if (toggleThemesBtn && themeSubmenu) {
+    toggleThemesBtn.addEventListener('click', () => {
+      const isHidden = themeSubmenu.style.display === 'none';
+      themeSubmenu.style.display = isHidden ? 'flex' : 'none';
+      themeCaret.textContent = isHidden ? '▲' : '▼';
+    });
+  }
+
+  // Theme settings buttons
   const themeBtns = document.querySelectorAll('.theme-btn');
   themeBtns.forEach(btn => {
     btn.addEventListener('click', (e) => {
       document.documentElement.style.cssText = ''; // Clear lucky inline styles
       const themeClass = e.target.getAttribute('data-theme');
       document.body.className = themeClass;
-      localStorage.setItem('kiosk_theme', themeClass);
+      sessionStorage.setItem('kiosk_theme', themeClass);
     });
   });
 
@@ -131,8 +146,8 @@ function applyLuckyTheme() {
     document.documentElement.style.setProperty(key, colors[key]);
   });
   
-  localStorage.setItem('kiosk_theme', 'theme-lucky');
-  localStorage.setItem('kiosk_lucky_colors', JSON.stringify(colors));
+  sessionStorage.setItem('kiosk_theme', 'theme-lucky');
+  sessionStorage.setItem('kiosk_lucky_colors', JSON.stringify(colors));
 }
 
 function initModeTabs() {
