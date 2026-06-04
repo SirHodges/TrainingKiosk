@@ -137,7 +137,7 @@ def build_svg():
         svg_parts.append(f'<g>')
         for way in ways:
             pts = way_to_points(way, nodes)
-            if len(pts) < 3:
+            if len(pts) < 15:  # Skip small ponds to save performance
                 continue
             polyline_str = points_to_polyline(pts)
             svg_parts.append(f'<polygon points="{polyline_str}" '
@@ -193,12 +193,7 @@ def build_svg():
             if htype == 'motorway':
                 svg_parts.append(f'<polyline points="{polyline_str}" '
                                f'stroke="{STYLES["motorway"]}" stroke-width="2.5" opacity="0.35"/>')
-            elif htype == 'trunk':
-                svg_parts.append(f'<polyline points="{polyline_str}" '
-                               f'stroke="{STYLES["trunk"]}" stroke-width="1.8" opacity="0.3"/>')
-            elif htype == 'primary':
-                svg_parts.append(f'<polyline points="{polyline_str}" '
-                               f'stroke="{STYLES["primary"]}" stroke-width="1.2" opacity="0.2"/>')
+            # trunk and primary roads omitted to save SVG complexity for Pi performance
         svg_parts.append('</g>')
     else:
         print("Warning: osm_roads.json not found, skipping roads")

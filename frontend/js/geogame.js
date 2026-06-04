@@ -5,15 +5,14 @@
 // BOUNDING BOX - Must match convert_osm_to_svg.py exactly
 // ==========================================
 const MAP_BOUNDS = {
-  minLon: -75.82,
-  maxLon: -75.58,
-  minLat: 45.31,
-  maxLat: 45.46
+  minLon: -75.9375,
+  maxLon: -75.5859375,
+  minLat: 45.27488643704892,
+  maxLat: 45.460130637921
 };
 
-const MAP_WIDTH = 1200;
-const MAP_HEIGHT = 800;
-const MAP_PADDING = 20;
+const MAP_WIDTH = 1024;
+const MAP_HEIGHT = 768;
 
 // ==========================================
 // GAME STATE
@@ -60,26 +59,25 @@ export function startGeoGame() {
 }
 
 // ==========================================
-// MAP LOADING - Fetch the pre-built SVG
+// MAP LOADING - Static Carto Dark Image
 // ==========================================
 
-async function loadMap() {
-  try {
-    const response = await fetch('/frontend/assets/ottawa_map.svg');
-    const svgText = await response.text();
-    mapContainer.innerHTML = svgText;
-    mapSvg = mapContainer.querySelector('svg');
-    if (mapSvg) {
-      mapSvg.setAttribute('id', 'ottawa-map-svg');
-      mapSvg.style.width = '100%';
-      mapSvg.style.height = '100%';
-      mapSvg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-      console.log('Ottawa map SVG loaded successfully');
-    }
-  } catch (e) {
-    console.error('Failed to load map SVG:', e);
-    statusText.textContent = 'Error loading map.';
-  }
+function loadMap() {
+  mapContainer.innerHTML = '';
+  mapSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  mapSvg.setAttribute('id', 'ottawa-map-svg');
+  mapSvg.setAttribute("viewBox", `0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`);
+  mapSvg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+  mapSvg.style.width = '100%';
+  mapSvg.style.height = '100%';
+  
+  const bgImage = document.createElementNS("http://www.w3.org/2000/svg", "image");
+  bgImage.setAttribute("href", "/frontend/assets/ottawa_map_carto.png");
+  bgImage.setAttribute("width", MAP_WIDTH);
+  bgImage.setAttribute("height", MAP_HEIGHT);
+  mapSvg.appendChild(bgImage);
+  
+  mapContainer.appendChild(mapSvg);
 }
 
 // ==========================================
@@ -94,7 +92,6 @@ async function startNewGame() {
   scoreDisplay.textContent = '0';
   statusText.textContent = "Loading locations...";
   
-  // Clear old game pins from the SVG
   clearPins();
   resetMapView();
   
@@ -160,18 +157,19 @@ function handleMapClick(e) {
   if (currentState !== 'GUESSING' || !mapSvg) return;
   clearInterval(timerInterval);
   
-  // Get the SVG's bounding rect in screen pixels
   const rect = mapSvg.getBoundingClientRect();
-  
-  // Convert screen click to SVG viewBox coordinates
   const scaleX = MAP_WIDTH / rect.width;
   const scaleY = MAP_HEIGHT / rect.height;
   const clickX = (e.clientX - rect.left) * scaleX;
   const clickY = (e.clientY - rect.top) * scaleY;
   
-  // Convert SVG coordinates back to lat/lon using the same projection
-  const guessLon = MAP_BOUNDS.minLon + ((clickX - MAP_PADDING) / (MAP_WIDTH - 2 * MAP_PADDING)) * (MAP_BOUNDS.maxLon - MAP_BOUNDS.minLon);
-  const guessLat = MAP_BOUNDS.maxLat - ((clickY - MAP_PADDING) / (MAP_HEIGHT - 2 * MAP_PADDING)) * (MAP_BOUNDS.maxLat - MAP_BOUNDS.minLat);
+  // Inverse Web Mercator
+  const guessLon = MAP_BOUNDS.minLon + (clickX / MAP_WIDTH) * (MAP_BOUNDS.maxLon - MAP_BOUNDS.minLon);
+  
+  const yMin = Math.log(Math.tan(Math.PI / 4 + (MAP_BOUNDS.minLat * Math.PI / 180) / 2));
+  const yMax = Math.log(Math.tan(Math.PI / 4 + (MAP_BOUNDS.maxLat * Math.PI / 180) / 2));
+  const yMerc = yMin + ((MAP_HEIGHT - clickY) / MAP_HEIGHT) * (yMax - yMin);
+  const guessLat = (2 * Math.atan(Math.exp(yMerc)) - Math.PI / 2) * 180 / Math.PI;
   
   checkGuess(guessLat, guessLon, clickX, clickY);
 }
@@ -288,8 +286,13 @@ function endGame() {
 // ==========================================
 
 function latLonToXY(lat, lon) {
-  const x = MAP_PADDING + ((lon - MAP_BOUNDS.minLon) / (MAP_BOUNDS.maxLon - MAP_BOUNDS.minLon)) * (MAP_WIDTH - 2 * MAP_PADDING);
-  const y = MAP_PADDING + ((MAP_BOUNDS.maxLat - lat) / (MAP_BOUNDS.maxLat - MAP_BOUNDS.minLat)) * (MAP_HEIGHT - 2 * MAP_PADDING);
+  const x = ((lon - MAP_BOUNDS.minLon) / (MAP_BOUNDS.maxLon - MAP_BOUNDS.minLon)) * MAP_WIDTH;
+  
+  const yMin = Math.log(Math.tan(Math.PI / 4 + (MAP_BOUNDS.minLat * Math.PI / 180) / 2));
+  const yMax = Math.log(Math.tan(Math.PI / 4 + (MAP_BOUNDS.maxLat * Math.PI / 180) / 2));
+  const yMerc = Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI / 180) / 2));
+  
+  const y = MAP_HEIGHT - ((yMerc - yMin) / (yMax - yMin)) * MAP_HEIGHT;
   return { x, y };
 }
 
