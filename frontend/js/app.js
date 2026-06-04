@@ -172,15 +172,25 @@ export function switchMode(mode) {
     tab.classList.toggle('active', tab.getAttribute('data-mode') === mode);
   });
   
-  // Update sidebars
-  document.querySelectorAll('.sidebar-mode-content').forEach(content => {
-    content.classList.toggle('active', content.id === `${mode}-sidebar`);
-  });
-  
-  // Update main content
-  document.querySelectorAll('.app-mode-content').forEach(content => {
-    content.classList.toggle('active', content.id === `${mode}-content`);
-  });
+  if (mode === 'geogame') {
+    document.querySelector('.app-body').classList.add('hidden');
+    const geogameMode = document.getElementById('geogame-mode');
+    if (geogameMode) geogameMode.classList.remove('hidden');
+  } else {
+    document.querySelector('.app-body').classList.remove('hidden');
+    const geogameMode = document.getElementById('geogame-mode');
+    if (geogameMode) geogameMode.classList.add('hidden');
+    
+    // Update sidebars
+    document.querySelectorAll('.sidebar-mode-content').forEach(content => {
+      content.classList.toggle('active', content.id === `${mode}-sidebar`);
+    });
+    
+    // Update main content
+    document.querySelectorAll('.app-mode-content').forEach(content => {
+      content.classList.toggle('active', content.id === `${mode}-content`);
+    });
+  }
   
   // Clean up previous mode state
   if (currentMode === 'quiz') {
