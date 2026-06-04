@@ -17,7 +17,7 @@ git pull
 source venv/bin/activate
 pip install -r requirements.txt
 
-echo "Restarting backend service..."
-sudo systemctl restart trainingkiosk.service
+echo "Rebooting system..."
+sudo reboot
 
 echo "Update complete!"
