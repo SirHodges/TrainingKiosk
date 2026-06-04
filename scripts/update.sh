@@ -1,8 +1,6 @@
 #!/bin/bash
 # TrainingKiosk Update Script
-# Pulls the latest code from Git, updates dependencies, and restarts the service.
-
-set -e
+# Pulls the latest code from Git, updates dependencies, and reboots.
 
 # Change to the project root directory
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." >/dev/null 2>&1 && pwd)"
@@ -14,15 +12,11 @@ echo "Updating TrainingKiosk from repository..."
 git fetch origin
 git reset --hard origin/main
 
-# Activate virtual environment and install any new dependencies
-source venv/bin/activate
-pip install -r requirements.txt
+# Install any new dependencies using venv pip directly (no activate needed)
+"$PROJECT_DIR/venv/bin/pip" install -r requirements.txt
 
-echo "Rebooting system..."
-# Try standard reboot methods first
-sudo /sbin/reboot -f &
-sleep 5
-# Nuclear fallback: kernel sysrq reboot (bypasses everything)
-sudo bash -c 'echo 1 > /proc/sys/kernel/sysrq && echo b > /proc/sysrq-trigger'
+echo "Rebooting system in 3 seconds..."
+sleep 3
 
-echo "Update complete!"
+# Reboot the system
+sudo /sbin/reboot -f
