@@ -84,6 +84,7 @@ function updateFocusForGameScreen() {
 
 function setupEventListeners() {
   document.getElementById('btn-start-quiz').onclick = startQuizFlow;
+  document.getElementById('btn-cancel-binding').onclick = cancelBindingFlow;
   
   // Start hold button
   const startBtn = document.getElementById('btn-start-quiz');
@@ -202,6 +203,12 @@ async function startQuizFlow() {
   } else {
     runCountdown();
   }
+}
+
+function cancelBindingFlow() {
+  endSession();
+  resetQuiz();
+  showScreen('quiz-start-screen');
 }
 
 function handleBindingStatus(e) {
