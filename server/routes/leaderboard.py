@@ -49,7 +49,7 @@ def get_leaderboard():
     with get_db() as db:
         scores = get_top_scores(db)
         
-    return jsonify(scores)
+    return jsonify({'success': True, 'scores': scores})
 
 @leaderboard_bp.route('/check', methods=['POST'])
 def check_score():
