@@ -17,7 +17,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (savedTheme === 'theme-lucky') {
       const luckyColors = localStorage.getItem('kiosk_lucky_colors');
       if (luckyColors) {
-        Object.assign(document.documentElement.style, JSON.parse(luckyColors));
+        const parsed = JSON.parse(luckyColors);
+        Object.keys(parsed).forEach(key => {
+          document.documentElement.style.setProperty(key, parsed[key]);
+        });
       }
     }
   }
@@ -124,7 +127,9 @@ function applyLuckyTheme() {
   };
 
   document.body.className = 'theme-lucky';
-  Object.assign(document.documentElement.style, colors);
+  Object.keys(colors).forEach(key => {
+    document.documentElement.style.setProperty(key, colors[key]);
+  });
   
   localStorage.setItem('kiosk_theme', 'theme-lucky');
   localStorage.setItem('kiosk_lucky_colors', JSON.stringify(colors));
