@@ -95,16 +95,37 @@ function initAdmin() {
   let konamiBuffer = [];
   const konamiCode = ['up', 'up', 'down', 'down', 'left', 'right', 'left', 'right', 'B', 'A'];
 
+  // Inject debugger UI into admin popup
+  const debugContainer = document.createElement('div');
+  debugContainer.style.marginTop = '20px';
+  debugContainer.style.padding = '10px';
+  debugContainer.style.background = 'rgba(0,0,0,0.5)';
+  debugContainer.style.border = '1px solid #444';
+  debugContainer.style.borderRadius = '5px';
+  debugContainer.style.fontFamily = 'monospace';
+  debugContainer.style.fontSize = '12px';
+  debugContainer.style.color = '#0f0';
+  debugContainer.innerHTML = 'Konami Debugger:<br><span id="konami-buffer">[]</span>';
+  if (adminPopup) adminPopup.appendChild(debugContainer);
+
   function checkKonami(input) {
     if (!adminPopup || adminPopup.classList.contains('hidden')) {
       konamiBuffer = [];
       return;
     }
+    
+    // Accept X or B as the 'B' button due to arcade wiring variations
+    if (input === 'X') input = 'B';
+    
     konamiBuffer.push(input);
     if (konamiBuffer.length > 10) konamiBuffer.shift();
     
+    const bufferEl = document.getElementById('konami-buffer');
+    if (bufferEl) bufferEl.textContent = JSON.stringify(konamiBuffer);
+    
     if (konamiBuffer.length === 10 && konamiBuffer.every((val, index) => val === konamiCode[index])) {
       konamiBuffer = [];
+      if (bufferEl) bufferEl.textContent = 'TRIGGERED!';
       adminPopup.classList.add('hidden');
       import('./asteroids.js').then(module => {
         module.initAsteroids();
