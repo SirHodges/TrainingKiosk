@@ -1,7 +1,17 @@
-import { MAP_WIDTH, MAP_HEIGHT, latLonToXY, xyToLatLon, calculatePoints, calculateDistance, calculateZoomViewBox } from './geogame_math.js';
-import { initCalibration, exitCalibration } from './geogame_calibration.js';
 import { startBinding } from './gamepad.js';
 
+// ==========================================
+// BOUNDING BOX
+// ==========================================
+const MAP_BOUNDS = {
+  minLon: -75.9375,
+  maxLon: -75.5859375,
+  minLat: 45.27488643704892,
+  maxLat: 45.460130637921
+};
+
+const MAP_WIDTH = 1024;
+const MAP_HEIGHT = 768;
 
 // ==========================================
 // GAME STATE
@@ -14,7 +24,6 @@ let currentLocations = [];
 let p1Score = 0;
 let p2Score = 0;
 let currentZoom = 0;
-  isTransitioning = false;
 let timerInterval = null;
 
 // Gamepad Tracking
@@ -32,7 +41,6 @@ let p2Eliminated = false;
 let p1LockIcon, p2LockIcon;
 let p1LockMessage = "Wild Guess!";
 let p2LockMessage = "Wild Guess!";
-let isTransitioning = false;
 
 // DOM Elements
 let container, mapContainer, mapSvg;
@@ -74,9 +82,9 @@ export function initGeoGame() {
   document.getElementById('btn-geogame-restart').addEventListener('click', () => switchScreen('intro'));
   
   const calibBtn = document.getElementById('btn-geogame-calibrate');
-  if (calibBtn) calibBtn.addEventListener('click', () => initCalibration(switchScreen));
+  if (calibBtn) calibBtn.addEventListener('click', initCalibration);
   const exitCalibBtn = document.getElementById('btn-geogame-exit-calib');
-  if (exitCalibBtn) exitCalibBtn.addEventListener('click', exitCalibration);
+  if (exitCalibBtn) exitCalibBtn.addEventListener('click', () => { switchScreen('intro'); if(calibSvg) calibSvg.remove(); });
   
   mapContainer.addEventListener('click', handleMouseClick);
   
@@ -523,7 +531,7 @@ function handleGamepadButton(e) {
     return;
   }
   
-  if (currentState !== 'GUESSING' || inputMode !== 'gamepad' || isTransitioning) return;
+  if (currentState !== 'GUESSING' || inputMode !== 'gamepad') return;
   const { button, player } = e.detail;
   
   if (['A', 'B', 'X', 'Y'].includes(button)) {
@@ -538,7 +546,7 @@ function handleGamepadButton(e) {
     const latLon = xyToLatLon(pos.x, pos.y);
     const dist = calculateDistance(latLon.lat, latLon.lon, target.lat, target.lon);
     
-    if (dist > 4.0) {
+    if (playerCount === 2 && dist > 4.0) {
       if (isP1) { p1LockedUntil = now + 2000; p1LockMessage = "Wild guess"; }
       else { p2LockedUntil = now + 2000; p2LockMessage = "Wild guess"; }
       return;
@@ -567,12 +575,9 @@ function handleGamepadButton(e) {
              if (isP1) p1Eliminated = false; else p2Eliminated = false;
              const tempPin = drawGuessMarker(pos.x, pos.y, isP1 ? "#3b82f6" : "#ef4444"); // Bright initial pin
              
-             isTransitioning = true;
              setTimeout(() => {
-                isTransitioning = false;
                 const targetPt = latLonToXY(target.lat, target.lon);
-                const zoomData = calculateZoomViewBox(pos.x, pos.y, targetPt.x, targetPt.y, currentZoom);
-                mapSvg.setAttribute('viewBox', `${zoomData.x} ${zoomData.y} ${zoomData.width} ${zoomData.height}`);
+                const center = zoomMapToBounds(pos.x, pos.y, targetPt.x, targetPt.y);
                 currentZoom++;
                 currentState = 'GUESSING';
                 
@@ -582,8 +587,8 @@ function handleGamepadButton(e) {
                 if (ghostPin) ghostPin.style.opacity = '0.5';
                 
                 // Teleport BOTH players into the zoomed area!
-                p1Pos.x = zoomData.center.x; p1Pos.y = zoomData.center.y;
-                p2Pos.x = zoomData.center.x; p2Pos.y = zoomData.center.y;
+                p1Pos.x = center.x; p1Pos.y = center.y;
+                p2Pos.x = center.x; p2Pos.y = center.y;
                 
                 // Set the penalty lock for the person who guessed
                 const lockTime = Date.now() + 3000;
@@ -641,7 +646,6 @@ function evaluateClosestWins(target) {
 // ==========================================
 
 function evaluateGuesses() {
-  if (isTransitioning) return;
   currentState = 'SCORING';
   if (animationFrameId) cancelAnimationFrame(animationFrameId);
   const target = currentLocations[currentRoundIndex];
@@ -667,13 +671,10 @@ function evaluateGuesses() {
       document.getElementById('geogame-status-text').textContent = `Near Miss (${p1Dist.toFixed(1)}km). Zooming in...`;
       const pts = calculatePoints(p1Dist);
       const tempPin = drawGuessMarker(p1Guess.x, p1Guess.y, "#3b82f6");
-      isTransitioning = true;
-             setTimeout(() => {
-                isTransitioning = false;
-                const targetPt = latLonToXY(target.lat, target.lon);
-        const zoomData = calculateZoomViewBox(p1Guess.x, p1Guess.y, targetPt.x, targetPt.y, currentZoom);
-        mapSvg.setAttribute('viewBox', `${zoomData.x} ${zoomData.y} ${zoomData.width} ${zoomData.height}`);
-        p1Pos.x = zoomData.center.x; p1Pos.y = zoomData.center.y;
+      setTimeout(() => {
+        const targetPt = latLonToXY(target.lat, target.lon);
+        const center = zoomMapToBounds(p1Guess.x, p1Guess.y, targetPt.x, targetPt.y);
+        p1Pos.x = center.x; p1Pos.y = center.y; // Teleport
         
         if (tempPin && tempPin.parentNode) tempPin.parentNode.removeChild(tempPin);
         const ghostPin = drawGuessMarker(p1Guess.x, p1Guess.y, "#1e3a8a");
@@ -698,7 +699,6 @@ function evaluateGuesses() {
   
   // Multiplayer Timeout Logic
   if (playerCount === 2) {
-     if (isTransitioning) return;
      // If timer runs out, evaluate whoever guessed!
      evaluateClosestWins(target);
   }
@@ -782,14 +782,38 @@ function endGame() {
 // PROJECTION & UTILITIES
 // ==========================================
 
+function latLonToXY(lat, lon) {
+  const x = ((lon - MAP_BOUNDS.minLon) / (MAP_BOUNDS.maxLon - MAP_BOUNDS.minLon)) * MAP_WIDTH;
+  const yMin = Math.log(Math.tan(Math.PI / 4 + (MAP_BOUNDS.minLat * Math.PI / 180) / 2));
+  const yMax = Math.log(Math.tan(Math.PI / 4 + (MAP_BOUNDS.maxLat * Math.PI / 180) / 2));
+  const yMerc = Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI / 180) / 2));
+  const y = MAP_HEIGHT - ((yMerc - yMin) / (yMax - yMin)) * MAP_HEIGHT;
+  return { x, y };
+}
+
+function xyToLatLon(x, y) {
+  const lon = MAP_BOUNDS.minLon + (x / MAP_WIDTH) * (MAP_BOUNDS.maxLon - MAP_BOUNDS.minLon);
+  const yMin = Math.log(Math.tan(Math.PI / 4 + (MAP_BOUNDS.minLat * Math.PI / 180) / 2));
+  const yMax = Math.log(Math.tan(Math.PI / 4 + (MAP_BOUNDS.maxLat * Math.PI / 180) / 2));
+  const yMerc = yMin + ((MAP_HEIGHT - y) / MAP_HEIGHT) * (yMax - yMin);
+  const lat = (2 * Math.atan(Math.exp(yMerc)) - Math.PI / 2) * 180 / Math.PI;
+  return { lat, lon };
+}
 
 
+function calculatePoints(distKm) {
+  if (distKm > 4.0) return 0;
+  const distM = distKm * 1000;
+  if (distM <= 50) return 100;
+  const raw = 5000 / distM;
+  return Math.max(0, Math.min(100, Math.round(raw)));
+}
 
-
-
-
-
-
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const latDiff = (lat2 - lat1) * 111;
+  const lonDiff = (lon2 - lon1) * 78;
+  return Math.sqrt(latDiff * latDiff + lonDiff * lonDiff);
+}
 
 function drawGuessMarker(x, y, color = "#ef4444") {
   if (!mapSvg) return null;
@@ -809,26 +833,48 @@ function drawGuessMarker(x, y, color = "#ef4444") {
   v.setAttribute("stroke", color); v.setAttribute("stroke-width", "2");
   group.appendChild(v);
   
-  const pinsLayer = document.getElementById("pins-layer");
-  if (pinsLayer) pinsLayer.appendChild(group);
-  else mapSvg.appendChild(group);
+  mapSvg.appendChild(group);
   return group;
 }
 
 function clearPins() {
-  const pinsLayer = document.getElementById("pins-layer");
-  if (pinsLayer) pinsLayer.innerHTML = '';
+  if (!mapSvg) return;
+  mapSvg.querySelectorAll('.game-pin').forEach(p => p.remove());
 }
 
 function resetMapView() {
   if (mapSvg) {
-    mapSvg.setAttribute('viewBox', `0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`);
+    mapSvg.style.transform = 'none';
+    mapSvg.style.transformOrigin = 'center center';
   }
 }
 
 
+function zoomMapToBounds(x1, y1, x2, y2) {
+  const padding = 100;
+  let minX = Math.min(x1, x2) - padding;
+  let maxX = Math.max(x1, x2) + padding;
+  let minY = Math.min(y1, y2) - padding;
+  let maxY = Math.max(y1, y2) + padding;
+  
+  const w = maxX - minX;
+  const h = maxY - minY;
+  const scale = Math.min(MAP_WIDTH / w, MAP_HEIGHT / h, 20.0);
+  
+  const centerX = (minX + maxX) / 2;
+  const centerY = (minY + maxY) / 2;
+  zoomMapTo(centerX, centerY, scale);
+  
+  return { x: centerX, y: centerY };
+}
 
-
+function zoomMapTo(x, y, scale) {
+  if (!mapSvg) return;
+  const originX = (x / MAP_WIDTH) * 100;
+  const originY = (y / MAP_HEIGHT) * 100;
+  mapSvg.style.transformOrigin = `${originX}% ${originY}%`;
+  mapSvg.style.transform = `scale(${scale})`;
+}
 
 function updateScoreUI() {
   document.getElementById('geogame-score').textContent = p1Score;
@@ -837,3 +883,153 @@ function updateScoreUI() {
 }
 
 
+// ==========================================
+// CALIBRATION MODE
+// ==========================================
+let calibSvg;
+let calibLocations = [];
+let currentCalibIndex = -1;
+let calibPinGroup = null;
+
+async function initCalibration() {
+  switchScreen('calibration');
+  document.getElementById('geogame-status-text').textContent = ""; // clear game status
+  
+  const container = document.getElementById('geogame-calib-map-container');
+  container.innerHTML = '';
+  
+  calibSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  calibSvg.setAttribute("viewBox", `0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`);
+  calibSvg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+  calibSvg.style.width = '100%';
+  calibSvg.style.height = '100%';
+  calibSvg.style.transition = 'transform 0.5s ease';
+  
+  const bgImage = document.createElementNS("http://www.w3.org/2000/svg", "image");
+  bgImage.setAttribute("href", "/frontend/assets/ottawa_map_carto.png");
+  bgImage.setAttribute("width", MAP_WIDTH);
+  bgImage.setAttribute("height", MAP_HEIGHT);
+  calibSvg.appendChild(bgImage);
+  container.appendChild(calibSvg);
+  
+  // Event listeners for Map
+  calibSvg.addEventListener('contextmenu', handleCalibRightClick);
+  calibSvg.addEventListener('click', handleCalibLeftClick);
+  
+  // Fetch locations
+  const res = await fetch('/api/geogame/locations/all');
+  const data = await res.json();
+  if (data.status === 'success') {
+     calibLocations = data.locations;
+     renderCalibList();
+  }
+}
+
+function renderCalibList() {
+  const list = document.getElementById('geogame-calib-list');
+  list.innerHTML = '';
+  calibLocations.forEach((loc, i) => {
+     const div = document.createElement('div');
+     div.className = 'calib-list-item';
+     div.textContent = loc.location_name;
+     if (i === currentCalibIndex) div.classList.add('active');
+     div.addEventListener('click', () => selectCalibLocation(i));
+     list.appendChild(div);
+  });
+}
+
+function selectCalibLocation(index) {
+  currentCalibIndex = index;
+  renderCalibList(); // update active styling
+  
+  const loc = calibLocations[index];
+  const pt = latLonToXY(loc.lat, loc.lon);
+  
+  // Zoom Map
+  const originX = (pt.x / MAP_WIDTH) * 100;
+  const originY = (pt.y / MAP_HEIGHT) * 100;
+  calibSvg.style.transformOrigin = `${originX}% ${originY}%`;
+  calibSvg.style.transform = `scale(4.0)`;
+  
+  // Draw Pin
+  if (calibPinGroup) calibPinGroup.remove();
+  
+  calibPinGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  
+  const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+  c.setAttribute("cx", pt.x); c.setAttribute("cy", pt.y);
+  c.setAttribute("r", "4"); c.setAttribute("fill", "#22c55e");
+  calibPinGroup.appendChild(c);
+  
+  const ring = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+  ring.setAttribute("cx", pt.x); ring.setAttribute("cy", pt.y);
+  ring.setAttribute("r", "12"); ring.setAttribute("fill", "none");
+  ring.setAttribute("stroke", "#22c55e"); ring.setAttribute("stroke-width", "2");
+  calibPinGroup.appendChild(ring);
+  
+  calibSvg.appendChild(calibPinGroup);
+}
+
+async function handleCalibRightClick(e) {
+  e.preventDefault();
+  if (currentCalibIndex === -1) return;
+  
+  const pt = calibSvg.createSVGPoint();
+  pt.x = e.clientX;
+  pt.y = e.clientY;
+  const svgP = pt.matrixTransform(calibSvg.getScreenCTM().inverse());
+  
+  const loc = calibLocations[currentCalibIndex];
+  const newLatLon = xyToLatLon(svgP.x, svgP.y);
+  
+  // Update UI instantly
+  loc.lat = newLatLon.lat;
+  loc.lon = newLatLon.lon;
+  selectCalibLocation(currentCalibIndex);
+  
+  // Show status
+  const status = document.getElementById('geogame-calib-status');
+  status.textContent = "Saving...";
+  status.classList.add('active');
+  
+  // API Call
+  await fetch('/api/geogame/locations/update', {
+     method: 'POST',
+     headers: { 'Content-Type': 'application/json' },
+     body: JSON.stringify({
+        id: loc.id,
+        lat: loc.lat,
+        lon: loc.lon
+     })
+  });
+  
+  status.textContent = "Saved ✓";
+  status.classList.add('success'); status.classList.remove('info');
+  setTimeout(() => {
+     status.classList.remove('active');
+     status.classList.remove('success');
+  }, 1000);
+}
+
+function handleCalibLeftClick(e) {
+  if (currentCalibIndex === -1) return;
+  
+  // Show "Confirmed"
+  const status = document.getElementById('geogame-calib-status');
+  status.textContent = "Confirmed ✓";
+  status.classList.add('active');
+  status.classList.add('info'); status.classList.remove('success');
+  setTimeout(() => {
+     status.classList.remove('active');
+     status.classList.remove('info');
+  }, 1000);
+  
+  // Move to next
+  if (currentCalibIndex < calibLocations.length - 1) {
+     selectCalibLocation(currentCalibIndex + 1);
+     // Scroll list to item
+     const list = document.getElementById('geogame-calib-list');
+     const item = list.children[currentCalibIndex];
+     if (item) item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
