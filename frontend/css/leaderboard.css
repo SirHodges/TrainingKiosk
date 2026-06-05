@@ -104,9 +104,6 @@
 /* Tooltip for stats */
 .score-tooltip {
   position: fixed;
-  left: calc(50% + 320px);
-  top: 50%;
-  transform: translateY(-50%);
   background: var(--bg-elevated);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);

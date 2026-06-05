@@ -1,5 +1,13 @@
 // leaderboard.js - Leaderboard display module
 
+window.updateTooltipPos = function(e, row) {
+  const tooltip = row.querySelector('.score-tooltip');
+  if (tooltip) {
+    tooltip.style.left = (e.clientX + 15) + 'px';
+    tooltip.style.top = (e.clientY + 15) + 'px';
+  }
+};
+
 import { getLeaderboard, checkTopScore, submitScore } from './api.js';
 
 export async function loadLeaderboard(containerId) {
@@ -21,7 +29,7 @@ export async function loadLeaderboard(containerId) {
   } else {
     scores.forEach((s, i) => {
       html += `
-        <div class="score-row">
+        <div class="score-row" onmousemove="window.updateTooltipPos(event, this)">
           <div class="score-rank">${getRankDisplay(i + 1)}</div>
           <div class="score-name">${s.name}</div>
           <div class="score-val">${s.score}</div>
@@ -55,7 +63,7 @@ export function displayScoresWithPlaceholder(scores, containerId, userScore) {
   let rank = 1;
   
   const renderRow = (s, r, isPlaceholder = false) => `
-    <div class="score-row ${isPlaceholder ? 'score-placeholder' : ''}">
+    <div class="score-row ${isPlaceholder ? 'score-placeholder' : ''}" onmousemove="window.updateTooltipPos(event, this)">
       <div class="score-rank">${getRankDisplay(r)}</div>
       <div class="score-name">${isPlaceholder ? 'YOU' : s.name}</div>
       <div class="score-val">${s.score}</div>
