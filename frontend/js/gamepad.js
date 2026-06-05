@@ -88,6 +88,10 @@ export function initGamepad() {
     socket.on('raw_evdev_button', (data) => {
       window.dispatchEvent(new CustomEvent('raw_gamepad_backend', { detail: { action: 'RAW_EVDEV_SCANCODE', ...data } }));
     });
+    
+    socket.on('raw_evdev_axis', (data) => {
+      window.dispatchEvent(new CustomEvent('raw_gamepad_backend', { detail: { action: 'RAW_EVDEV_AXIS', ...data } }));
+    });
   } else {
     console.warn('Socket.IO not found. Proceeding with Local HTML5 Gamepad support only.');
   }

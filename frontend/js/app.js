@@ -139,8 +139,12 @@ function initAdmin() {
   window.addEventListener('raw_gamepad_backend', (e) => {
     if (!adminPopup || adminPopup.classList.contains('hidden')) return;
     const bufferEl = document.getElementById('konami-buffer');
-    if (bufferEl && e.detail.action === 'RAW_EVDEV_SCANCODE') {
-      bufferEl.innerHTML = `Raw Unmapped Key Pressed: <b>${e.detail.scancode}</b><br>` + bufferEl.innerHTML;
+    if (bufferEl) {
+      if (e.detail.action === 'RAW_EVDEV_SCANCODE') {
+        bufferEl.innerHTML = `Raw Unmapped Key Pressed: <b>${e.detail.scancode}</b><br>` + bufferEl.innerHTML;
+      } else if (e.detail.action === 'RAW_EVDEV_AXIS') {
+        bufferEl.innerHTML = `Raw Axis Moved: <b>Code ${e.detail.axis_code} | Val ${e.detail.value}</b><br>` + bufferEl.innerHTML;
+      }
     }
   });
 

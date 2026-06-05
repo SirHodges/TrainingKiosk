@@ -278,6 +278,13 @@ class GamepadHandler:
                 if value > 0: return 1.0
                 return 0.0
 
+        # ALWAYS emit raw axis for diagnostics
+        self._emit('raw_evdev_axis', {
+            'axis_code': event.code,
+            'value': event.value,
+            'path': path
+        })
+
         # ABS_HAT0X / ABS_HAT0Y are the standard D-pad events
         if event.code == ecodes.ABS_HAT0X or event.code == ecodes.ABS_X:
             val = get_axis_state(event.code, event.value)
