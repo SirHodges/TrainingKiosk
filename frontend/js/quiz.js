@@ -544,6 +544,7 @@ async function endQuiz() {
     const res = await checkTopScore(finalScore);
     if (res && res.is_top_score) {
       document.getElementById('name-entry-section').style.display = 'block';
+      document.getElementById('end-leaderboard').style.display = 'none';
       setupVirtualKeyboard(finalScore, finalStats);
     } else {
       document.getElementById('name-entry-section').style.display = 'none';
@@ -587,6 +588,7 @@ function setupVirtualKeyboard(score, stats) {
     await submitScore(score, name, stats);
     
     document.getElementById('name-entry-section').style.display = 'none';
+    document.getElementById('end-leaderboard').style.display = 'block';
     submitBtn.textContent = 'SUBMIT';
     submitBtn.disabled = false;
     
