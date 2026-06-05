@@ -38,7 +38,8 @@ export function initGamepad() {
     
     socket.on('gamepad_button', (data) => {
       let btnName = null;
-      if (data.button_index === 0) btnName = 'X';
+      if (data.action === 'select') btnName = 'Select';
+      else if (data.button_index === 0) btnName = 'X';
       else if (data.button_index === 1) btnName = 'A';
       else if (data.button_index === 2) btnName = 'B';
       else if (data.button_index === 3) btnName = 'Y';

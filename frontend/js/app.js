@@ -93,7 +93,7 @@ function initAdmin() {
 
   // Asteroids Easter Egg Logic
   let konamiBuffer = [];
-  const konamiCode = ['up', 'up', 'down', 'down', 'left', 'right', 'left', 'right', 'B', 'A'];
+  const konamiCode = ['A', 'B', 'Start', 'Select'];
 
   // Inject debugger UI into admin popup
   const debugContainer = document.createElement('div');
@@ -122,7 +122,11 @@ function initAdmin() {
     const bufferEl = document.getElementById('konami-buffer');
     if (bufferEl) bufferEl.textContent = JSON.stringify(konamiBuffer);
     
-    if (konamiBuffer.length === 10 && konamiBuffer.every((val, index) => val === konamiCode[index])) {
+    // Check if the end of the buffer matches the sequence
+    const sequenceStr = JSON.stringify(konamiCode);
+    const bufferStr = JSON.stringify(konamiBuffer);
+    
+    if (bufferStr.includes(sequenceStr.slice(1, -1))) {
       konamiBuffer = [];
       if (bufferEl) bufferEl.textContent = 'TRIGGERED!';
       adminPopup.classList.add('hidden');
@@ -134,6 +138,7 @@ function initAdmin() {
 
   window.addEventListener('app_gamepad_dpad', (e) => checkKonami(e.detail.direction));
   window.addEventListener('app_gamepad_btn', (e) => checkKonami(e.detail.button));
+  window.addEventListener('app_gamepad_start_down', () => checkKonami('Start'));
   
   // Show raw events for troubleshooting unknown arcade buttons
   window.addEventListener('raw_gamepad_backend', (e) => {
