@@ -427,23 +427,50 @@ function pollGamepadsForReticles() {
   };
   
   const now = Date.now();
-  if (!p1Eliminated && !p1HasGuessed && now >= p1LockedUntil) processAxes(p1Axes, p1Pos);
-  if (playerCount === 2 && !p2Eliminated && !p2HasGuessed && now >= p2LockedUntil) processAxes(p2Axes, p2Pos);
-  
-  // Also poll HTML5 Gamepads as fallback for local axes
+  let activeX1 = p1Axes.x;
+  let activeY1 = p1Axes.y;
+  let activeX2 = p2Axes.x;
+  let activeY2 = p2Axes.y;
+
+  // Also poll HTML5 Gamepads as fallback for local axes and D-pad
   const gps = navigator.getGamepads ? navigator.getGamepads() : [];
-  if (gps[0] && gps[0].axes.length >= 2) {
-      if (Math.abs(gps[0].axes[0]) > 0.1 || Math.abs(gps[0].axes[1]) > 0.1) {
-         p1Axes.x = gps[0].axes[0];
-         p1Axes.y = gps[0].axes[1];
+  
+  if (gps[0]) {
+      let localX = 0, localY = 0;
+      if (gps[0].axes.length >= 2) {
+          if (Math.abs(gps[0].axes[0]) > 0.1) localX = gps[0].axes[0];
+          if (Math.abs(gps[0].axes[1]) > 0.1) localY = gps[0].axes[1];
+      }
+      if (gps[0].buttons && gps[0].buttons.length > 15) {
+          if (gps[0].buttons[14].pressed) localX = -1;
+          if (gps[0].buttons[15].pressed) localX = 1;
+          if (gps[0].buttons[12].pressed) localY = -1;
+          if (gps[0].buttons[13].pressed) localY = 1;
+      }
+      if (localX !== 0 || localY !== 0) {
+          activeX1 = localX; activeY1 = localY;
       }
   }
-  if (gps[1] && gps[1].axes.length >= 2) {
-      if (Math.abs(gps[1].axes[0]) > 0.1 || Math.abs(gps[1].axes[1]) > 0.1) {
-         p2Axes.x = gps[1].axes[0];
-         p2Axes.y = gps[1].axes[1];
+  
+  if (gps[1]) {
+      let localX = 0, localY = 0;
+      if (gps[1].axes.length >= 2) {
+          if (Math.abs(gps[1].axes[0]) > 0.1) localX = gps[1].axes[0];
+          if (Math.abs(gps[1].axes[1]) > 0.1) localY = gps[1].axes[1];
+      }
+      if (gps[1].buttons && gps[1].buttons.length > 15) {
+          if (gps[1].buttons[14].pressed) localX = -1;
+          if (gps[1].buttons[15].pressed) localX = 1;
+          if (gps[1].buttons[12].pressed) localY = -1;
+          if (gps[1].buttons[13].pressed) localY = 1;
+      }
+      if (localX !== 0 || localY !== 0) {
+          activeX2 = localX; activeY2 = localY;
       }
   }
+
+  if (!p1Eliminated && !p1HasGuessed && now >= p1LockedUntil) processAxes({x: activeX1, y: activeY1}, p1Pos);
+  if (playerCount === 2 && !p2Eliminated && !p2HasGuessed && now >= p2LockedUntil) processAxes({x: activeX2, y: activeY2}, p2Pos);
 
   // Render Reticles
   // Helper to calculate SVG pie slice path
