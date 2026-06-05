@@ -696,9 +696,8 @@ function evaluateGuesses() {
       const pts = calculatePoints(p1Dist);
       const tempPin = drawGuessMarker(p1Guess.x, p1Guess.y, "#3b82f6");
       isTransitioning = true;
-             setTimeout(() => {
-                isTransitioning = false;
-                const targetPt = latLonToXY(target.lat, target.lon);
+      setTimeout(() => {
+        const targetPt = latLonToXY(target.lat, target.lon);
         const zoomData = calculateZoomViewBox(p1Guess.x, p1Guess.y, targetPt.x, targetPt.y, currentZoom);
         mapSvg.setAttribute('viewBox', `${zoomData.x} ${zoomData.y} ${zoomData.width} ${zoomData.height}`);
         p1Pos.x = zoomData.center.x; p1Pos.y = zoomData.center.y;
@@ -707,15 +706,19 @@ function evaluateGuesses() {
         const ghostPin = drawGuessMarker(p1Guess.x, p1Guess.y, "#1e3a8a");
         if (ghostPin) ghostPin.style.opacity = '0.5';
         
-        currentZoom++;
-        currentState = 'GUESSING';
-        p1HasGuessed = false; // reset
-        document.getElementById('geogame-status-text').textContent = `Try again! Worth ${pts} pts`;
-        startTimer(10);
-        if (inputMode === 'gamepad') {
-          p1Reticle.style.display = 'inline';
-          pollGamepadsForReticles();
-        }
+        document.getElementById('geogame-status-text').innerHTML = `<span style="color: var(--accent-primary); font-weight: bold; font-size: 1.2em; animation: textPulse 1s infinite;">Try again!</span> Worth ${pts} pts`;
+        
+        setTimeout(() => {
+          isTransitioning = false;
+          currentZoom++;
+          currentState = 'GUESSING';
+          p1HasGuessed = false; // reset
+          startTimer(10);
+          if (inputMode === 'gamepad') {
+            p1Reticle.style.display = 'inline';
+            pollGamepadsForReticles();
+          }
+        }, 1500);
       }, 1500);
     } else {
       document.getElementById('geogame-status-text').textContent = `❌ Missed! (${p1Dist.toFixed(1)}km away)`;
@@ -738,9 +741,13 @@ function revealTarget(pts1, pts2, winnerName) {
   
   p1Score += pts1;
   p2Score += pts2;
-  updateScoreUI();
+  updateScoreUI(pts1, pts2);
   
   const targetPt = latLonToXY(target.lat, target.lon);
+  
+  // Clamp target pin so it doesn't clip off the screen
+  targetPt.x = Math.max(25, Math.min(MAP_WIDTH - 25, targetPt.x));
+  targetPt.y = Math.max(25, Math.min(MAP_HEIGHT - 25, targetPt.y));
   
   const pinGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
   pinGroup.classList.add('game-pin');
@@ -763,11 +770,12 @@ function revealTarget(pts1, pts2, winnerName) {
   
   const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
   label.setAttribute("x", targetPt.x);
-  label.setAttribute("y", targetPt.y - 24);
+  label.setAttribute("y", targetPt.y - 25);
   label.setAttribute("text-anchor", "middle");
   label.setAttribute("fill", "white");
-  label.setAttribute("font-size", "11");
-  label.setAttribute("font-weight", "600");
+  label.setAttribute("font-size", "14px");
+  label.setAttribute("font-weight", "bold");
+  label.setAttribute("filter", "drop-shadow(0px 2px 2px rgba(0,0,0,0.8))");
   label.textContent = target.location_name;
   pinGroup.appendChild(label);
   
@@ -779,10 +787,10 @@ function revealTarget(pts1, pts2, winnerName) {
     body: JSON.stringify({
       location_name: target.location_name,
       winner: winnerName,
-      points_awarded: pts1 + pts2,
+      points_awarded: Math.max(pts1, pts2),
       zoom_level: currentZoom
     })
-  });
+  }).catch(err => console.error(err));
   
   setTimeout(() => {
     currentRoundIndex++;
@@ -804,6 +812,12 @@ function endGame() {
   
   document.getElementById('geogame-final-score').textContent = endText;
   document.getElementById('geogame-end-modal').classList.remove('hidden');
+  
+  if (inputMode === 'gamepad') {
+      const btn = document.getElementById('btn-geogame-restart');
+      btn.classList.add('gamepad-focus');
+      btn.innerHTML = `Play Again <br><span style="font-size: 0.7em; color: #fbbf24;">(Press A)</span>`;
+  }
 }
 
 // ==========================================
@@ -858,10 +872,27 @@ function resetMapView() {
 
 
 
-function updateScoreUI() {
-  document.getElementById('geogame-score').textContent = p1Score;
-  document.getElementById('geogame-p1-score-val').textContent = p1Score;
-  document.getElementById('geogame-p2-score-val').textContent = p2Score;
+function updateScoreUI(pts1 = 0, pts2 = 0) {
+  const p1Disp = document.getElementById('geogame-score');
+  const p1Val = document.getElementById('geogame-p1-score-val');
+  const p2Val = document.getElementById('geogame-p2-score-val');
+  
+  p1Disp.textContent = p1Score;
+  p1Val.textContent = p1Score;
+  p2Val.textContent = p2Score;
+  
+  if (pts1 > 0) {
+      p1Disp.classList.remove('score-bump');
+      p1Val.classList.remove('score-bump');
+      void p1Disp.offsetWidth; // trigger reflow
+      p1Disp.classList.add('score-bump');
+      p1Val.classList.add('score-bump');
+  }
+  if (pts2 > 0) {
+      p2Val.classList.remove('score-bump');
+      void p2Val.offsetWidth;
+      p2Val.classList.add('score-bump');
+  }
 }
 
 

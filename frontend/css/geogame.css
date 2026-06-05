@@ -309,3 +309,8 @@
 #geogame-calib-status.active { display: block; }
 #geogame-calib-status.success { color: var(--color-success); }
 #geogame-calib-status.info { color: var(--accent-primary); }
+
+@keyframes scoreBump { 0% { transform: scale(1); color: inherit; } 50% { transform: scale(1.5); color: #4ade80; } 100% { transform: scale(1); color: inherit; } }
+.score-bump { animation: scoreBump 0.5s ease-out; }
+
+@keyframes textPulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.7; transform: scale(1.1); } 100% { opacity: 1; transform: scale(1); } }
