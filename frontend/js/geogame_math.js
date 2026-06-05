@@ -13,14 +13,35 @@ export const MAP_WIDTH = 1200;
 export const MAP_HEIGHT = 800;
 
 export function latLonToXY(lat, lon) {
+  const minLatRad = MAP_BOUNDS.minLat * Math.PI / 180;
+  const maxLatRad = MAP_BOUNDS.maxLat * Math.PI / 180;
+  const latRad = lat * Math.PI / 180;
+
+  const mercatorY = (l) => Math.log(Math.tan(Math.PI / 4 + l / 2));
+
+  const yMin = mercatorY(minLatRad);
+  const yMax = mercatorY(maxLatRad);
+  const yLat = mercatorY(latRad);
+
   const x = ((lon - MAP_BOUNDS.minLon) / (MAP_BOUNDS.maxLon - MAP_BOUNDS.minLon)) * MAP_WIDTH;
-  const y = MAP_HEIGHT - (((lat - MAP_BOUNDS.minLat) / (MAP_BOUNDS.maxLat - MAP_BOUNDS.minLat)) * MAP_HEIGHT);
+  const y = MAP_HEIGHT - (((yLat - yMin) / (yMax - yMin)) * MAP_HEIGHT);
   return { x, y };
 }
 
 export function xyToLatLon(x, y) {
   const lon = MAP_BOUNDS.minLon + (x / MAP_WIDTH) * (MAP_BOUNDS.maxLon - MAP_BOUNDS.minLon);
-  const lat = MAP_BOUNDS.maxLat - (y / MAP_HEIGHT) * (MAP_BOUNDS.maxLat - MAP_BOUNDS.minLat);
+  
+  const minLatRad = MAP_BOUNDS.minLat * Math.PI / 180;
+  const maxLatRad = MAP_BOUNDS.maxLat * Math.PI / 180;
+  const mercatorY = (l) => Math.log(Math.tan(Math.PI / 4 + l / 2));
+  
+  const yMin = mercatorY(minLatRad);
+  const yMax = mercatorY(maxLatRad);
+  
+  const yLat = yMax - (y / MAP_HEIGHT) * (yMax - yMin);
+  const latRad = 2 * Math.atan(Math.exp(yLat)) - Math.PI / 2;
+  const lat = latRad * 180 / Math.PI;
+  
   return { lat, lon };
 }
 
