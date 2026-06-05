@@ -31,7 +31,10 @@ export function initGamepad() {
     socket.on('connect', () => { connected = true; console.log('Gamepad socket connected'); });
     socket.on('disconnect', () => { connected = false; console.log('Gamepad socket disconnected'); });
     
-    socket.on('gamepad_dpad', (data) => moveFocus(data.direction));
+    socket.on('gamepad_dpad', (data) => {
+      moveFocus(data.direction);
+      window.dispatchEvent(new CustomEvent('app_gamepad_dpad', { detail: { direction: data.direction, player: (data.player || 1) - 1 } }));
+    });
     
     socket.on('gamepad_button', (data) => {
       let btnName = null;
@@ -61,6 +64,7 @@ export function initGamepad() {
     });
     socket.on('gamepad_dpad', (data) => {
       moveFocus(data.direction);
+      window.dispatchEvent(new CustomEvent('app_gamepad_dpad', { detail: { direction: data.direction, player: (data.player || 1) - 1 } }));
       window.dispatchEvent(new CustomEvent('raw_gamepad_backend', { detail: data }));
     });
     
@@ -134,6 +138,11 @@ function pollLocalGamepads() {
     if (currentAxes[2] && !wasAxes[2]) dispatchDpad(gp.index, 'up');
     if (currentAxes[3] && !wasAxes[3]) dispatchDpad(gp.index, 'down');
     
+    // Dispatch raw axes for continuous movement games (like Asteroids)
+    window.dispatchEvent(new CustomEvent('app_gamepad_axes', { 
+      detail: { player: gamepadToPlayerMap[gp.index] || 0, axes: [gp.axes[0], gp.axes[1]] } 
+    }));
+    
     state.lastAxes = currentAxes;
   }
   
@@ -197,6 +206,7 @@ function handleLocalButtonUp(gpIndex, buttonIndex) {
 function dispatchDpad(gpIndex, direction) {
   if (bindingActive) return;
   moveFocus(direction);
+  window.dispatchEvent(new CustomEvent('app_gamepad_dpad', { detail: { direction, player: gamepadToPlayerMap[gpIndex] || 0 } }));
 }
 
 export function startBinding(playerCount) {

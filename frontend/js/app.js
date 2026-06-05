@@ -91,6 +91,30 @@ function initAdmin() {
     });
   }
 
+  // Asteroids Easter Egg Logic
+  let konamiBuffer = [];
+  const konamiCode = ['up', 'up', 'down', 'down', 'left', 'right', 'left', 'right', 'B', 'A'];
+
+  function checkKonami(input) {
+    if (!adminPopup || adminPopup.classList.contains('hidden')) {
+      konamiBuffer = [];
+      return;
+    }
+    konamiBuffer.push(input);
+    if (konamiBuffer.length > 10) konamiBuffer.shift();
+    
+    if (konamiBuffer.length === 10 && konamiBuffer.every((val, index) => val === konamiCode[index])) {
+      konamiBuffer = [];
+      adminPopup.classList.add('hidden');
+      import('./asteroids.js').then(module => {
+        module.initAsteroids();
+      }).catch(err => console.error('Failed to load asteroids:', err));
+    }
+  }
+
+  window.addEventListener('app_gamepad_dpad', (e) => checkKonami(e.detail.direction));
+  window.addEventListener('app_gamepad_btn', (e) => checkKonami(e.detail.button));
+
   // Theme settings toggle
   const toggleThemesBtn = document.getElementById('btn-toggle-themes');
   const themeSubmenu = document.getElementById('theme-submenu');
