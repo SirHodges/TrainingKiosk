@@ -14,7 +14,7 @@ let currentLocations = [];
 let p1Score = 0;
 let p2Score = 0;
 let currentZoom = 0;
-  isTransitioning = false;
+
 let timerInterval = null;
 
 // Gamepad Tracking
