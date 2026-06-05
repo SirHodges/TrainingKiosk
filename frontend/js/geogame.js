@@ -1,6 +1,6 @@
 import { MAP_WIDTH, MAP_HEIGHT, latLonToXY, xyToLatLon, calculatePoints, calculateDistance, calculateZoomViewBox } from './geogame_math.js';
 import { initCalibration, exitCalibration } from './geogame_calibration.js';
-import { startBinding } from './gamepad.js';
+import { startBinding, getGamepadForPlayer } from './gamepad.js';
 
 
 // ==========================================
@@ -433,36 +433,37 @@ function pollGamepadsForReticles() {
   let activeY2 = p2Axes.y;
 
   // Also poll HTML5 Gamepads as fallback for local axes and D-pad
-  const gps = navigator.getGamepads ? navigator.getGamepads() : [];
+  const gp1 = getGamepadForPlayer(0);
+  const gp2 = getGamepadForPlayer(1);
   
-  if (gps[0]) {
+  if (gp1) {
       let localX = 0, localY = 0;
-      if (gps[0].axes.length >= 2) {
-          if (Math.abs(gps[0].axes[0]) > 0.1) localX = gps[0].axes[0];
-          if (Math.abs(gps[0].axes[1]) > 0.1) localY = gps[0].axes[1];
+      if (gp1.axes && gp1.axes.length >= 2) {
+          if (Math.abs(gp1.axes[0]) > 0.1) localX = gp1.axes[0];
+          if (Math.abs(gp1.axes[1]) > 0.1) localY = gp1.axes[1];
       }
-      if (gps[0].buttons && gps[0].buttons.length > 15) {
-          if (gps[0].buttons[14].pressed) localX = -1;
-          if (gps[0].buttons[15].pressed) localX = 1;
-          if (gps[0].buttons[12].pressed) localY = -1;
-          if (gps[0].buttons[13].pressed) localY = 1;
+      if (gp1.buttons && gp1.buttons.length > 15) {
+          if (gp1.buttons[14].pressed) localX = -1;
+          if (gp1.buttons[15].pressed) localX = 1;
+          if (gp1.buttons[12].pressed) localY = -1;
+          if (gp1.buttons[13].pressed) localY = 1;
       }
       if (localX !== 0 || localY !== 0) {
           activeX1 = localX; activeY1 = localY;
       }
   }
   
-  if (gps[1]) {
+  if (gp2) {
       let localX = 0, localY = 0;
-      if (gps[1].axes.length >= 2) {
-          if (Math.abs(gps[1].axes[0]) > 0.1) localX = gps[1].axes[0];
-          if (Math.abs(gps[1].axes[1]) > 0.1) localY = gps[1].axes[1];
+      if (gp2.axes && gp2.axes.length >= 2) {
+          if (Math.abs(gp2.axes[0]) > 0.1) localX = gp2.axes[0];
+          if (Math.abs(gp2.axes[1]) > 0.1) localY = gp2.axes[1];
       }
-      if (gps[1].buttons && gps[1].buttons.length > 15) {
-          if (gps[1].buttons[14].pressed) localX = -1;
-          if (gps[1].buttons[15].pressed) localX = 1;
-          if (gps[1].buttons[12].pressed) localY = -1;
-          if (gps[1].buttons[13].pressed) localY = 1;
+      if (gp2.buttons && gp2.buttons.length > 15) {
+          if (gp2.buttons[14].pressed) localX = -1;
+          if (gp2.buttons[15].pressed) localX = 1;
+          if (gp2.buttons[12].pressed) localY = -1;
+          if (gp2.buttons[13].pressed) localY = 1;
       }
       if (localX !== 0 || localY !== 0) {
           activeX2 = localX; activeY2 = localY;

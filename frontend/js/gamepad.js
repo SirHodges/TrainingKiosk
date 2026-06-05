@@ -229,3 +229,13 @@ export function isConnected() {
   const hasLocal = Array.from(gps).some(gp => gp !== null);
   return connected || hasLocal;
 }
+
+export function getGamepadForPlayer(playerIndex) {
+  const gps = navigator.getGamepads ? navigator.getGamepads() : [];
+  for (let i = 0; i < gps.length; i++) {
+    if (gps[i] && gamepadToPlayerMap[gps[i].index] === playerIndex) {
+      return gps[i];
+    }
+  }
+  return gps[playerIndex];
+}
