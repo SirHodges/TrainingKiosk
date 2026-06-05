@@ -339,12 +339,12 @@ function displayQuestion() {
   players[1].locked = false;
   document.getElementById('lock-overlay').classList.remove('active');
   
-  // Reveal answers after 1 second
+  // Reveal answers rapidly for speed
   setTimeout(() => {
-    container.style.transition = 'opacity 0.3s ease-in';
+    container.style.transition = 'opacity 0.15s ease-in';
     container.style.opacity = '1';
     container.style.pointerEvents = 'auto';
-  }, 1000);
+  }, 200);
 }
 
 function handleGamepadButton(e) {
@@ -407,7 +407,7 @@ async function handleAnswer(ansIndex, playerIdx) {
       currentIndex++;
       isGameActive = true;
       displayQuestion();
-    }, 1000);
+    }, 400);
     
   } else {
     playWrong();
@@ -426,7 +426,7 @@ async function handleAnswer(ansIndex, playerIdx) {
         currentIndex++;
         isGameActive = true;
         displayQuestion();
-      }, 1500);
+      }, 1000);
     } else {
       // 2P lockout
       p.locked = true;
@@ -438,7 +438,7 @@ async function handleAnswer(ansIndex, playerIdx) {
           currentIndex++;
           isGameActive = true;
           displayQuestion();
-        }, 1500);
+        }, 1000);
       } else {
         showLockout(playerIdx);
       }
