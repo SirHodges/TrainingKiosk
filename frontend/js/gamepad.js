@@ -38,9 +38,9 @@ export function initGamepad() {
     
     socket.on('gamepad_button', (data) => {
       let btnName = null;
-      if (data.button_index === 0) btnName = 'A';
-      else if (data.button_index === 1) btnName = 'B';
-      else if (data.button_index === 2) btnName = 'X';
+      if (data.button_index === 0) btnName = 'X';
+      else if (data.button_index === 1) btnName = 'A';
+      else if (data.button_index === 2) btnName = 'B';
       else if (data.button_index === 3) btnName = 'Y';
       
       const playerIndex = (data.player || 1) - 1; // Convert backend 1-index to frontend 0-index
@@ -179,10 +179,10 @@ function handleLocalButtonDown(gpIndex, buttonIndex) {
   }
   
   let btnName = null;
-  if (buttonIndex === BTN_A) btnName = 'A';
-  if (buttonIndex === BTN_B) btnName = 'B';
-  if (buttonIndex === BTN_X) btnName = 'X';
-  if (buttonIndex === BTN_Y) btnName = 'Y';
+  if (buttonIndex === 0) btnName = 'X';
+  if (buttonIndex === 1) btnName = 'A';
+  if (buttonIndex === 2) btnName = 'B';
+  if (buttonIndex === 3) btnName = 'Y';
   if (buttonIndex === BTN_LB) btnName = 'LB';
   if (buttonIndex === BTN_RB) btnName = 'RB';
   

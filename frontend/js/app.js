@@ -105,6 +105,8 @@ function initAdmin() {
   debugContainer.style.fontFamily = 'monospace';
   debugContainer.style.fontSize = '12px';
   debugContainer.style.color = '#0f0';
+  debugContainer.style.wordWrap = 'break-word';
+  debugContainer.style.whiteSpace = 'pre-wrap';
   debugContainer.innerHTML = 'Konami Debugger:<br><span id="konami-buffer">[]</span>';
   if (adminPopup) adminPopup.appendChild(debugContainer);
 
@@ -113,9 +115,6 @@ function initAdmin() {
       konamiBuffer = [];
       return;
     }
-    
-    // Accept X or B as the 'B' button due to arcade wiring variations
-    if (input === 'X') input = 'B';
     
     konamiBuffer.push(input);
     if (konamiBuffer.length > 10) konamiBuffer.shift();
@@ -135,6 +134,15 @@ function initAdmin() {
 
   window.addEventListener('app_gamepad_dpad', (e) => checkKonami(e.detail.direction));
   window.addEventListener('app_gamepad_btn', (e) => checkKonami(e.detail.button));
+  
+  // Show raw events for troubleshooting unknown arcade buttons
+  window.addEventListener('raw_gamepad_backend', (e) => {
+    if (!adminPopup || adminPopup.classList.contains('hidden')) return;
+    const bufferEl = document.getElementById('konami-buffer');
+    if (bufferEl && e.detail.action === 'RAW_EVDEV_SCANCODE') {
+      bufferEl.innerHTML = `Raw Unmapped Key Pressed: <b>${e.detail.scancode}</b><br>` + bufferEl.innerHTML;
+    }
+  });
 
   // Theme settings toggle
   const toggleThemesBtn = document.getElementById('btn-toggle-themes');
