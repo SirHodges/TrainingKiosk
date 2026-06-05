@@ -3,10 +3,10 @@
 // ==========================================
 
 export const MAP_BOUNDS = {
-  minLat: 45.1,
-  maxLat: 45.6,
-  minLon: -76.1,
-  maxLon: -75.3
+  minLat: 45.27488643704892,
+  maxLat: 45.460130637921,
+  minLon: -75.9375,
+  maxLon: -75.5859375
 };
 
 export const MAP_WIDTH = 1200;
