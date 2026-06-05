@@ -3,14 +3,14 @@
 // ==========================================
 
 export const MAP_BOUNDS = {
-  minLat: 45.27488643704892,
-  maxLat: 45.460130637921,
-  minLon: -75.9375,
-  maxLon: -75.5859375
+  minLat: 45.30580259943577,
+  maxLat: 45.490945692627314,
+  minLon: -75.8935546875,
+  maxLon: -75.5419921875
 };
 
 export const MAP_WIDTH = 1200;
-export const MAP_HEIGHT = 800;
+export const MAP_HEIGHT = 900;
 
 export function latLonToXY(lat, lon) {
   const minLatRad = MAP_BOUNDS.minLat * Math.PI / 180;

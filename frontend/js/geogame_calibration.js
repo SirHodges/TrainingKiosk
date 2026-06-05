@@ -25,7 +25,7 @@ export async function initCalibration(switchScreenFunc) {
   calibSvg.style.transition = 'viewBox 0.5s ease-out';
   
   const bgImage = document.createElementNS("http://www.w3.org/2000/svg", "image");
-  bgImage.setAttribute("href", "/frontend/assets/ottawa_map_carto.png");
+  bgImage.setAttribute("href", "/frontend/assets/ottawa_map_high_res.png");
   bgImage.setAttribute("width", MAP_WIDTH);
   bgImage.setAttribute("height", MAP_HEIGHT);
   calibSvg.appendChild(bgImage);

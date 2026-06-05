@@ -190,11 +190,11 @@ function loadMap() {
   mapSvg.style.width = '100%';
   mapSvg.style.height = '100%';
   
-  const bgImage = document.createElementNS("http://www.w3.org/2000/svg", "image");
-  bgImage.setAttribute("href", "/frontend/assets/ottawa_map_carto.png");
-  bgImage.setAttribute("width", MAP_WIDTH);
-  bgImage.setAttribute("height", MAP_HEIGHT);
-  mapSvg.appendChild(bgImage);
+  const img = document.createElementNS("http://www.w3.org/2000/svg", "image");
+  img.setAttribute('href', '/frontend/assets/ottawa_map_high_res.png');
+  img.setAttribute('width', MAP_WIDTH);
+  img.setAttribute('height', MAP_HEIGHT);
+  mapSvg.appendChild(img);
   
   mapContainer.appendChild(mapSvg);
 }
