@@ -285,10 +285,46 @@ button:disabled, .btn:disabled {
 .virtual-keyboard {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  align-items: center;
+  gap: var(--space-3);
   padding: var(--space-4);
-  max-width: 640px;
+  max-width: 800px;
   margin: 0 auto;
+}
+
+.keyboard-row {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.vk-key {
+  min-width: 54px;
+  height: 60px;
+  font-size: 24px;
+  font-weight: bold;
+  background: var(--bg-tertiary);
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.1s;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
+.vk-key:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent-primary);
+  transform: translateY(-2px);
+}
+
+.vk-key:active {
+  transform: translateY(2px);
+  background: var(--accent-primary);
+  color: white;
 }
 
 /* Each row of keys */

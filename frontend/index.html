@@ -80,7 +80,7 @@
               <h1 class="quiz-title" style="font-size: var(--font-size-5xl); margin-bottom: var(--space-8); color: var(--accent-primary); text-shadow: var(--glow-primary);">QUIZ CHALLENGE</h1>
               
               <div class="player-mode-selector" style="display:flex; gap:10px; margin-bottom:20px;">
-                <button id="btn-mode-1p" class="btn-secondary active">Start</button>
+                <button id="btn-mode-1p" class="btn-secondary active">1 Player (Leaderboard)</button>
                 <button id="btn-mode-2p" class="btn-secondary">2 Player (Vs Mode)</button>
               </div>
               
@@ -176,15 +176,19 @@
                 </h3>
                 <div id="name-input" style="font-size:var(--font-size-4xl); letter-spacing:10px; margin-bottom:var(--space-6); border-bottom:2px solid var(--text-primary); width:100%; max-width:500px; margin-left:auto; margin-right:auto; height:60px; word-break: break-all;"></div>
                 
-                <div class="virtual-keyboard" style="display:grid; grid-template-columns:repeat(10, 1fr); gap:10px; max-width:800px; margin:0 auto;">
+                <div class="virtual-keyboard">
                   <!-- Row 1 -->
-                  <button class="vk-key btn-secondary">Q</button><button class="vk-key btn-secondary">W</button><button class="vk-key btn-secondary">E</button><button class="vk-key btn-secondary">R</button><button class="vk-key btn-secondary">T</button><button class="vk-key btn-secondary">Y</button><button class="vk-key btn-secondary">U</button><button class="vk-key btn-secondary">I</button><button class="vk-key btn-secondary">O</button><button class="vk-key btn-secondary">P</button>
+                  <div class="keyboard-row">
+                    <button class="vk-key">Q</button><button class="vk-key">W</button><button class="vk-key">E</button><button class="vk-key">R</button><button class="vk-key">T</button><button class="vk-key">Y</button><button class="vk-key">U</button><button class="vk-key">I</button><button class="vk-key">O</button><button class="vk-key">P</button>
+                  </div>
                   <!-- Row 2 -->
-                  <button class="vk-key btn-secondary">A</button><button class="vk-key btn-secondary">S</button><button class="vk-key btn-secondary">D</button><button class="vk-key btn-secondary">F</button><button class="vk-key btn-secondary">G</button><button class="vk-key btn-secondary">H</button><button class="vk-key btn-secondary">J</button><button class="vk-key btn-secondary">K</button><button class="vk-key btn-secondary">L</button><button id="vk-del" class="btn-danger">DEL</button>
+                  <div class="keyboard-row">
+                    <button class="vk-key">A</button><button class="vk-key">S</button><button class="vk-key">D</button><button class="vk-key">F</button><button class="vk-key">G</button><button class="vk-key">H</button><button class="vk-key">J</button><button class="vk-key">K</button><button class="vk-key">L</button><button id="vk-del" class="vk-key btn-danger" style="font-size: 16px;">DEL</button>
+                  </div>
                   <!-- Row 3 -->
-                  <div style="grid-column: span 1;"></div>
-                  <button class="vk-key btn-secondary">Z</button><button class="vk-key btn-secondary">X</button><button class="vk-key btn-secondary">C</button><button class="vk-key btn-secondary">V</button><button class="vk-key btn-secondary">B</button><button class="vk-key btn-secondary">N</button><button class="vk-key btn-secondary">M</button>
-                  <div style="grid-column: span 2;"></div>
+                  <div class="keyboard-row">
+                    <button class="vk-key">Z</button><button class="vk-key">X</button><button class="vk-key">C</button><button class="vk-key">V</button><button class="vk-key">B</button><button class="vk-key">N</button><button class="vk-key">M</button>
+                  </div>
                 </div>
                 <button id="vk-submit" class="btn-primary" style="margin-top:20px; width:200px;">SUBMIT</button>
               </div>
