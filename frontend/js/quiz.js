@@ -86,11 +86,9 @@ function setupEventListeners() {
   document.getElementById('btn-start-quiz').onclick = startQuizFlow;
   document.getElementById('btn-cancel-binding').onclick = cancelBindingFlow;
   
-  // Start hold button
+  // Start button (click to start)
   const startBtn = document.getElementById('btn-start-quiz');
-  startBtn.addEventListener('mousedown', startHoldProgress);
-  startBtn.addEventListener('mouseup', cancelHoldProgress);
-  startBtn.addEventListener('mouseleave', cancelHoldProgress);
+  // Hold logic removed, handled by onclick
   
   // Stop hold button
   const stopBtn = document.getElementById('btn-stop-quiz');
@@ -109,7 +107,7 @@ function setupEventListeners() {
   // Gamepad events
   window.addEventListener('app_gamepad_btn', handleGamepadButton);
   window.addEventListener('app_gamepad_start_down', () => {
-    if (document.getElementById('quiz-start-screen').classList.contains('active')) startHoldProgress();
+    if (document.getElementById('quiz-start-screen').classList.contains('active')) startQuizFlow();
     if (document.getElementById('quiz-game-screen').classList.contains('active')) startStopHold();
   });
   window.addEventListener('app_gamepad_start_up', () => {
@@ -140,27 +138,12 @@ function setInputMode(mode) {
   document.getElementById('btn-input-mouse').classList.toggle('active', mode === 'mouse');
   document.getElementById('btn-input-gamepad').classList.toggle('active', mode === 'gamepad');
   const startBtnText = document.getElementById('start-btn-text');
-  if (startBtnText) startBtnText.innerText = mode === 'mouse' ? 'CLICK TO START' : 'HOLD TO START';
+  if (startBtnText) startBtnText.innerText = 'START';
   const skipBtnText = document.getElementById('skip-btn-text');
   if (skipBtnText) skipBtnText.innerText = mode === 'mouse' ? 'Skip Question' : 'Skip (RB)';
 }
 
-// Start Flow
-function startHoldProgress() {
-  if (inputMode === 'mouse') return;
-  const fill = document.getElementById('start-btn-fill');
-  if (fill) fill.style.height = '0%';
-  let progress = 0;
-  holdProgressInterval = setInterval(() => {
-    progress += 5;
-    if (fill) fill.style.height = `${progress}%`;
-    if (progress >= 100) {
-      clearInterval(holdProgressInterval);
-      startQuizFlow();
-    }
-  }, 50);
-}
-
+// Start Flow hold logic removed
 function cancelHoldProgress() {
   clearInterval(holdProgressInterval);
   const fill = document.getElementById('start-btn-fill');
