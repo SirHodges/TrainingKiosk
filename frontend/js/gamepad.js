@@ -12,6 +12,10 @@ let playersNeeded = 1;
 let boundPlayers = 0; // count of bound players
 let gamepadToPlayerMap = {}; // mapping gamepad.index -> player index (0 or 1)
 
+function isEasterEggActive() {
+  return document.getElementById('asteroids-canvas') !== null || document.getElementById('tanks-canvas') !== null;
+}
+
 // Standard mappings (Xbox-like)
 const BTN_A = 0;
 const BTN_B = 1;
@@ -32,7 +36,7 @@ export function initGamepad() {
     socket.on('disconnect', () => { connected = false; console.log('Gamepad socket disconnected'); });
     
     socket.on('gamepad_dpad', (data) => {
-      moveFocus(data.direction);
+      if (!isEasterEggActive()) moveFocus(data.direction);
       window.dispatchEvent(new CustomEvent('app_gamepad_dpad', { detail: { direction: data.direction, player: (data.player || 1) - 1 } }));
     });
     
@@ -47,7 +51,7 @@ export function initGamepad() {
       const playerIndex = (data.player || 1) - 1; // Convert backend 1-index to frontend 0-index
       
       if (btnName) {
-        if (btnName === 'A') selectFocused();
+        if (btnName === 'A' && !isEasterEggActive()) selectFocused();
         window.dispatchEvent(new CustomEvent('app_gamepad_btn', { detail: { button: btnName, player: playerIndex } }));
       }
       
@@ -64,7 +68,7 @@ export function initGamepad() {
       window.dispatchEvent(new CustomEvent('raw_gamepad_backend', { detail: { action: 'start_up', ...data } }));
     });
     socket.on('gamepad_dpad', (data) => {
-      moveFocus(data.direction);
+      if (!isEasterEggActive()) moveFocus(data.direction);
       window.dispatchEvent(new CustomEvent('app_gamepad_dpad', { detail: { direction: data.direction, player: (data.player || 1) - 1 } }));
       window.dispatchEvent(new CustomEvent('raw_gamepad_backend', { detail: data }));
     });
@@ -197,7 +201,7 @@ function handleLocalButtonDown(gpIndex, buttonIndex) {
   if (buttonIndex === DPAD_RIGHT) dispatchDpad(gpIndex, 'right');
   
   if (btnName) {
-    if (btnName === 'A') selectFocused();
+    if (btnName === 'A' && !isEasterEggActive()) selectFocused();
     window.dispatchEvent(new CustomEvent('app_gamepad_btn', { detail: { button: btnName, player: player } }));
   }
 }
@@ -210,7 +214,7 @@ function handleLocalButtonUp(gpIndex, buttonIndex) {
 
 function dispatchDpad(gpIndex, direction) {
   if (bindingActive) return;
-  moveFocus(direction);
+  if (!isEasterEggActive()) moveFocus(direction);
   window.dispatchEvent(new CustomEvent('app_gamepad_dpad', { detail: { direction, player: gamepadToPlayerMap[gpIndex] || 0 } }));
 }
 
