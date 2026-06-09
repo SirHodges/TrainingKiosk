@@ -116,7 +116,10 @@ function checkWallCollision(cx, cy, radius) {
   return false;
 }
 
+let roundResetTimeout = null;
+
 function resetRound() {
+  if (gameOver) return;
   tanks.forEach(t => t.reset());
   bullets = [];
 }
@@ -150,8 +153,10 @@ function update() {
             if (scores[b.owner] >= MAX_SCORE) {
               gameOver = true;
               gameOverTime = Date.now();
+              if (roundResetTimeout) clearTimeout(roundResetTimeout);
             } else {
-              setTimeout(resetRound, 1500);
+              if (roundResetTimeout) clearTimeout(roundResetTimeout);
+              roundResetTimeout = setTimeout(resetRound, 1500);
             }
             break;
           }
@@ -207,7 +212,7 @@ function handleBtn(e) {
   if (!isRunning) return;
   const btn = e.detail.button;
   const p = e.detail.player;
-  if (btn === 'Start' || btn === 'B') {
+  if (btn === 'Start' || btn === 'Select') {
     quitTanks();
     return;
   }
