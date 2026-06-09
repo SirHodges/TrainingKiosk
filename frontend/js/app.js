@@ -91,9 +91,10 @@ function initAdmin() {
     });
   }
 
-  // Asteroids Easter Egg Logic
+  // Easter Egg Logic
   let konamiBuffer = [];
-  const konamiCode = ['A', 'B', 'Start', 'Select'];
+  const seqAsteroids = JSON.stringify(['A', 'B', 'Start', 'Select']);
+  const seqTanks = JSON.stringify(['X', 'Y', 'Start', 'Select']);
 
   // Inject debugger UI into admin popup
   const debugContainer = document.createElement('div');
@@ -122,17 +123,24 @@ function initAdmin() {
     const bufferEl = document.getElementById('konami-buffer');
     if (bufferEl) bufferEl.textContent = JSON.stringify(konamiBuffer);
     
-    // Check if the end of the buffer matches the sequence
-    const sequenceStr = JSON.stringify(konamiCode);
     const bufferStr = JSON.stringify(konamiBuffer);
     
-    if (bufferStr.includes(sequenceStr.slice(1, -1))) {
+    if (bufferStr.includes(seqAsteroids.slice(1, -1))) {
       konamiBuffer = [];
-      if (bufferEl) bufferEl.textContent = 'TRIGGERED!';
+      if (bufferEl) bufferEl.textContent = 'ASTEROIDS TRIGGERED!';
       adminPopup.classList.add('hidden');
       import('./asteroids.js').then(module => {
         module.initAsteroids();
       }).catch(err => console.error('Failed to load asteroids:', err));
+    }
+    
+    if (bufferStr.includes(seqTanks.slice(1, -1))) {
+      konamiBuffer = [];
+      if (bufferEl) bufferEl.textContent = 'TANKS TRIGGERED!';
+      adminPopup.classList.add('hidden');
+      import('./tanks.js').then(module => {
+        module.initTanks();
+      }).catch(err => console.error('Failed to load tanks:', err));
     }
   }
 
