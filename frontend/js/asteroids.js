@@ -15,15 +15,15 @@ function getDefaultUpgrades() {
     ids: [], speedMult: 1, turnMult: 1, frictionMult: 1, hitboxMult: 1, fireRateMult: 1,
     dualShot: false, spreadShot: false, rearShot: false, sideShots: false,
     heavyBullets: false, piercing: false, flak: false, homing: false, bouncing: false, plasma: false,
-    mineLayer: false, laserSight: false, ghostDrive: false, shield: false, reflective: false, ramming: false,
-    scrapCollector: false, comboDecayMult: 1, scoreMult: 1, emp: false, chrono: false, radioactive: false,
+    secEmp: false, secFlak: false, secMine: false, laserSight: false, ghostDrive: false, shield: false, reflective: false, ramming: false,
+    comboDecayMult: 1, scoreMult: 1, emp: false, chrono: false, radioactive: false,
     gravityWell: false, ufoHunter: false
   };
 }
 
 let players = [
-  { idx: 0, color: 'cyan', score: 0, lives: 3, combo: 0, comboTimer: 0, lockedIn: false, choices: [], choiceIdx: 0, keys: { left: false, right: false, up: false, shoot: false }, upgrades: getDefaultUpgrades() },
-  { idx: 1, color: 'red', score: 0, lives: 3, combo: 0, comboTimer: 0, lockedIn: false, choices: [], choiceIdx: 0, keys: { left: false, right: false, up: false, shoot: false }, upgrades: getDefaultUpgrades() }
+  { idx: 0, color: 'cyan', score: 0, isAlive: true, combo: 0, comboTimer: 0, lockedIn: false, choices: [], choiceIdx: 0, showStats: false, secCooldown: 0, keys: { left: false, right: false, up: false, shoot: false }, upgrades: getDefaultUpgrades() },
+  { idx: 1, color: 'red', score: 0, isAlive: true, combo: 0, comboTimer: 0, lockedIn: false, choices: [], choiceIdx: 0, showStats: false, secCooldown: 0, keys: { left: false, right: false, up: false, shoot: false }, upgrades: getDefaultUpgrades() }
 ];
 
 let ships = [null, null];
@@ -39,11 +39,11 @@ const BASE_FRICTION = 0.99;
 const BASE_THRUST = 0.15;
 const BASE_TURN_SPEED = 0.08;
 const BASE_BULLET_SPEED = 7;
-const MAX_BULLETS = 50;
+const MAX_BULLETS = 30;
 
 class Ship {
   constructor(p) {
-    this.p = p; // player reference
+    this.p = p;
     this.x = canvas.width / 2 + (p.idx === 0 ? -50 : 50);
     this.y = canvas.height / 2;
     this.r = 15;
@@ -53,19 +53,14 @@ class Ship {
     this.explodeTime = 0;
     this.lastShot = 0;
     this.shieldActive = p.upgrades.shield;
-    this.ghostTimer = 120; // 2 seconds spawn invincibility
-    this.mineTimer = 0;
+    this.ghostTimer = 120; // safe spawn
   }
   update() {
     if (this.explodeTime > 0) {
       this.explodeTime--;
       if (this.explodeTime <= 0) {
-        if (this.p.lives > 0) {
-          ships[this.p.idx] = new Ship(this.p);
-        } else {
-          ships[this.p.idx] = null;
-          checkGameOver();
-        }
+        ships[this.p.idx] = null;
+        checkGameOver();
       }
       return;
     }
@@ -101,14 +96,6 @@ class Ship {
     if (this.x > canvas.width) this.x = 0;
     if (this.y < 0) this.y = canvas.height;
     if (this.y > canvas.height) this.y = 0;
-    
-    if (u.mineLayer && isThrusting) {
-      this.mineTimer--;
-      if (this.mineTimer <= 0) {
-        this.mineTimer = 120;
-        bullets.push(new Mine(this.x, this.y, this.p.idx));
-      }
-    }
   }
   draw(ctx) {
     if (this.explodeTime > 0) return;
@@ -151,7 +138,7 @@ class Ship {
 class Mine {
   constructor(x, y, ownerIdx) {
     this.x = x; this.y = y; this.owner = ownerIdx;
-    this.vx = 0; this.vy = 0; this.life = 300; this.isMine = true;
+    this.vx = 0; this.vy = 0; this.life = 600; this.isMine = true;
   }
   update() { this.life--; }
   draw(ctx) {
@@ -180,19 +167,13 @@ class Asteroid {
   }
   update() {
     let speedMult = 1;
-    // Chrono slows if NO ONE is thrusting
     if ((players[0].upgrades.chrono || players[1].upgrades.chrono) && !players[0].keys.up && !players[1].keys.up) {
       speedMult = 0.4;
     }
-    
     if (players[0].upgrades.gravityWell || players[1].upgrades.gravityWell) {
-      let dx = (canvas.width/2) - this.x;
-      let dy = (canvas.height/2) - this.y;
+      let dx = (canvas.width/2) - this.x, dy = (canvas.height/2) - this.y;
       let dist = Math.sqrt(dx*dx + dy*dy);
-      if (dist > 10) {
-        this.vx += (dx/dist) * 0.05;
-        this.vy += (dy/dist) * 0.05;
-      }
+      if (dist > 10) { this.vx += (dx/dist) * 0.05; this.vy += (dy/dist) * 0.05; }
     }
     
     this.x += this.vx * speedMult;
@@ -233,21 +214,34 @@ class Ufo {
     this.x += this.vx;
     this.y += this.vy;
     this.shootTimer--;
+    
     if (this.shootTimer <= 0) {
       this.shootTimer = 120 - Math.min(80, wave * 5);
       let angle = Math.random() * Math.PI * 2;
-      // Target a random alive player
-      if (wave > 3 && Math.random() < 0.5) {
+      
+      // Aiming
+      if (wave >= 3) {
         let targets = ships.filter(s => s !== null && s.explodeTime <= 0);
         if (targets.length > 0) {
           let t = targets[Math.floor(Math.random() * targets.length)];
-          angle = Math.atan2(t.y - this.y, t.x - this.x) + (Math.random()-0.5)*0.5;
+          angle = Math.atan2(t.y - this.y, t.x - this.x) + (Math.random()-0.5)*0.2;
         }
       }
-      let b = new Bullet(this.x, this.y, angle, null);
-      b.isEnemy = true;
-      b.life = 100;
-      bullets.push(b);
+      
+      let shots = 1;
+      let spread = 0;
+      if (wave >= 5) { shots = 3; spread = 0; } // Burst
+      if (wave >= 7) { shots = 3; spread = 0.2; } // Spread
+      
+      for (let i = 0; i < shots; i++) {
+        setTimeout(() => {
+          if (!isRunning) return;
+          let a = angle + (i - Math.floor(shots/2)) * spread;
+          let b = new Bullet(this.x, this.y, a, null);
+          b.isEnemy = true; b.life = 100;
+          bullets.push(b);
+        }, wave >= 7 ? 0 : i * 150);
+      }
     }
     if (this.hitFlash > 0) this.hitFlash--;
   }
@@ -273,11 +267,9 @@ class Ufo {
 class Bullet {
   constructor(x, y, a, ownerIdx) {
     this.x = x; this.y = y; this.owner = ownerIdx;
-    
     let u = ownerIdx !== null ? players[ownerIdx].upgrades : getDefaultUpgrades();
     let spd = BASE_BULLET_SPEED * (u.heavyBullets ? 1.5 : 1);
     if (u.plasma) spd *= 0.4;
-    
     this.vx = Math.cos(a) * spd;
     this.vy = Math.sin(a) * spd;
     this.life = u.plasma ? 180 : 60;
@@ -286,12 +278,12 @@ class Bullet {
   }
   update() {
     let u = this.owner !== null ? players[this.owner].upgrades : getDefaultUpgrades();
-    
     if (u.homing && asteroids.length > 0) {
       let nearest = null, minDist = 99999;
       asteroids.forEach(a => {
-        let d = distBetweenPoints(this.x, this.y, a.x, a.y);
-        if (d < minDist) { minDist = d; nearest = a; }
+        let dx = a.x - this.x, dy = a.y - this.y;
+        let dSq = dx*dx + dy*dy;
+        if (dSq < minDist) { minDist = dSq; nearest = a; }
       });
       if (nearest) {
         let angleTo = Math.atan2(nearest.y - this.y, nearest.x - this.x);
@@ -306,9 +298,7 @@ class Bullet {
       }
     }
     
-    this.x += this.vx;
-    this.y += this.vy;
-    this.life--;
+    this.x += this.vx; this.y += this.vy; this.life--;
     
     if (u.bouncing) {
       if (this.x < 0 || this.x > canvas.width) { this.vx *= -1; this.x += this.vx; }
@@ -323,16 +313,13 @@ class Bullet {
   draw(ctx) {
     if (this.isEnemy) {
       ctx.fillStyle = 'red';
-      ctx.beginPath(); ctx.arc(this.x, this.y, 3, 0, Math.PI*2); ctx.fill();
+      ctx.fillRect(this.x - 3, this.y - 3, 6, 6);
       return;
     }
-    
     let p = players[this.owner];
     ctx.fillStyle = p.upgrades.plasma ? 'magenta' : (p.upgrades.heavyBullets ? p.color : 'white');
-    ctx.beginPath();
     let r = p.upgrades.plasma ? 12 : (p.upgrades.heavyBullets ? 4 : 2);
-    ctx.arc(this.x, this.y, r, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.fillRect(this.x - r, this.y - r, r*2, r*2);
   }
 }
 
@@ -370,35 +357,31 @@ class FloatingText {
 
 function spawnAsteroids(count) {
   for (let i = 0; i < count; i++) {
-    let x, y;
-    let safe = false;
+    let x, y, safe = false;
     while (!safe) {
-      x = Math.random() * canvas.width;
-      y = Math.random() * canvas.height;
+      x = Math.random() * canvas.width; y = Math.random() * canvas.height;
       safe = true;
       for (let s of ships) {
-        if (s && distBetweenPoints(s.x, s.y, x, y) < 150) safe = false;
+        if (s) {
+          let dx = s.x - x, dy = s.y - y;
+          if (dx*dx + dy*dy < 22500) safe = false; // 150 squared
+        }
       }
     }
     asteroids.push(new Asteroid(x, y, 40));
   }
 }
 
-function distBetweenPoints(x1, y1, x2, y2) {
-  let dx = x2 - x1;
-  let dy = y2 - y1;
-  return Math.sqrt(dx*dx + dy*dy);
-}
-
 function fireBullets(pIdx) {
   let s = ships[pIdx];
   if (!s || s.explodeTime > 0) return;
-  let p = players[pIdx];
-  let u = p.upgrades;
+  let p = players[pIdx], u = p.upgrades;
+  
+  let pBullets = bullets.filter(b => b.owner === pIdx).length;
+  if (pBullets >= MAX_BULLETS) return;
   
   let cooldown = 200 * u.fireRateMult;
   if (Date.now() - s.lastShot < cooldown) return;
-  if (bullets.length >= MAX_BULLETS) return;
   
   s.lastShot = Date.now();
   let angles = [s.a];
@@ -419,6 +402,51 @@ function fireBullets(pIdx) {
   });
 }
 
+function fireSecondary(pIdx) {
+  let s = ships[pIdx];
+  if (!s || s.explodeTime > 0) return;
+  let p = players[pIdx];
+  if (p.secCooldown > 0) return;
+  
+  let fired = false;
+  if (p.upgrades.secMine) {
+    bullets.push(new Mine(s.x, s.y, pIdx));
+    p.secCooldown = 120; // 2 secs
+    fired = true;
+  }
+  
+  if (p.upgrades.secFlak) {
+    for (let a = s.a - 0.5; a <= s.a + 0.5; a += 0.1) {
+      let b = new Bullet(s.x, s.y, a, pIdx);
+      b.isFlak = true; // prevents recursion
+      bullets.push(b);
+    }
+    p.secCooldown = 180; // 3 secs
+    screenShake = 10;
+    fired = true;
+  }
+  
+  if (p.upgrades.secEmp) {
+    // Destroy enemy bullets in radius
+    for (let i = bullets.length - 1; i >= 0; i--) {
+      let b = bullets[i];
+      if (b.isEnemy) {
+        let dx = b.x - s.x, dy = b.y - s.y;
+        if (dx*dx + dy*dy < 40000) { // 200 squared
+          bullets.splice(i, 1);
+          particles.push(new Particle(b.x, b.y, 0, 0, 'cyan', 10));
+        }
+      }
+    }
+    // Expand blue ring
+    for(let a=0; a<Math.PI*2; a+=0.3) particles.push(new Particle(s.x, s.y, Math.cos(a)*8, Math.sin(a)*8, 'cyan', 20));
+    p.secCooldown = 300; // 5 secs
+    fired = true;
+  }
+  
+  if (fired) floatingTexts.push(new FloatingText(s.x, s.y-20, "SECONDARY!", p.color));
+}
+
 function explodeAsteroid(index, ownerIdx) {
   let a = asteroids[index];
   asteroids.splice(index, 1);
@@ -427,17 +455,16 @@ function explodeAsteroid(index, ownerIdx) {
   if (ownerIdx !== null && ownerIdx >= 0) {
     let p = players[ownerIdx];
     let pts = Math.floor(1000 / a.r) * p.upgrades.scoreMult;
-    p.combo++;
-    p.comboTimer = 180;
+    p.combo++; p.comboTimer = 180;
     let mult = Math.min(5, 1 + Math.floor(p.combo / 5));
-    pts *= mult;
-    p.score += pts;
-    floatingTexts.push(new FloatingText(a.x, a.y, `+${pts}`, p.color));
+    p.score += (pts * mult);
+    floatingTexts.push(new FloatingText(a.x, a.y, `+${pts*mult}`, p.color));
     
     if (p.upgrades.radioactive && Math.random() < 0.2) {
       for (let i = 0; i < 30; i++) particles.push(new Particle(a.x, a.y, (Math.random()-0.5)*12, (Math.random()-0.5)*12, 'lime', 40));
-      asteroids.forEach((other, oi) => {
-        if (distBetweenPoints(a.x, a.y, other.x, other.y) < 150) {
+      asteroids.forEach((other) => {
+        let dx = a.x - other.x, dy = a.y - other.y;
+        if (dx*dx + dy*dy < 22500) {
           setTimeout(() => {
             let nIdx = asteroids.indexOf(other);
             if(nIdx !== -1) explodeAsteroid(nIdx, ownerIdx);
@@ -445,15 +472,11 @@ function explodeAsteroid(index, ownerIdx) {
         }
       });
     }
-    
-    if (p.upgrades.scrapCollector && Math.random() < 0.05) {
-      p.lives++;
-      floatingTexts.push(new FloatingText(a.x, a.y-20, "1-UP!", p.color));
-    }
   } else {
-    // Destroyed by something else (e.g. ship ramming, EMP)
     for (let i = 0; i < 10; i++) particles.push(new Particle(a.x, a.y, (Math.random()-0.5)*8, (Math.random()-0.5)*8, 'white', 30));
   }
+  
+  for (let i = 0; i < 10; i++) particles.push(new Particle(a.x, a.y, (Math.random()-0.5)*8, (Math.random()-0.5)*8, 'white', 30));
   
   if (a.r > 20) {
     asteroids.push(new Asteroid(a.x, a.y, a.r / 2));
@@ -462,17 +485,18 @@ function explodeAsteroid(index, ownerIdx) {
   
   if (asteroids.length === 0) {
     gameState = 'UPGRADE';
-    upgradeLockoutTimer = 60; // 1 second lockout
+    upgradeLockoutTimer = 60;
     
-    // Prepare upgrade cards for both players
-    players.forEach(p => {
-      if (p.lives > 0) {
-        p.choices = getRandomUpgrades(3, p.upgrades.ids);
-        p.choiceIdx = 0;
-        p.lockedIn = false;
-      } else {
-        p.lockedIn = true; // Dead players auto-lock
+    // Revive dead players on wave clear
+    players.forEach((p, idx) => {
+      if (!p.isAlive) {
+        p.isAlive = true;
+        ships[idx] = new Ship(p); // Respawn ship instance safely
       }
+      p.choices = getRandomUpgrades(3, p.upgrades.ids);
+      p.choiceIdx = 0;
+      p.lockedIn = false;
+      p.showStats = false; // reset stats overlay
     });
   }
 }
@@ -483,50 +507,41 @@ function killShip(pIdx) {
   let p = players[pIdx];
   
   if (s.shieldActive) {
-    s.shieldActive = false;
-    s.ghostTimer = 120;
-    screenShake = 10;
+    s.shieldActive = false; s.ghostTimer = 120; screenShake = 10;
     for (let k = 0; k < 20; k++) particles.push(new Particle(s.x, s.y, (Math.random()-0.5)*6, (Math.random()-0.5)*6, 'cyan', 30));
     return;
   }
   
   if (p.upgrades.reflective) {
-    for (let a = 0; a < Math.PI*2; a+= 0.2) {
-      bullets.push(new Bullet(s.x, s.y, a, pIdx));
-    }
+    for (let a = 0; a < Math.PI*2; a+= 0.2) bullets.push(new Bullet(s.x, s.y, a, pIdx));
   }
   
   s.explodeTime = 60;
   screenShake = 25;
-  p.lives--;
+  p.isAlive = false;
   p.combo = 0;
   for (let k = 0; k < 40; k++) particles.push(new Particle(s.x, s.y, (Math.random()-0.5)*10, (Math.random()-0.5)*10, p.color, 50));
 }
 
 function checkGameOver() {
-  if (players[0].lives <= 0 && players[1].lives <= 0) {
-    gameState = 'GAME_OVER';
-  }
+  if (!players[0].isAlive && !players[1].isAlive) gameState = 'GAME_OVER';
 }
 
 function handleGamepadAxes(e) {
   if (!isRunning) return;
   const pIdx = e.detail.player;
   if (pIdx < 0 || pIdx > 1) return;
-  
-  const p = players[pIdx];
+  let p = players[pIdx];
   const [x, y] = e.detail.axes;
   
   if (gameState === 'PLAYING') {
-    p.keys.left = x < -0.5;
-    p.keys.right = x > 0.5;
-    p.keys.up = y < -0.5;
+    p.keys.left = x < -0.5; p.keys.right = x > 0.5; p.keys.up = y < -0.5;
   } else if (gameState === 'UPGRADE' && !p.lockedIn && upgradeLockoutTimer <= 0) {
     if (x < -0.5 && !p.keys.left) { p.choiceIdx = Math.max(0, p.choiceIdx - 1); p.keys.left = true; }
-    else if (x > -0.5) { p.keys.left = false; }
+    else if (x > -0.5) p.keys.left = false;
     
     if (x > 0.5 && !p.keys.right) { p.choiceIdx = Math.min(2, p.choiceIdx + 1); p.keys.right = true; }
-    else if (x < 0.5) { p.keys.right = false; }
+    else if (x < 0.5) p.keys.right = false;
   }
 }
 
@@ -534,15 +549,25 @@ function handleGamepadBtn(e) {
   if (!isRunning) return;
   const pIdx = e.detail.player;
   const btn = e.detail.button;
-  if (btn === 'B' || btn === 'START') { quitAsteroids(); return; }
-  if (pIdx < 0 || pIdx > 1) return;
   
+  if (btn === 'START' || e.type === 'app_gamepad_start_down') {
+    // Only START quits now
+    quitAsteroids();
+    return;
+  }
+  
+  if (pIdx < 0 || pIdx > 1) return;
   let p = players[pIdx];
+  
+  if (btn === 'Select') {
+    p.showStats = !p.showStats; // Toggle stats overlay
+  }
   
   if (gameState === 'PLAYING') {
     if (btn === 'A') fireBullets(pIdx);
+    if (btn === 'B') fireSecondary(pIdx);
   } else if (gameState === 'UPGRADE') {
-    if (btn === 'A' && upgradeLockoutTimer <= 0 && !p.lockedIn && p.lives > 0) {
+    if (btn === 'A' && upgradeLockoutTimer <= 0 && !p.lockedIn) {
       let choice = p.choices[p.choiceIdx];
       if (choice) {
         p.upgrades.ids.push(choice.id);
@@ -552,31 +577,21 @@ function handleGamepadBtn(e) {
       
       if (players[0].lockedIn && players[1].lockedIn) {
         wave++;
-        // Apply EMP
-        if (players[0].upgrades.emp || players[1].upgrades.emp) {
-           screenShake = 20;
-        }
-        players.forEach(pl => {
-          if (pl.lives > 0 && ships[pl.idx]) ships[pl.idx].shieldActive = pl.upgrades.shield;
-        });
+        if (players[0].upgrades.emp || players[1].upgrades.emp) screenShake = 20;
+        players.forEach(pl => { if (pl.isAlive && ships[pl.idx]) ships[pl.idx].shieldActive = pl.upgrades.shield; });
         spawnAsteroids(4 + Math.floor(wave*1.5));
         gameState = 'PLAYING';
       }
     }
   } else if (gameState === 'GAME_OVER') {
     if (btn === 'A') {
-      gameState = 'PLAYING';
-      wave = 1;
+      gameState = 'PLAYING'; wave = 1;
       players = [
-        { idx: 0, color: 'cyan', score: 0, lives: 3, combo: 0, comboTimer: 0, lockedIn: false, choices: [], choiceIdx: 0, keys: { left: false, right: false, up: false, shoot: false }, upgrades: getDefaultUpgrades() },
-        { idx: 1, color: 'red', score: 0, lives: 3, combo: 0, comboTimer: 0, lockedIn: false, choices: [], choiceIdx: 0, keys: { left: false, right: false, up: false, shoot: false }, upgrades: getDefaultUpgrades() }
+        { idx: 0, color: 'cyan', score: 0, isAlive: true, combo: 0, comboTimer: 0, lockedIn: false, choices: [], choiceIdx: 0, showStats: false, secCooldown: 0, keys: { left: false, right: false, up: false, shoot: false }, upgrades: getDefaultUpgrades() },
+        { idx: 1, color: 'red', score: 0, isAlive: true, combo: 0, comboTimer: 0, lockedIn: false, choices: [], choiceIdx: 0, showStats: false, secCooldown: 0, keys: { left: false, right: false, up: false, shoot: false }, upgrades: getDefaultUpgrades() }
       ];
       ships = [new Ship(players[0]), new Ship(players[1])];
-      asteroids = [];
-      bullets = [];
-      particles = [];
-      floatingTexts = [];
-      ufo = null;
+      asteroids = []; bullets = []; particles = []; floatingTexts = []; ufo = null;
       spawnAsteroids(4);
     }
   }
@@ -597,82 +612,46 @@ function update() {
   
   if (gameState === 'PLAYING') {
     players.forEach(p => {
-      if (p.comboTimer > 0) {
-        p.comboTimer -= (1 / p.upgrades.comboDecayMult);
-        if (p.comboTimer <= 0) p.combo = 0;
-      }
+      if (p.comboTimer > 0) { p.comboTimer -= (1 / p.upgrades.comboDecayMult); if (p.comboTimer <= 0) p.combo = 0; }
+      if (p.secCooldown > 0) p.secCooldown--;
     });
     
     ships.forEach(s => { if (s) s.update(); });
     ships.forEach(s => { if (s) s.draw(ctx); });
     
-    for (let i = bullets.length - 1; i >= 0; i--) {
-      bullets[i].update();
-      bullets[i].draw(ctx);
-      if (bullets[i].life <= 0) bullets.splice(i, 1);
-    }
-    
-    for (let i = asteroids.length - 1; i >= 0; i--) {
-      asteroids[i].update();
-      asteroids[i].draw(ctx);
-    }
-    
-    for (let i = particles.length - 1; i >= 0; i--) {
-      particles[i].update();
-      particles[i].draw(ctx);
-      if (particles[i].life <= 0) particles.splice(i, 1);
-    }
+    for (let i = bullets.length - 1; i >= 0; i--) { bullets[i].update(); bullets[i].draw(ctx); if (bullets[i].life <= 0) bullets.splice(i, 1); }
+    for (let i = asteroids.length - 1; i >= 0; i--) { asteroids[i].update(); asteroids[i].draw(ctx); }
+    for (let i = particles.length - 1; i >= 0; i--) { particles[i].update(); particles[i].draw(ctx); if (particles[i].life <= 0) particles.splice(i, 1); }
     if (particles.length > 150) particles.splice(0, particles.length - 150);
-    
-    for (let i = floatingTexts.length - 1; i >= 0; i--) {
-      floatingTexts[i].update();
-      floatingTexts[i].draw(ctx);
-      if (floatingTexts[i].life <= 0) floatingTexts.splice(i, 1);
-    }
+    for (let i = floatingTexts.length - 1; i >= 0; i--) { floatingTexts[i].update(); floatingTexts[i].draw(ctx); if (floatingTexts[i].life <= 0) floatingTexts.splice(i, 1); }
     
     if (!ufo) {
       let spawnRate = (players[0].upgrades.ufoHunter || players[1].upgrades.ufoHunter) ? 2 : 1;
       ufoTimer -= spawnRate;
       if (ufoTimer <= 0) ufo = new Ufo();
     } else {
-      ufo.update();
-      ufo.draw(ctx);
-      if (ufo.x < -100 || ufo.x > canvas.width + 100) {
-        ufo = null;
-        ufoTimer = 600 - Math.min(400, wave * 20);
-      }
+      ufo.update(); ufo.draw(ctx);
+      if (ufo.x < -100 || ufo.x > canvas.width + 100) { ufo = null; ufoTimer = 600 - Math.min(400, wave * 20); }
     }
     
     // Collisions
     for (let i = asteroids.length - 1; i >= 0; i--) {
-      let a = asteroids[i];
-      let hit = false;
+      let a = asteroids[i], hit = false;
       
       for (let j = bullets.length - 1; j >= 0; j--) {
         let b = bullets[j];
         if (b.isEnemy) continue;
+        let dx = Math.abs(a.x - b.x); if (dx > a.r + 5) continue; // Fast AABB
+        let dy = Math.abs(a.y - b.y); if (dy > a.r + 5) continue;
         
-        if (distBetweenPoints(a.x, a.y, b.x, b.y) < a.r) {
+        if (dx*dx + dy*dy < a.r*a.r) {
           a.hitFlash = 3;
           let u = b.owner !== null ? players[b.owner].upgrades : getDefaultUpgrades();
-          if (u.plasma) {
-            explodeAsteroid(i, b.owner);
-            hit = true;
-            break;
-          } else {
-            if (u.flak && !b.isFlak) {
-              for (let f = 0; f < 5; f++) {
-                let nb = new Bullet(b.x, b.y, Math.random()*Math.PI*2, b.owner);
-                nb.isFlak = true;
-                bullets.push(nb);
-              }
-            }
-            if (u.piercing && b.pierced < 1) b.pierced++;
-            else bullets.splice(j, 1);
-            
-            explodeAsteroid(i, b.owner);
-            hit = true;
-            break;
+          if (u.plasma) { explodeAsteroid(i, b.owner); hit = true; break; }
+          else {
+            if (u.flak && !b.isFlak) { for (let f = 0; f < 5; f++) { let nb = new Bullet(b.x, b.y, Math.random()*Math.PI*2, b.owner); nb.isFlak = true; bullets.push(nb); } }
+            if (u.piercing && b.pierced < 1) b.pierced++; else bullets.splice(j, 1);
+            explodeAsteroid(i, b.owner); hit = true; break;
           }
         }
       }
@@ -680,11 +659,11 @@ function update() {
       
       for (let j = bullets.length - 1; j >= 0; j--) {
         let b = bullets[j];
-        if (b.isMine && distBetweenPoints(a.x, a.y, b.x, b.y) < a.r + 15) {
-          bullets.splice(j, 1);
-          explodeAsteroid(i, b.owner);
-          hit = true;
-          break;
+        if (b.isMine) {
+          let dx = Math.abs(a.x - b.x), dy = Math.abs(a.y - b.y);
+          if (dx < a.r + 15 && dy < a.r + 15 && dx*dx + dy*dy < (a.r+15)*(a.r+15)) {
+            bullets.splice(j, 1); explodeAsteroid(i, b.owner); hit = true; break;
+          }
         }
       }
       if (hit) continue;
@@ -692,12 +671,11 @@ function update() {
       ships.forEach(s => {
         if (s && s.explodeTime <= 0 && s.ghostTimer <= 0) {
           let u = players[s.p.idx].upgrades;
-          if (distBetweenPoints(a.x, a.y, s.x, s.y) < a.r + (s.r * u.hitboxMult)) {
-            if (u.ramming && players[s.p.idx].keys.up) {
-              explodeAsteroid(i, s.p.idx);
-            } else {
-              killShip(s.p.idx);
-            }
+          let dx = Math.abs(a.x - s.x), dy = Math.abs(a.y - s.y);
+          let shipHit = s.r * u.hitboxMult;
+          if (dx < a.r + shipHit && dy < a.r + shipHit && dx*dx + dy*dy < (a.r+shipHit)*(a.r+shipHit)) {
+            if (u.ramming && players[s.p.idx].keys.up) explodeAsteroid(i, s.p.idx);
+            else killShip(s.p.idx);
           }
         }
       });
@@ -707,29 +685,25 @@ function update() {
       for (let j = bullets.length - 1; j >= 0; j--) {
         let b = bullets[j];
         if (b.isEnemy) continue;
-        if (distBetweenPoints(ufo.x, ufo.y, b.x, b.y) < ufo.r) {
-          ufo.hitFlash = 3;
-          bullets.splice(j, 1);
-          
+        let dx = Math.abs(ufo.x - b.x), dy = Math.abs(ufo.y - b.y);
+        if (dx < ufo.r && dy < ufo.r && dx*dx + dy*dy < ufo.r*ufo.r) {
+          ufo.hitFlash = 3; bullets.splice(j, 1);
           if (b.owner !== null) {
             let p = players[b.owner];
             let pts = (p.upgrades.ufoHunter ? 1000 : 500) * p.upgrades.scoreMult;
             p.score += pts;
             floatingTexts.push(new FloatingText(ufo.x, ufo.y, `+${pts}`, p.color));
-            if (p.upgrades.ufoHunter && Math.random() < 0.25) p.lives++;
           }
           for (let k = 0; k < 20; k++) particles.push(new Particle(ufo.x, ufo.y, (Math.random()-0.5)*10, (Math.random()-0.5)*10, 'red', 40));
-          
-          ufo = null;
-          ufoTimer = 600 - Math.min(400, wave * 20);
-          screenShake = 15;
-          break;
+          ufo = null; ufoTimer = 600 - Math.min(400, wave * 20); screenShake = 15; break;
         }
       }
       
       ships.forEach(s => {
         if (ufo && s && s.explodeTime <= 0 && s.ghostTimer <= 0) {
-          if (distBetweenPoints(ufo.x, ufo.y, s.x, s.y) < ufo.r + (s.r * players[s.p.idx].upgrades.hitboxMult)) killShip(s.p.idx);
+          let shipHit = s.r * players[s.p.idx].upgrades.hitboxMult;
+          let dx = Math.abs(ufo.x - s.x), dy = Math.abs(ufo.y - s.y);
+          if (dx < ufo.r + shipHit && dy < ufo.r + shipHit && dx*dx + dy*dy < (ufo.r+shipHit)*(ufo.r+shipHit)) killShip(s.p.idx);
         }
       });
     }
@@ -739,9 +713,10 @@ function update() {
       if (!b.isEnemy) continue;
       ships.forEach(s => {
         if (s && s.explodeTime <= 0 && s.ghostTimer <= 0) {
-          if (distBetweenPoints(s.x, s.y, b.x, b.y) < (s.r * players[s.p.idx].upgrades.hitboxMult)) {
-            bullets.splice(j, 1);
-            killShip(s.p.idx);
+          let shipHit = s.r * players[s.p.idx].upgrades.hitboxMult;
+          let dx = Math.abs(s.x - b.x), dy = Math.abs(s.y - b.y);
+          if (dx < shipHit && dy < shipHit && dx*dx + dy*dy < shipHit*shipHit) {
+            bullets.splice(j, 1); killShip(s.p.idx);
           }
         }
       });
@@ -750,12 +725,12 @@ function update() {
   
   ctx.restore();
   
-  // HUD (P1 Top Left, P2 Top Right)
+  // HUD
   ctx.font = '20px Courier New';
   
   ctx.fillStyle = players[0].color;
   ctx.textAlign = 'left';
-  ctx.fillText(`P1 LIVES: ${players[0].lives} | SCORE: ${players[0].score}`, 20, 30);
+  ctx.fillText(`P1 ${players[0].isAlive ? 'ALIVE' : 'DEAD'} | SCORE: ${players[0].score}`, 20, 30);
   if (players[0].combo > 1) {
     ctx.fillText(`COMBO x${Math.min(5, 1 + Math.floor(players[0].combo/5))}`, 20, 60);
     ctx.fillRect(20, 70, players[0].comboTimer, 5);
@@ -763,7 +738,7 @@ function update() {
 
   ctx.fillStyle = players[1].color;
   ctx.textAlign = 'right';
-  ctx.fillText(`P2 LIVES: ${players[1].lives} | SCORE: ${players[1].score}`, canvas.width - 20, 30);
+  ctx.fillText(`P2 ${players[1].isAlive ? 'ALIVE' : 'DEAD'} | SCORE: ${players[1].score}`, canvas.width - 20, 30);
   if (players[1].combo > 1) {
     ctx.fillText(`COMBO x${Math.min(5, 1 + Math.floor(players[1].combo/5))}`, canvas.width - 20, 60);
     ctx.fillRect(canvas.width - 20 - players[1].comboTimer, 70, players[1].comboTimer, 5);
@@ -772,6 +747,32 @@ function update() {
   ctx.fillStyle = 'white';
   ctx.textAlign = 'center';
   ctx.fillText(`WAVE: ${wave}`, canvas.width/2, 30);
+  
+  // STATS OVERLAYS
+  players.forEach(p => {
+    if (p.showStats) {
+      let textX = p.idx === 0 ? 20 : canvas.width - 20;
+      ctx.textAlign = p.idx === 0 ? 'left' : 'right';
+      ctx.fillStyle = p.color;
+      ctx.font = 'bold 18px Courier New';
+      ctx.fillText("ACTIVE UPGRADES:", textX, 120);
+      ctx.fillStyle = 'white';
+      ctx.font = '14px Courier New';
+      let statY = 145;
+      
+      if (p.upgrades.ids.length === 0) {
+        ctx.fillText("None", textX, statY);
+      } else {
+        p.upgrades.ids.forEach(id => {
+          let u = UPGRADES.find(u => u.id === id);
+          if (u) {
+            ctx.fillText(`- ${u.name}`, textX, statY);
+            statY += 20;
+          }
+        });
+      }
+    }
+  });
   
   // Upgrade Menu
   if (gameState === 'UPGRADE') {
@@ -792,18 +793,14 @@ function update() {
     let cardW = 200;
     let cardH = 120;
     
-    // Draw P1 Choices
-    if (players[0].lives > 0 && !players[0].lockedIn) {
-      ctx.fillStyle = players[0].color;
-      ctx.fillText("PLAYER 1", canvas.width/4, 180);
+    if (!players[0].lockedIn) {
+      ctx.fillStyle = players[0].color; ctx.fillText("PLAYER 1", canvas.width/4, 180);
       let startX = canvas.width/4 - (cardW * 1.5) - 20;
       for (let i = 0; i < 3; i++) {
-        let x = startX + i * (cardW + 20);
-        let y = 220;
+        let x = startX + i * (cardW + 20), y = 220;
         ctx.strokeStyle = (i === players[0].choiceIdx) ? players[0].color : 'white';
         ctx.lineWidth = (i === players[0].choiceIdx) ? 5 : 2;
         ctx.strokeRect(x, y, cardW, cardH);
-        
         let c = players[0].choices[i];
         if (c) {
           ctx.fillStyle = 'white'; ctx.font = 'bold 16px Courier New';
@@ -812,23 +809,16 @@ function update() {
           renderWrappedText(ctx, c.desc, x + cardW/2, y + 60, cardW - 20);
         }
       }
-    } else if (players[0].lockedIn && players[0].lives > 0) {
-      ctx.fillStyle = players[0].color;
-      ctx.fillText("PLAYER 1 READY", canvas.width/4, canvas.height/2);
-    }
+    } else { ctx.fillStyle = players[0].color; ctx.fillText("PLAYER 1 READY", canvas.width/4, canvas.height/2); }
     
-    // Draw P2 Choices
-    if (players[1].lives > 0 && !players[1].lockedIn) {
-      ctx.fillStyle = players[1].color;
-      ctx.fillText("PLAYER 2", (canvas.width/4)*3, 180);
+    if (!players[1].lockedIn) {
+      ctx.fillStyle = players[1].color; ctx.fillText("PLAYER 2", (canvas.width/4)*3, 180);
       let startX = (canvas.width/4)*3 - (cardW * 1.5) - 20;
       for (let i = 0; i < 3; i++) {
-        let x = startX + i * (cardW + 20);
-        let y = 220;
+        let x = startX + i * (cardW + 20), y = 220;
         ctx.strokeStyle = (i === players[1].choiceIdx) ? players[1].color : 'white';
         ctx.lineWidth = (i === players[1].choiceIdx) ? 5 : 2;
         ctx.strokeRect(x, y, cardW, cardH);
-        
         let c = players[1].choices[i];
         if (c) {
           ctx.fillStyle = 'white'; ctx.font = 'bold 16px Courier New';
@@ -837,24 +827,17 @@ function update() {
           renderWrappedText(ctx, c.desc, x + cardW/2, y + 60, cardW - 20);
         }
       }
-    } else if (players[1].lockedIn && players[1].lives > 0) {
-      ctx.fillStyle = players[1].color;
-      ctx.fillText("PLAYER 2 READY", (canvas.width/4)*3, canvas.height/2);
-    }
+    } else { ctx.fillStyle = players[1].color; ctx.fillText("PLAYER 2 READY", (canvas.width/4)*3, canvas.height/2); }
     
   } else if (gameState === 'GAME_OVER') {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    ctx.fillStyle = 'red';
-    ctx.textAlign = 'center';
-    ctx.font = '50px Courier New';
+    ctx.fillStyle = 'red'; ctx.textAlign = 'center'; ctx.font = '50px Courier New';
     ctx.fillText("GAME OVER", canvas.width/2, canvas.height/2 - 50);
-    ctx.fillStyle = 'white';
-    ctx.font = '30px Courier New';
+    ctx.fillStyle = 'white'; ctx.font = '30px Courier New';
     ctx.fillText(`P1 SCORE: ${players[0].score} | P2 SCORE: ${players[1].score}`, canvas.width/2, canvas.height/2 + 10);
     ctx.font = '20px Courier New';
-    ctx.fillText("Press A to Restart, B to Quit", canvas.width/2, canvas.height/2 + 60);
+    ctx.fillText("Press A to Restart, START to Quit", canvas.width/2, canvas.height/2 + 60);
   }
 
   animationFrameId = requestAnimationFrame(update);
@@ -864,13 +847,8 @@ function renderWrappedText(ctx, text, x, y, maxW) {
   let words = text.split(' ');
   let line = '';
   for (let w of words) {
-    if (ctx.measureText(line + w + ' ').width > maxW) {
-      ctx.fillText(line, x, y);
-      line = w + ' ';
-      y += 18;
-    } else {
-      line += w + ' ';
-    }
+    if (ctx.measureText(line + w + ' ').width > maxW) { ctx.fillText(line, x, y); line = w + ' '; y += 18; }
+    else { line += w + ' '; }
   }
   ctx.fillText(line, x, y);
 }
@@ -878,44 +856,32 @@ function renderWrappedText(ctx, text, x, y, maxW) {
 export function initAsteroids() {
   if (isRunning) return;
   isRunning = true;
-  
   canvas = document.createElement('canvas');
   canvas.id = 'asteroids-canvas';
-  canvas.style.position = 'fixed';
-  canvas.style.top = '0';
-  canvas.style.left = '0';
-  canvas.style.width = '100vw';
-  canvas.style.height = '100vh';
-  canvas.style.zIndex = '10000';
-  canvas.style.background = '#000';
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  canvas.style.position = 'fixed'; canvas.style.top = '0'; canvas.style.left = '0';
+  canvas.style.width = '100vw'; canvas.style.height = '100vh';
+  canvas.style.zIndex = '10000'; canvas.style.background = '#000';
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
   document.body.appendChild(canvas);
   ctx = canvas.getContext('2d');
   
-  gameState = 'PLAYING';
-  wave = 1;
+  gameState = 'PLAYING'; wave = 1;
   players = [
-    { idx: 0, color: 'cyan', score: 0, lives: 3, combo: 0, comboTimer: 0, lockedIn: false, choices: [], choiceIdx: 0, keys: { left: false, right: false, up: false, shoot: false }, upgrades: getDefaultUpgrades() },
-    { idx: 1, color: 'red', score: 0, lives: 3, combo: 0, comboTimer: 0, lockedIn: false, choices: [], choiceIdx: 0, keys: { left: false, right: false, up: false, shoot: false }, upgrades: getDefaultUpgrades() }
+    { idx: 0, color: 'cyan', score: 0, isAlive: true, combo: 0, comboTimer: 0, lockedIn: false, choices: [], choiceIdx: 0, showStats: false, secCooldown: 0, keys: { left: false, right: false, up: false, shoot: false }, upgrades: getDefaultUpgrades() },
+    { idx: 1, color: 'red', score: 0, isAlive: true, combo: 0, comboTimer: 0, lockedIn: false, choices: [], choiceIdx: 0, showStats: false, secCooldown: 0, keys: { left: false, right: false, up: false, shoot: false }, upgrades: getDefaultUpgrades() }
   ];
   ships = [new Ship(players[0]), new Ship(players[1])];
-  asteroids = [];
-  bullets = [];
-  particles = [];
-  floatingTexts = [];
-  ufo = null;
+  asteroids = []; bullets = []; particles = []; floatingTexts = []; ufo = null;
   spawnAsteroids(4);
   
   window.addEventListener('app_gamepad_axes', handleGamepadAxes);
   window.addEventListener('app_gamepad_btn', handleGamepadBtn);
+  window.addEventListener('app_gamepad_start_down', quitAsteroids);
   window.addEventListener('resize', resizeCanvas);
   update();
 }
 
-function resizeCanvas() {
-  if (canvas) { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-}
+function resizeCanvas() { if (canvas) { canvas.width = window.innerWidth; canvas.height = window.innerHeight; } }
 
 export function quitAsteroids() {
   if (!isRunning) return;
@@ -923,6 +889,7 @@ export function quitAsteroids() {
   cancelAnimationFrame(animationFrameId);
   window.removeEventListener('app_gamepad_axes', handleGamepadAxes);
   window.removeEventListener('app_gamepad_btn', handleGamepadBtn);
+  window.removeEventListener('app_gamepad_start_down', quitAsteroids);
   window.removeEventListener('resize', resizeCanvas);
   if (canvas && canvas.parentNode) canvas.parentNode.removeChild(canvas);
   canvas = null; ctx = null;

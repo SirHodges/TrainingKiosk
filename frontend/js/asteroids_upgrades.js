@@ -11,8 +11,12 @@ export const UPGRADES = [
   { id: 'homing_missiles', name: 'Homing Missiles', desc: 'Bullets curve towards asteroids', type: 'weapon', apply: s => s.homing = true },
   { id: 'bouncing_lasers', name: 'Bouncing Lasers', desc: 'Bullets bounce off screen edges', type: 'weapon', apply: s => s.bouncing = true },
   { id: 'plasma_ball', name: 'Plasma Ball', desc: 'Shoots a massive, slow obliterator', type: 'weapon', apply: s => s.plasma = true },
-  { id: 'mine_layer', name: 'Mine Layer', desc: 'Occasionally drops explosive mines', type: 'weapon', apply: s => s.mineLayer = true },
   { id: 'laser_sight', name: 'Laser Sight', desc: 'Draws a faint targeting line', type: 'weapon', apply: s => s.laserSight = true },
+
+  // SECONDARY WEAPONS (B-Button)
+  { id: 'sec_emp', name: 'EMP Blast (B)', desc: 'Press B to destroy nearby bullets/asteroids', type: 'weapon', apply: s => s.secEmp = true },
+  { id: 'sec_flak', name: 'Flak Burst (B)', desc: 'Press B to shoot a massive shotgun blast', type: 'weapon', apply: s => s.secFlak = true },
+  { id: 'sec_mine', name: 'Mine Dropper (B)', desc: 'Press B to drop a stationary explosive mine', type: 'weapon', apply: s => s.secMine = true },
 
   // SHIP PERFORMANCE
   { id: 'overclocked', name: 'Overclocked', desc: 'Increases top speed', type: 'ship', apply: s => s.speedMult *= 1.3 },
@@ -25,11 +29,9 @@ export const UPGRADES = [
   { id: 'ramming_speed', name: 'Ramming Speed', desc: 'Safe to hit asteroids at max speed', type: 'ship', apply: s => s.ramming = true },
 
   // UTILITY
-  { id: 'extra_plating', name: 'Extra Plating', desc: '+1 Max Life instantly', type: 'utility', apply: s => { s.maxLives++; s.lives++; } },
-  { id: 'scrap_collector', name: 'Scrap Collector', desc: 'Small chance to drop an Extra Life', type: 'utility', apply: s => s.scrapCollector = true },
   { id: 'combo_master', name: 'Combo Master', desc: 'Combo multiplier drops slower', type: 'utility', apply: s => s.comboDecayMult *= 0.5 },
   { id: 'deep_pockets', name: 'Deep Pockets', desc: 'Double base score from asteroids', type: 'utility', apply: s => s.scoreMult *= 2 },
-  { id: 'emp_blast', name: 'EMP Blast', desc: 'Destroys small asteroids on wave start', type: 'utility', apply: s => s.emp = true },
+  { id: 'emp_blast', name: 'EMP Start', desc: 'Destroys small asteroids on wave start', type: 'utility', apply: s => s.emp = true },
   { id: 'chrono_drive', name: 'Chrono Drive', desc: 'Asteroids slow down when off thrust', type: 'utility', apply: s => s.chrono = true },
   { id: 'radioactive', name: 'Radioactive Rocks', desc: 'Asteroids sometimes explode violently', type: 'utility', apply: s => s.radioactive = true },
   { id: 'gravity_well', name: 'Gravity Well', desc: 'Spawns a mini black hole each wave', type: 'utility', apply: s => s.gravityWell = true },
@@ -37,9 +39,8 @@ export const UPGRADES = [
 ];
 
 export function getRandomUpgrades(count, currentUpgrades) {
-  // Filter out upgrades the player already has (except stackable ones like extra plating)
+  // Filter out upgrades the player already has
   let pool = UPGRADES.filter(u => {
-    if (u.id === 'extra_plating') return true;
     return !currentUpgrades.includes(u.id);
   });
   
