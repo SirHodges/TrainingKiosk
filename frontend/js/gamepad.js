@@ -147,9 +147,21 @@ function pollLocalGamepads() {
     if (currentAxes[2] && !wasAxes[2]) dispatchDpad(gp.index, 'up');
     if (currentAxes[3] && !wasAxes[3]) dispatchDpad(gp.index, 'down');
     
-    // Dispatch raw axes for continuous movement games (like Asteroids)
+    // Fix for some zero delay encoders mapping D-pad to HTML5 buttons 12-15 instead of axes
+    let axisX = gp.axes[0] || 0;
+    let axisY = gp.axes[1] || 0;
+    if (Math.abs(axisX) < 0.1 && Math.abs(axisY) < 0.1) {
+        if (gp.buttons.length > 15) {
+            if (gp.buttons[14].pressed) axisX = -1;
+            else if (gp.buttons[15].pressed) axisX = 1;
+            if (gp.buttons[12].pressed) axisY = -1;
+            else if (gp.buttons[13].pressed) axisY = 1;
+        }
+    }
+
+    // Dispatch raw axes for continuous movement games (like Asteroids and Tanks)
     window.dispatchEvent(new CustomEvent('app_gamepad_axes', { 
-      detail: { player: gamepadToPlayerMap[gp.index] || 0, axes: [gp.axes[0], gp.axes[1]] } 
+      detail: { player: gamepadToPlayerMap[gp.index] || 0, axes: [axisX, axisY] } 
     }));
     
     state.lastAxes = currentAxes;

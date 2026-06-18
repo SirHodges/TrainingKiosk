@@ -76,16 +76,18 @@ class Tank {
       if (checkWallCollision(this.x, this.y, TANK_RADIUS)) this.y -= dy;
     }
 
-    if (k.shoot && Date.now() - this.lastShot > 500) {
-      bullets.push({
-        x: this.x + Math.cos(this.angle) * (TANK_RADIUS + 8),
-        y: this.y + Math.sin(this.angle) * (TANK_RADIUS + 8),
-        vx: Math.cos(this.angle) * BULLET_SPEED,
-        vy: Math.sin(this.angle) * BULLET_SPEED,
-        owner: this.playerIdx
-      });
-      this.lastShot = Date.now();
-      k.shoot = false;
+    if (k.shoot) {
+      if (Date.now() - this.lastShot > 500) {
+        bullets.push({
+          x: this.x + Math.cos(this.angle) * (TANK_RADIUS + 8),
+          y: this.y + Math.sin(this.angle) * (TANK_RADIUS + 8),
+          vx: Math.cos(this.angle) * BULLET_SPEED,
+          vy: Math.sin(this.angle) * BULLET_SPEED,
+          owner: this.playerIdx
+        });
+        this.lastShot = Date.now();
+      }
+      k.shoot = false; // Always clear it so we don't queue shots!
     }
   }
   draw() {
