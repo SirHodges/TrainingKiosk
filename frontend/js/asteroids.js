@@ -170,8 +170,12 @@ class Asteroid {
     this.vx = Math.cos(this.a) * speed;
     this.vy = Math.sin(this.a) * speed;
     this.vert = Math.floor(Math.random() * 5 + 5);
-    this.offs = [];
-    for (let i = 0; i < this.vert; i++) this.offs.push(Math.random() * 0.4 + 0.8);
+    this.points = [];
+    for (let i = 0; i < this.vert; i++) {
+      let a = i * Math.PI * 2 / this.vert;
+      let r2 = this.r * (Math.random() * 0.4 + 0.8);
+      this.points.push({ x: Math.cos(a) * r2, y: Math.sin(a) * r2 });
+    }
     this.hitFlash = 0;
   }
   update() {
@@ -204,11 +208,10 @@ class Asteroid {
     ctx.fillStyle = this.hitFlash > 0 ? 'white' : 'transparent';
     ctx.lineWidth = 2;
     ctx.beginPath();
-    for (let j = 0; j < this.vert; j++) {
-      let a = j * Math.PI * 2 / this.vert;
-      let r = this.r * this.offs[j];
-      if (j === 0) ctx.moveTo(this.x + Math.cos(a) * r, this.y + Math.sin(a) * r);
-      else ctx.lineTo(this.x + Math.cos(a) * r, this.y + Math.sin(a) * r);
+    for (let j = 0; j < this.points.length; j++) {
+      let p = this.points[j];
+      if (j === 0) ctx.moveTo(this.x + p.x, this.y + p.y);
+      else ctx.lineTo(this.x + p.x, this.y + p.y);
     }
     ctx.closePath();
     ctx.stroke();
@@ -279,6 +282,7 @@ class Bullet {
     this.vy = Math.sin(a) * spd;
     this.life = u.plasma ? 180 : 60;
     this.pierced = 0;
+    this.isFlak = false;
   }
   update() {
     let u = this.owner !== null ? players[this.owner].upgrades : getDefaultUpgrades();
@@ -341,12 +345,11 @@ class Particle {
   draw(ctx) {
     ctx.strokeStyle = this.color;
     ctx.lineWidth = 2;
-    ctx.globalAlpha = this.life / this.maxLife;
+    let scale = this.life / this.maxLife;
     ctx.beginPath();
     ctx.moveTo(this.x, this.y);
-    ctx.lineTo(this.x - this.vx*2, this.y - this.vy*2);
+    ctx.lineTo(this.x - this.vx*2*scale, this.y - this.vy*2*scale);
     ctx.stroke();
-    ctx.globalAlpha = 1.0;
   }
 }
 
@@ -382,7 +385,9 @@ function spawnAsteroids(count) {
 }
 
 function distBetweenPoints(x1, y1, x2, y2) {
-  return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+  let dx = x2 - x1;
+  let dy = y2 - y1;
+  return Math.sqrt(dx*dx + dy*dy);
 }
 
 function fireBullets(pIdx) {
@@ -449,8 +454,6 @@ function explodeAsteroid(index, ownerIdx) {
     // Destroyed by something else (e.g. ship ramming, EMP)
     for (let i = 0; i < 10; i++) particles.push(new Particle(a.x, a.y, (Math.random()-0.5)*8, (Math.random()-0.5)*8, 'white', 30));
   }
-  
-  for (let i = 0; i < 10; i++) particles.push(new Particle(a.x, a.y, (Math.random()-0.5)*8, (Math.random()-0.5)*8, 'white', 30));
   
   if (a.r > 20) {
     asteroids.push(new Asteroid(a.x, a.y, a.r / 2));
@@ -619,6 +622,7 @@ function update() {
       particles[i].draw(ctx);
       if (particles[i].life <= 0) particles.splice(i, 1);
     }
+    if (particles.length > 150) particles.splice(0, particles.length - 150);
     
     for (let i = floatingTexts.length - 1; i >= 0; i--) {
       floatingTexts[i].update();
@@ -656,8 +660,12 @@ function update() {
             hit = true;
             break;
           } else {
-            if (u.flak) {
-              for (let f = 0; f < 5; f++) bullets.push(new Bullet(b.x, b.y, Math.random()*Math.PI*2, b.owner));
+            if (u.flak && !b.isFlak) {
+              for (let f = 0; f < 5; f++) {
+                let nb = new Bullet(b.x, b.y, Math.random()*Math.PI*2, b.owner);
+                nb.isFlak = true;
+                bullets.push(nb);
+              }
             }
             if (u.piercing && b.pierced < 1) b.pierced++;
             else bullets.splice(j, 1);
