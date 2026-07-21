@@ -1,6 +1,6 @@
 // gamepad.js - SocketIO gamepad client + HTML5 Gamepad API Fallback
 
-import { moveFocus, selectFocused } from './navigation.js?v=4.0';
+import { moveFocus, selectFocused } from './navigation.js?v=4.1';
 
 let socket = null;
 let connected = false;

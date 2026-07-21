@@ -1,7 +1,7 @@
 // ==========================================
 // CALIBRATION MODE UI
 // ==========================================
-import { MAP_WIDTH, MAP_HEIGHT, latLonToXY, xyToLatLon, calculateZoomViewBox } from './geogame_math.js?v=4.0';
+import { MAP_WIDTH, MAP_HEIGHT, latLonToXY, xyToLatLon, calculateZoomViewBox } from './geogame_math.js?v=4.1';
 
 let calibSvg;
 let calibPinGroup;
