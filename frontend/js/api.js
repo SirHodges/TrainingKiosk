@@ -61,7 +61,7 @@ export async function submitAnswer(sessionId, questionIndex, answerIndex, timeTo
       session_id: sessionId,
       question_index: questionIndex,
       answer_index: answerIndex,
-      time_to_answer_ms: timeToAnswerMs,
+      time_ms: timeToAnswerMs,
       streak_count: streakCount,
       timestamp: Date.now()
     })
@@ -74,7 +74,7 @@ export async function skipQuestion(sessionId, questionIndex, timeToAnswerMs, str
     body: JSON.stringify({
       session_id: sessionId,
       question_index: questionIndex,
-      time_to_answer_ms: timeToAnswerMs,
+      time_ms: timeToAnswerMs,
       streak_count: streakCount,
       timestamp: Date.now()
     })

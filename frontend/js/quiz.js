@@ -15,12 +15,13 @@ let inputMode = 'mouse'; // 'mouse' or 'gamepad'
 let playerCount = 1;
 let timeRemaining = 60;
 let timerInterval = null;
+let isQuizEnding = false;
+let countdownInterval = null;
+let questionStartTime = 0;
+let lockoutTimeouts = { 0: null, 1: null };
 
 // Player states
-let players = {
-  0: { score: 0, streak: 0, bestStreak: 0, stats: { correct: 0, wrong: 0, skips: 0 }, locked: false },
-  1: { score: 0, streak: 0, bestStreak: 0, stats: { correct: 0, wrong: 0, skips: 0 }, locked: false }
-};
+let players;
 
 let streakTimer = null;
 let holdTimeout = null;
@@ -37,9 +38,14 @@ export function resetQuiz() {
   currentIndex = 0;
   sessionId = null;
   isGameActive = false;
+  isQuizEnding = false;
   timeRemaining = 60;
   clearInterval(timerInterval);
   clearTimeout(streakTimer);
+  clearInterval(countdownInterval);
+  clearTimeout(lockoutTimeouts[0]);
+  clearTimeout(lockoutTimeouts[1]);
+  lockoutTimeouts = { 0: null, 1: null };
   
   players = {
     0: { score: 0, streak: 0, bestStreak: 0, stats: { correct: 0, wrong: 0, skips: 0 }, locked: false },
@@ -211,20 +217,27 @@ function runCountdown() {
   
   // Reset and trigger animation
   countEl.style.animation = 'none';
-  void countEl.offsetWidth; // trigger reflow
-  countEl.style.animation = 'popInOut 1s ease-in-out forwards';
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      countEl.style.animation = 'popInOut 1s ease-in-out forwards';
+    });
+  });
   
-  const intv = setInterval(() => {
+  clearInterval(countdownInterval);
+  countdownInterval = setInterval(() => {
     count--;
     if (count > 0) {
       countEl.textContent = count;
       
       // Re-trigger animation in sync with number change
       countEl.style.animation = 'none';
-      void countEl.offsetWidth;
-      countEl.style.animation = 'popInOut 1s ease-in-out forwards';
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          countEl.style.animation = 'popInOut 1s ease-in-out forwards';
+        });
+      });
     } else if (count === 0) {
-      clearInterval(intv);
+      clearInterval(countdownInterval);
       countEl.textContent = 'GO!';
       countEl.style.animation = 'none'; // Stop shrinking animation
       countEl.style.transform = 'scale(1.2)';
@@ -288,6 +301,9 @@ function displayQuestion() {
   const q = quizQuestions[currentIndex];
   document.getElementById('quiz-question-text').textContent = q.question;
   
+  // Record start time for this question
+  questionStartTime = Date.now();
+  
   const container = document.getElementById('quiz-answers-container');
   container.innerHTML = '';
   
@@ -344,13 +360,31 @@ function handleGamepadButton(e) {
   }
 }
 
+function goToNextQuestion(delay, btns = null) {
+  isGameActive = false;
+  if (btns) {
+    btns.forEach(b => b.classList.add('inactive'));
+  }
+  
+  // Clear any existing lockout timeouts so they don't fire on the next question
+  clearTimeout(lockoutTimeouts[0]);
+  clearTimeout(lockoutTimeouts[1]);
+  
+  setTimeout(() => {
+    currentIndex++;
+    isGameActive = true;
+    displayQuestion();
+  }, delay);
+}
+
 async function handleAnswer(ansIndex, playerIdx) {
   if (!isGameActive || players[playerIdx].locked) return;
   
   const p = players[playerIdx];
   const qIdx = currentIndex;
+  const timeTaken = Date.now() - questionStartTime;
   
-  const res = await submitAnswer(sessionId, qIdx, ansIndex, 1000, p.streak);
+  const res = await submitAnswer(sessionId, qIdx, ansIndex, timeTaken, p.streak);
   if (!res) return;
   
   const btns = document.querySelectorAll('.quiz-answer-btn');
@@ -384,13 +418,7 @@ async function handleAnswer(ansIndex, playerIdx) {
     }
     
     updateScoreDisplay();
-    isGameActive = false;
-    btns.forEach(b => b.classList.add('inactive'));
-    setTimeout(() => {
-      currentIndex++;
-      isGameActive = true;
-      displayQuestion();
-    }, 400);
+    goToNextQuestion(400, btns);
     
   } else {
     playWrong();
@@ -403,25 +431,13 @@ async function handleAnswer(ansIndex, playerIdx) {
       timeRemaining = Math.max(0, timeRemaining - 5);
       // Show correct answer
       btns[res.correct_index].classList.add('correct');
-      isGameActive = false;
-      btns.forEach(b => b.classList.add('inactive'));
-      setTimeout(() => {
-        currentIndex++;
-        isGameActive = true;
-        displayQuestion();
-      }, 1000);
+      goToNextQuestion(1000, btns);
     } else {
       // 2P lockout
       p.locked = true;
       if (players[0].locked && players[1].locked) {
         btns[res.correct_index].classList.add('correct');
-        isGameActive = false;
-        btns.forEach(b => b.classList.add('inactive'));
-        setTimeout(() => {
-          currentIndex++;
-          isGameActive = true;
-          displayQuestion();
-        }, 1000);
+        goToNextQuestion(1000, btns);
       } else {
         showLockout(playerIdx);
       }
@@ -434,13 +450,13 @@ async function handleSkip(playerIdx) {
   
   const p = players[playerIdx];
   p.stats.skips++;
+  const timeTaken = Date.now() - questionStartTime;
   
-  await skipQuestion(sessionId, currentIndex, 1000, p.streak);
+  await skipQuestion(sessionId, currentIndex, timeTaken, p.streak);
   
   if (playerCount === 1) {
     timeRemaining = Math.max(0, timeRemaining - 1);
-    currentIndex++;
-    displayQuestion();
+    goToNextQuestion(0);
   } else {
     p.locked = true;
     showLockout(playerIdx);
@@ -495,7 +511,8 @@ function showLockout(playerIdx) {
     containers[playerIdx].classList.add('locked');
   }
   
-  setTimeout(() => {
+  clearTimeout(lockoutTimeouts[playerIdx]);
+  lockoutTimeouts[playerIdx] = setTimeout(() => {
     if (containers[playerIdx]) {
       containers[playerIdx].classList.remove('locked');
     }
@@ -504,6 +521,8 @@ function showLockout(playerIdx) {
 }
 
 async function endQuiz() {
+  if (isQuizEnding) return;
+  isQuizEnding = true;
   isGameActive = false;
   clearInterval(timerInterval);
   endSession(); // Gamepad session
@@ -575,8 +594,10 @@ function setupVirtualKeyboard(score, stats) {
     submitBtn.textContent = 'SUBMIT';
     submitBtn.disabled = false;
     
-    await loadLeaderboard('end-leaderboard');
-    await loadLeaderboard('quiz-sidebar'); // Update the left sidebar too!
+    await Promise.all([
+      loadLeaderboard('end-leaderboard'),
+      loadLeaderboard('quiz-sidebar')
+    ]);
     setTimeout(resetToStart, 5000);
   };
   
