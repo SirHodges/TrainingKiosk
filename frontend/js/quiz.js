@@ -1,10 +1,10 @@
 // quiz.js - Quiz game module
 
-import { startQuiz as apiStartQuiz, submitAnswer, skipQuestion, checkTopScore, submitScore, getLeaderboard } from './api.js?v=4.2';
-import { playRight, playWrong } from './audio.js?v=4.2';
-import { registerFocusables, clearFocusables } from './navigation.js?v=4.2';
-import { startBinding, endSession } from './gamepad.js?v=4.2';
-import { displayScoresWithPlaceholder, loadLeaderboard } from './leaderboard.js?v=4.2';
+import { startQuiz as apiStartQuiz, submitAnswer, skipQuestion, checkTopScore, submitScore, getLeaderboard } from './api.js?v=4.3';
+import { playRight, playWrong } from './audio.js?v=4.3';
+import { registerFocusables, clearFocusables } from './navigation.js?v=4.3';
+import { startBinding, endSession } from './gamepad.js?v=4.3';
+import { displayScoresWithPlaceholder, loadLeaderboard } from './leaderboard.js?v=4.3';
 
 // State
 let quizQuestions = [];
@@ -595,11 +595,13 @@ async function endQuiz(reason = 'unknown') {
   debugMsg.style.marginTop = '10px';
   debugMsg.textContent = `Debug: Game ended by ${reason}`;
   const endContainer = document.getElementById('quiz-end-screen');
+  const debugString = `Debug: Game ended by ${reason}. Qs: ${quizQuestions ? quizQuestions.length : 'undef'}, Idx: ${currentIndex}`;
   if (endContainer && !document.getElementById('debug-end-reason')) {
     debugMsg.id = 'debug-end-reason';
+    debugMsg.textContent = debugString;
     endContainer.appendChild(debugMsg);
   } else if (document.getElementById('debug-end-reason')) {
-    document.getElementById('debug-end-reason').textContent = `Debug: Game ended by ${reason}`;
+    document.getElementById('debug-end-reason').textContent = debugString;
   }
   
   const finalScore = players[0].score;
