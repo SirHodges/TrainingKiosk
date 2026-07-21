@@ -1,6 +1,6 @@
 // gamepad.js - SocketIO gamepad client + HTML5 Gamepad API Fallback
 
-import { moveFocus, selectFocused } from './navigation.js?v=4.6';
+import { moveFocus, selectFocused } from './navigation.js?v=5.0';
 
 let socket = null;
 let connected = false;
@@ -101,10 +101,11 @@ export function initGamepad() {
     });
   } else {
     console.warn('Socket.IO not found. Proceeding with Local HTML5 Gamepad support only.');
+    // Only start HTML5 Gamepad polling as a fallback when there is NO backend.
+    // On the Pi, the backend handles all gamepad input via evdev/socket.io.
+    // Running both causes duplicate/conflicting signals (e.g. RB seen as START).
+    requestAnimationFrame(pollLocalGamepads);
   }
-
-  // Always start the local HTML5 Gamepad polling loop
-  requestAnimationFrame(pollLocalGamepads);
 }
 
 function pollLocalGamepads() {
