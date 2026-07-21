@@ -1,6 +1,6 @@
 // gamepad.js - SocketIO gamepad client + HTML5 Gamepad API Fallback
 
-import { moveFocus, selectFocused } from './navigation.js?v=4.5';
+import { moveFocus, selectFocused } from './navigation.js?v=4.6';
 
 let socket = null;
 let connected = false;
@@ -108,6 +108,13 @@ export function initGamepad() {
 }
 
 function pollLocalGamepads() {
+  // If the backend socket is connected, it handles all gamepad input via evdev.
+  // Skip HTML5 polling entirely to prevent duplicate/conflicting signals.
+  if (connected) {
+    requestAnimationFrame(pollLocalGamepads);
+    return;
+  }
+
   const gps = navigator.getGamepads ? navigator.getGamepads() : [];
   
   for (let i = 0; i < gps.length; i++) {

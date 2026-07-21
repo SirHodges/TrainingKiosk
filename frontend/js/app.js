@@ -1,16 +1,16 @@
 // app.js - Main entry point
 
-import { loadCategories, loadSkills } from './media.js?v=4.5';
-import { initQuiz, resetQuiz, isQuizLocked } from './quiz.js?v=4.5';
-import { loadLeaderboard } from './leaderboard.js?v=4.5';
-import { initGeoGame, startGeoGame, isGeoGameLocked } from './geogame.js?v=4.5';
-import { initGamepad } from './gamepad.js?v=4.5';
-import { triggerUpdate, clearLeaderboard } from './api.js?v=4.5';
-import { clearFocusables } from './navigation.js?v=4.5';
+import { loadCategories, loadSkills } from './media.js?v=4.6';
+import { initQuiz, resetQuiz, isQuizLocked } from './quiz.js?v=4.6';
+import { loadLeaderboard } from './leaderboard.js?v=4.6';
+import { initGeoGame, startGeoGame, isGeoGameLocked } from './geogame.js?v=4.6';
+import { initGamepad } from './gamepad.js?v=4.6';
+import { triggerUpdate, clearLeaderboard } from './api.js?v=4.6';
+import { clearFocusables } from './navigation.js?v=4.6';
 
 let currentMode = 'quiz';
 
-import { initGamepadTester } from './gamepad-tester.js?v=4.5';
+import { initGamepadTester } from './gamepad-tester.js?v=4.6';
 
 document.addEventListener('DOMContentLoaded', () => {
   console.log("App initializing...");
