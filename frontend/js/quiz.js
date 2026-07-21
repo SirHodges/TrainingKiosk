@@ -185,7 +185,12 @@ function cancelStopHold() {
   if (fill) fill.style.height = '0%';
 }
 
-async function startQuizFlow() {
+let lastStartQuizFlow = 0;
+export async function startQuizFlow() {
+  const now = Date.now();
+  if (now - lastStartQuizFlow < 1500) return;
+  lastStartQuizFlow = now;
+
   cancelHoldProgress();
   resetQuiz();
   
@@ -386,8 +391,13 @@ function goToNextQuestion(delay, btns = null) {
   }, delay);
 }
 
+let lastAnswerTime = 0;
 async function handleAnswer(ansIndex, playerIdx) {
   if (!isGameActive || players[playerIdx].locked) return;
+  
+  const now = Date.now();
+  if (now - lastAnswerTime < 200) return;
+  lastAnswerTime = now;
   
   const p = players[playerIdx];
   const qIdx = currentIndex;
@@ -454,8 +464,13 @@ async function handleAnswer(ansIndex, playerIdx) {
   }
 }
 
+let lastSkipTime = 0;
 async function handleSkip(playerIdx) {
   if (!isGameActive || players[playerIdx].locked) return;
+  
+  const now = Date.now();
+  if (now - lastSkipTime < 500) return;
+  lastSkipTime = now;
   
   const p = players[playerIdx];
   p.stats.skips++;
