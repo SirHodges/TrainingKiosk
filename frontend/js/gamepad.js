@@ -47,8 +47,8 @@ export function initGamepad() {
       else if (data.button_index === 1) btnName = 'A';
       else if (data.button_index === 2) btnName = 'B';
       else if (data.button_index === 3) btnName = 'Y';
-      else if (data.button_index === 4 || data.action === 'lb') btnName = 'LB';
-      else if (data.button_index === 5 || data.action === 'rb') btnName = 'RB';
+      else if (data.button_index === 4 || data.action === 'lb' || data.action === 'review_prev') btnName = 'LB';
+      else if (data.button_index === 5 || data.action === 'rb' || data.action === 'skip') btnName = 'RB';
       
       const playerIndex = (data.player || 1) - 1; // Convert backend 1-index to frontend 0-index
       
