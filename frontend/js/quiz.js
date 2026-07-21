@@ -558,13 +558,13 @@ async function endQuiz(reason = 'unknown') {
   debugMsg.style.color = 'yellow';
   debugMsg.style.fontSize = '12px';
   debugMsg.style.marginTop = '10px';
-  debugMsg.textContent = Debug: Game ended by ;
+  debugMsg.textContent = `Debug: Game ended by ${reason}`;
   const endContainer = document.querySelector('#quiz-end-screen .quiz-container');
   if (endContainer && !document.getElementById('debug-end-reason')) {
     debugMsg.id = 'debug-end-reason';
     endContainer.appendChild(debugMsg);
   } else if (document.getElementById('debug-end-reason')) {
-    document.getElementById('debug-end-reason').textContent = Debug: Game ended by ;
+    document.getElementById('debug-end-reason').textContent = `Debug: Game ended by ${reason}`;
   }
   
   const finalScore = players[0].score;
