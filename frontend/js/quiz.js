@@ -1,10 +1,10 @@
 // quiz.js - Quiz game module
 
-import { startQuiz as apiStartQuiz, submitAnswer, skipQuestion, checkTopScore, submitScore, getLeaderboard } from './api.js?v=4.3';
-import { playRight, playWrong } from './audio.js?v=4.3';
-import { registerFocusables, clearFocusables } from './navigation.js?v=4.3';
-import { startBinding, endSession } from './gamepad.js?v=4.3';
-import { displayScoresWithPlaceholder, loadLeaderboard } from './leaderboard.js?v=4.3';
+import { startQuiz as apiStartQuiz, submitAnswer, skipQuestion, checkTopScore, submitScore, getLeaderboard } from './api.js?v=4.4';
+import { playRight, playWrong } from './audio.js?v=4.4';
+import { registerFocusables, clearFocusables } from './navigation.js?v=4.4';
+import { startBinding, endSession } from './gamepad.js?v=4.4';
+import { displayScoresWithPlaceholder, loadLeaderboard } from './leaderboard.js?v=4.4';
 
 // State
 let quizQuestions = [];
@@ -132,7 +132,6 @@ function setupEventListeners() {
   // Gamepad events
   window.addEventListener('app_gamepad_btn', handleGamepadButton);
   window.addEventListener('app_gamepad_start_down', () => {
-    if (gameState === 'IDLE' && document.getElementById('quiz-start-screen').classList.contains('active')) startQuizFlow();
     if (gameState === 'ACTIVE') startStopHold();
   });
   window.addEventListener('app_gamepad_start_up', () => {

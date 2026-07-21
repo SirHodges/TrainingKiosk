@@ -1,7 +1,7 @@
 // media.js - SkillPlayer functionality
 
-import { getCategories, getSkills, getFiles, incrementView, getTotalViews } from './api.js?v=4.3';
-import { registerFocusables } from './navigation.js?v=4.3';
+import { getCategories, getSkills, getFiles, incrementView, getTotalViews } from './api.js?v=4.4';
+import { registerFocusables } from './navigation.js?v=4.4';
 
 let currentCategory = null;
 let currentSkill = null;
