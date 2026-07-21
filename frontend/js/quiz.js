@@ -10,22 +10,27 @@ import { displayScoresWithPlaceholder, loadLeaderboard } from './leaderboard.js?
 let quizQuestions = [];
 let currentIndex = 0;
 let sessionId = null;
-let isGameActive = false;
 let inputMode = 'mouse'; // 'mouse' or 'gamepad'
 let playerCount = 1;
-let timeRemaining = 60;
-let timerInterval = null;
-let isQuizEnding = false;
-let countdownInterval = null;
-let questionStartTime = 0;
+
+// Robust State Machine
+let gameState = 'IDLE'; // IDLE, BINDING, COUNTDOWN, ACTIVE, ENDING
+let quizDurationMs = 60000;
+let quizStartTimeMs = 0;
+let timeAddedMs = 0;
+let holdStartMs = 0;
+let countdownStartMs = 0;
+let rafId = null;
+let lastRafTime = 0;
+
+let questionStartTimeMs = 0;
 let lockoutTimeouts = { 0: null, 1: null };
 
 // Player states
 let players;
 
 let streakTimer = null;
-let holdTimeout = null;
-let holdProgressInterval = null;
+
 
 export function initQuiz() {
   showScreen('quiz-start-screen');
@@ -34,21 +39,26 @@ export function initQuiz() {
 }
 
 export function isQuizLocked() {
-  return isGameActive || 
-         document.getElementById('quiz-countdown-screen').classList.contains('active') ||
-         document.getElementById('quiz-binding-screen').classList.contains('active');
+  return gameState !== 'IDLE' && gameState !== 'ENDING';
 }
 
 export function resetQuiz() {
   quizQuestions = [];
   currentIndex = 0;
   sessionId = null;
-  isGameActive = false;
-  isQuizEnding = false;
-  timeRemaining = 60;
-  clearInterval(timerInterval);
+  gameState = 'IDLE';
+  
+  if (rafId) {
+    cancelAnimationFrame(rafId);
+    rafId = null;
+  }
+  
+  quizStartTimeMs = 0;
+  timeAddedMs = 0;
+  holdStartMs = 0;
+  countdownStartMs = 0;
+  
   clearTimeout(streakTimer);
-  clearInterval(countdownInterval);
   clearTimeout(lockoutTimeouts[0]);
   clearTimeout(lockoutTimeouts[1]);
   lockoutTimeouts = { 0: null, 1: null };
@@ -122,8 +132,8 @@ function setupEventListeners() {
   // Gamepad events
   window.addEventListener('app_gamepad_btn', handleGamepadButton);
   window.addEventListener('app_gamepad_start_down', () => {
-    if (document.getElementById('quiz-start-screen').classList.contains('active')) startQuizFlow();
-    if (document.getElementById('quiz-game-screen').classList.contains('active')) startStopHold();
+    if (gameState === 'IDLE' && document.getElementById('quiz-start-screen').classList.contains('active')) startQuizFlow();
+    if (gameState === 'ACTIVE') startStopHold();
   });
   window.addEventListener('app_gamepad_start_up', () => {
     cancelHoldProgress();
@@ -160,27 +170,18 @@ function setInputMode(mode) {
 
 // Start Flow hold logic removed
 function cancelHoldProgress() {
-  clearInterval(holdProgressInterval);
+  holdStartMs = 0;
   const fill = document.getElementById('start-btn-fill');
   if (fill) fill.style.height = '0%';
 }
 
 function startStopHold() {
-  const fill = document.getElementById('stop-btn-fill');
-  if (fill) fill.style.height = '0%';
-  let progress = 0;
-  holdProgressInterval = setInterval(() => {
-    progress += 5;
-    if (fill) fill.style.height = `${progress}%`;
-    if (progress >= 100) {
-      clearInterval(holdProgressInterval);
-      endQuiz('user_aborted_via_hold');
-    }
-  }, 50);
+  if (gameState !== 'ACTIVE') return;
+  holdStartMs = performance.now();
 }
 
 function cancelStopHold() {
-  clearInterval(holdProgressInterval);
+  holdStartMs = 0;
   const fill = document.getElementById('stop-btn-fill');
   if (fill) fill.style.height = '0%';
 }
@@ -200,6 +201,7 @@ export async function startQuizFlow() {
   quizQuestions = res.questions;
   sessionId = res.session_id;
     if (inputMode === 'gamepad') {
+      gameState = 'BINDING';
       showScreen('quiz-binding-screen');
       document.getElementById('binding-msg').innerHTML = `Waiting for players... (0/${playerCount} connected)<br/><strong>Press ANY button!</strong>`;
       startBinding(playerCount);
@@ -223,13 +225,81 @@ function handleBindingStatus(e) {
   }
 }
 
+function gameLoop(timestamp) {
+  if (!lastRafTime) lastRafTime = timestamp;
+  lastRafTime = timestamp;
+
+  if (gameState === 'COUNTDOWN') {
+    const elapsed = timestamp - countdownStartMs;
+    let count = 3 - Math.floor(elapsed / 1000);
+    const countEl = document.getElementById('countdown-number');
+    
+    if (count > 0) {
+      if (countEl.textContent !== count.toString()) {
+        countEl.textContent = count;
+        countEl.style.animation = 'none';
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            countEl.style.animation = 'popInOut 1s ease-in-out forwards';
+          });
+        });
+      }
+    } else if (count <= 0 && countEl.textContent !== 'GO!') {
+      countEl.textContent = 'GO!';
+      countEl.style.animation = 'none';
+      countEl.style.transform = 'scale(1.2)';
+      countEl.style.opacity = '1';
+      countEl.style.color = 'var(--color-success)';
+      setTimeout(() => {
+        countEl.style.color = '';
+        startGame(timestamp);
+      }, 350);
+    }
+  } 
+  else if (gameState === 'ACTIVE') {
+    // 1. Timer Logic
+    const elapsed = timestamp - quizStartTimeMs;
+    const remainingMs = Math.max(0, quizDurationMs + timeAddedMs - elapsed);
+    const remainingSec = remainingMs / 1000;
+    
+    const pct = Math.min(100, (remainingSec / 60) * 100);
+    const bar = document.getElementById('quiz-timer-bar');
+    bar.style.width = `${pct}%`;
+    
+    if (remainingSec <= 15) bar.style.backgroundColor = 'var(--color-danger)';
+    else if (remainingSec <= 30) bar.style.backgroundColor = 'var(--color-warning)';
+    else bar.style.backgroundColor = 'var(--color-success)';
+    
+    if (remainingMs <= 0) {
+      endQuiz('timer_expired');
+      return; // Stop processing this frame
+    }
+    
+    // 2. Hold Logic
+    if (holdStartMs > 0) {
+      const holdElapsed = timestamp - holdStartMs;
+      const holdPct = Math.min(100, (holdElapsed / 1000) * 100);
+      const fill = document.getElementById('stop-btn-fill');
+      if (fill) fill.style.height = `${holdPct}%`;
+      
+      if (holdPct >= 100) {
+        endQuiz('user_aborted_via_hold');
+        return;
+      }
+    }
+  }
+
+  // Continue loop if not ending
+  if (gameState !== 'ENDING' && gameState !== 'IDLE') {
+    rafId = requestAnimationFrame(gameLoop);
+  }
+}
+
 function runCountdown() {
+  gameState = 'COUNTDOWN';
   showScreen('quiz-countdown-screen');
   const countEl = document.getElementById('countdown-number');
-  let count = 3;
-  countEl.textContent = count;
-  
-  // Reset and trigger animation
+  countEl.textContent = '3';
   countEl.style.animation = 'none';
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
@@ -237,39 +307,13 @@ function runCountdown() {
     });
   });
   
-  clearInterval(countdownInterval);
-  countdownInterval = setInterval(() => {
-    count--;
-    if (count > 0) {
-      countEl.textContent = count;
-      
-      // Re-trigger animation in sync with number change
-      countEl.style.animation = 'none';
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          countEl.style.animation = 'popInOut 1s ease-in-out forwards';
-        });
-      });
-    } else if (count === 0) {
-      clearInterval(countdownInterval);
-      countEl.textContent = 'GO!';
-      countEl.style.animation = 'none'; // Stop shrinking animation
-      countEl.style.transform = 'scale(1.2)';
-      countEl.style.opacity = '1';
-      countEl.style.color = 'var(--color-success)'; // Pop with green
-      
-      // Switch directly to question 1 after a short visual punch
-      setTimeout(() => {
-        countEl.style.color = ''; // reset color
-        startGame();
-      }, 350);
-    }
-  }, 1000);
+  countdownStartMs = performance.now();
+  if (!rafId) rafId = requestAnimationFrame(gameLoop);
 }
 
-function startGame() {
+function startGame(timestamp) {
+  gameState = 'ACTIVE';
   showScreen('quiz-game-screen');
-  isGameActive = true;
   
   // Setup UI based on player count
   document.getElementById('p2-score-box').style.display = playerCount === 2 ? 'flex' : 'none';
@@ -283,28 +327,12 @@ function startGame() {
     answersContainer.className = 'quiz-answers';
   }
   
+  quizStartTimeMs = timestamp || performance.now();
   displayQuestion();
-  startTimer();
 }
 
-function startTimer() {
-  timeRemaining = 60;
-  const bar = document.getElementById('quiz-timer-bar');
-  
-  timerInterval = setInterval(() => {
-    timeRemaining--;
-    const pct = (timeRemaining / 60) * 100;
-    bar.style.width = `${pct}%`;
-    
-    if (timeRemaining <= 15) bar.style.backgroundColor = 'var(--color-danger)';
-    else if (timeRemaining <= 30) bar.style.backgroundColor = 'var(--color-warning)';
-    else bar.style.backgroundColor = 'var(--color-success)';
-    
-    if (timeRemaining <= 0) {
-      endQuiz('timer_expired');
-    }
-  }, 1000);
-}
+// startTimer is removed, logic is in gameLoop
+
 
 function displayQuestion() {
   if (currentIndex >= quizQuestions.length) {
@@ -316,7 +344,7 @@ function displayQuestion() {
   document.getElementById('quiz-question-text').textContent = q.question;
   
   // Record start time for this question
-  questionStartTime = Date.now();
+  questionStartTimeMs = performance.now();
   
   const container = document.getElementById('quiz-answers-container');
   container.innerHTML = '';
@@ -361,7 +389,7 @@ function displayQuestion() {
 }
 
 function handleGamepadButton(e) {
-  if (!isGameActive) return;
+  if (gameState !== 'ACTIVE') return;
   const { button, player } = e.detail;
   
   // Map diamond buttons to indices (Y=0, B=1, A=2, X=3)
@@ -375,7 +403,9 @@ function handleGamepadButton(e) {
 }
 
 function goToNextQuestion(delay, btns = null) {
-  isGameActive = false;
+  gameState = 'WAITING_NEXT_QUESTION'; // Pauses timer implicitly? No, we don't want to pause timer.
+  // Actually, we want timer to keep running while showing correct answer.
+  // We just prevent clicking.
   if (btns) {
     btns.forEach(b => b.classList.add('inactive'));
   }
@@ -386,14 +416,14 @@ function goToNextQuestion(delay, btns = null) {
   
   setTimeout(() => {
     currentIndex++;
-    isGameActive = true;
+    if (gameState !== 'ENDING') gameState = 'ACTIVE';
     displayQuestion();
   }, delay);
 }
 
 let lastAnswerTime = 0;
 async function handleAnswer(ansIndex, playerIdx) {
-  if (!isGameActive || players[playerIdx].locked) return;
+  if (gameState !== 'ACTIVE' || players[playerIdx].locked) return;
   
   const now = Date.now();
   if (now - lastAnswerTime < 200) return;
@@ -401,7 +431,7 @@ async function handleAnswer(ansIndex, playerIdx) {
   
   const p = players[playerIdx];
   const qIdx = currentIndex;
-  const timeTaken = Date.now() - questionStartTime;
+  const timeTaken = performance.now() - questionStartTimeMs;
   
   const res = await submitAnswer(sessionId, qIdx, ansIndex, timeTaken, p.streak);
   if (!res) return;
@@ -429,11 +459,11 @@ async function handleAnswer(ansIndex, playerIdx) {
       else if (p.streak >= 3) pts += 5;
       
       p.score += pts;
-      timeRemaining = Math.min(60, timeRemaining + 2);
+      timeAddedMs += 2000;
       showFloatingScore(`+${pts}`, btn);
     } else {
       p.score += 1;
-      timeRemaining = Math.min(60, timeRemaining + 2);
+      timeAddedMs += 2000;
     }
     
     updateScoreDisplay();
@@ -447,7 +477,7 @@ async function handleAnswer(ansIndex, playerIdx) {
     hideStreak();
     
     if (playerCount === 1) {
-      timeRemaining = Math.max(0, timeRemaining - 5);
+      timeAddedMs -= 5000;
       // Show correct answer
       btns[res.correct_index].classList.add('correct');
       goToNextQuestion(1000, btns);
@@ -466,7 +496,7 @@ async function handleAnswer(ansIndex, playerIdx) {
 
 let lastSkipTime = 0;
 async function handleSkip(playerIdx) {
-  if (!isGameActive || players[playerIdx].locked) return;
+  if (gameState !== 'ACTIVE' || players[playerIdx].locked) return;
   
   const now = Date.now();
   if (now - lastSkipTime < 500) return;
@@ -474,12 +504,12 @@ async function handleSkip(playerIdx) {
   
   const p = players[playerIdx];
   p.stats.skips++;
-  const timeTaken = Date.now() - questionStartTime;
+  const timeTaken = performance.now() - questionStartTimeMs;
   
   await skipQuestion(sessionId, currentIndex, timeTaken, p.streak);
   
   if (playerCount === 1) {
-    timeRemaining = Math.max(0, timeRemaining - 1);
+    timeAddedMs -= 1000;
     goToNextQuestion(0);
   } else {
     p.locked = true;
@@ -545,10 +575,14 @@ function showLockout(playerIdx) {
 }
 
 async function endQuiz(reason = 'unknown') {
-  if (isQuizEnding) return;
-  isQuizEnding = true;
-  isGameActive = false;
-  clearInterval(timerInterval);
+  if (gameState === 'ENDING') return;
+  gameState = 'ENDING';
+  
+  if (rafId) {
+    cancelAnimationFrame(rafId);
+    rafId = null;
+  }
+  
   endSession(); // Gamepad session
   
   showScreen('quiz-end-screen');
