@@ -94,7 +94,10 @@ function updateFocusForGameScreen() {
   }
 }
 
+let eventsAttached = false;
 function setupEventListeners() {
+  if (eventsAttached) return;
+  eventsAttached = true;
   document.getElementById('btn-start-quiz').onclick = startQuizFlow;
   document.getElementById('btn-cancel-binding').onclick = cancelBindingFlow;
   

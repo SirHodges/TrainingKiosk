@@ -1,9 +1,9 @@
 // app.js - Main entry point
 
 import { loadCategories, loadSkills } from './media.js';
-import { initQuiz, resetQuiz } from './quiz.js';
+import { initQuiz, resetQuiz, isQuizLocked } from './quiz.js';
 import { loadLeaderboard } from './leaderboard.js';
-import { initGeoGame, startGeoGame } from './geogame.js';
+import { initGeoGame, startGeoGame, isGeoGameLocked } from './geogame.js';
 import { initGamepad } from './gamepad.js';
 import { triggerUpdate, clearLeaderboard } from './api.js';
 import { clearFocusables } from './navigation.js';
@@ -153,9 +153,9 @@ function initAdmin() {
   const modeOrder = ['skillplayer', 'quiz', 'geogame'];
   window.addEventListener('app_gamepad_btn', (e) => {
     if (e.detail.button === 'LB' || e.detail.button === 'RB') {
-      // Check for active game locks (dynamically imported or checked)
-      const isQuizRunning = typeof window.isQuizLocked === 'function' ? window.isQuizLocked() : false;
-      const isGeoRunning = typeof window.isGeoGameLocked === 'function' ? window.isGeoGameLocked() : false;
+      // Check for active game locks
+      const isQuizRunning = typeof isQuizLocked === 'function' ? isQuizLocked() : false;
+      const isGeoRunning = typeof isGeoGameLocked === 'function' ? isGeoGameLocked() : false;
       
       if (isQuizRunning || isGeoRunning) return; // Ignore tab switches during active games
       
