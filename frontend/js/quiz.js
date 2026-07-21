@@ -225,12 +225,13 @@ function handleBindingStatus(e) {
   }
 }
 
-function gameLoop(timestamp) {
-  if (!lastRafTime) lastRafTime = timestamp;
-  lastRafTime = timestamp;
+function gameLoop() {
+  const now = performance.now();
+  if (!lastRafTime) lastRafTime = now;
+  lastRafTime = now;
 
   if (gameState === 'COUNTDOWN') {
-    const elapsed = timestamp - countdownStartMs;
+    const elapsed = now - countdownStartMs;
     let count = 3 - Math.floor(elapsed / 1000);
     const countEl = document.getElementById('countdown-number');
     
@@ -252,13 +253,13 @@ function gameLoop(timestamp) {
       countEl.style.color = 'var(--color-success)';
       setTimeout(() => {
         countEl.style.color = '';
-        startGame(timestamp);
+        startGame(now);
       }, 350);
     }
   } 
   else if (gameState === 'ACTIVE') {
     // 1. Timer Logic
-    const elapsed = timestamp - quizStartTimeMs;
+    const elapsed = now - quizStartTimeMs;
     const remainingMs = Math.max(0, quizDurationMs + timeAddedMs - elapsed);
     const remainingSec = remainingMs / 1000;
     
@@ -277,7 +278,7 @@ function gameLoop(timestamp) {
     
     // 2. Hold Logic
     if (holdStartMs > 0) {
-      const holdElapsed = timestamp - holdStartMs;
+      const holdElapsed = now - holdStartMs;
       const holdPct = Math.min(100, (holdElapsed / 1000) * 100);
       const fill = document.getElementById('stop-btn-fill');
       if (fill) fill.style.height = `${holdPct}%`;
