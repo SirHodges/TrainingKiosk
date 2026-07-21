@@ -174,7 +174,7 @@ function startStopHold() {
     if (fill) fill.style.height = `${progress}%`;
     if (progress >= 100) {
       clearInterval(holdProgressInterval);
-      endQuiz();
+      endQuiz('user_aborted_via_hold');
     }
   }, 50);
 }
@@ -301,14 +301,14 @@ function startTimer() {
     else bar.style.backgroundColor = 'var(--color-success)';
     
     if (timeRemaining <= 0) {
-      endQuiz();
+      endQuiz('timer_expired');
     }
   }, 1000);
 }
 
 function displayQuestion() {
   if (currentIndex >= quizQuestions.length) {
-    endQuiz();
+    endQuiz('no_more_questions');
     return;
   }
   
@@ -544,7 +544,7 @@ function showLockout(playerIdx) {
   }, 3000);
 }
 
-async function endQuiz() {
+async function endQuiz(reason = 'unknown') {
   if (isQuizEnding) return;
   isQuizEnding = true;
   isGameActive = false;
@@ -552,6 +552,20 @@ async function endQuiz() {
   endSession(); // Gamepad session
   
   showScreen('quiz-end-screen');
+  
+  // Debug output
+  const debugMsg = document.createElement('div');
+  debugMsg.style.color = 'yellow';
+  debugMsg.style.fontSize = '12px';
+  debugMsg.style.marginTop = '10px';
+  debugMsg.textContent = Debug: Game ended by ;
+  const endContainer = document.querySelector('#quiz-end-screen .quiz-container');
+  if (endContainer && !document.getElementById('debug-end-reason')) {
+    debugMsg.id = 'debug-end-reason';
+    endContainer.appendChild(debugMsg);
+  } else if (document.getElementById('debug-end-reason')) {
+    document.getElementById('debug-end-reason').textContent = Debug: Game ended by ;
+  }
   
   const finalScore = players[0].score;
   const finalStats = {
