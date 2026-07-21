@@ -149,29 +149,6 @@ function initAdmin() {
   window.addEventListener('app_gamepad_btn', (e) => checkKonami(e.detail.button));
   window.addEventListener('app_gamepad_start_down', () => checkKonami('Start'));
   
-  // Global tab navigation with game locks
-  const modeOrder = ['skillplayer', 'quiz', 'geogame'];
-  window.addEventListener('app_gamepad_btn', (e) => {
-    if (e.detail.button === 'LB' || e.detail.button === 'RB') {
-      // Check for active game locks
-      const isQuizRunning = typeof isQuizLocked === 'function' ? isQuizLocked() : false;
-      const isGeoRunning = typeof isGeoGameLocked === 'function' ? isGeoGameLocked() : false;
-      
-      if (isQuizRunning || isGeoRunning) return; // Ignore tab switches during active games
-      
-      const currentIndex = modeOrder.indexOf(currentMode);
-      if (currentIndex === -1) return;
-      
-      let nextIndex = currentIndex;
-      if (e.detail.button === 'RB') {
-        nextIndex = (currentIndex + 1) % modeOrder.length;
-      } else if (e.detail.button === 'LB') {
-        nextIndex = (currentIndex - 1 + modeOrder.length) % modeOrder.length;
-      }
-      switchMode(modeOrder[nextIndex]);
-    }
-  });
-  
   // Show raw events for troubleshooting unknown arcade buttons
   window.addEventListener('raw_gamepad_backend', (e) => {
     if (!adminPopup || adminPopup.classList.contains('hidden')) return;
