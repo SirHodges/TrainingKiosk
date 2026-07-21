@@ -1,10 +1,10 @@
 // quiz.js - Quiz game module
 
-import { startQuiz as apiStartQuiz, submitAnswer, skipQuestion, checkTopScore, submitScore, getLeaderboard } from './api.js?v=4.4';
-import { playRight, playWrong } from './audio.js?v=4.4';
-import { registerFocusables, clearFocusables } from './navigation.js?v=4.4';
-import { startBinding, endSession } from './gamepad.js?v=4.4';
-import { displayScoresWithPlaceholder, loadLeaderboard } from './leaderboard.js?v=4.4';
+import { startQuiz as apiStartQuiz, submitAnswer, skipQuestion, checkTopScore, submitScore, getLeaderboard } from './api.js?v=4.5';
+import { playRight, playWrong } from './audio.js?v=4.5';
+import { registerFocusables, clearFocusables } from './navigation.js?v=4.5';
+import { startBinding, endSession } from './gamepad.js?v=4.5';
+import { displayScoresWithPlaceholder, loadLeaderboard } from './leaderboard.js?v=4.5';
 
 // State
 let quizQuestions = [];
@@ -389,11 +389,19 @@ function displayQuestion() {
 }
 
 function handleGamepadButton(e) {
-  if (gameState !== 'ACTIVE') return;
   const { button, player } = e.detail;
   
-  // Map diamond buttons to indices (Y=0, B=1, A=2, X=3)
-  const map = { 'Y': 0, 'B': 1, 'A': 2, 'X': 3 };
+  if (gameState === 'IDLE' && document.getElementById('quiz-start-screen').classList.contains('active')) {
+    if (['A', 'B', 'X', 'Y'].includes(button)) {
+      setInputMode('gamepad');
+      startQuizFlow();
+      return;
+    }
+  }
+
+  if (gameState !== 'ACTIVE') return;
+  
+  const map = inputMode === 'gamepad' ? { 'Y': 0, 'B': 1, 'A': 2, 'X': 3 } : { 'A': 0, 'B': 1, 'C': 2, 'D': 3 };
   
   if (button in map) {
     handleAnswer(map[button], player);
