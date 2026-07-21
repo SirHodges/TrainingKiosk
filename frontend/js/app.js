@@ -257,7 +257,7 @@ function initModeTabs() {
   const tabs = document.querySelectorAll('.app-mode-tab');
   tabs.forEach(tab => {
     tab.addEventListener('click', (e) => {
-      const mode = e.target.getAttribute('data-mode');
+      const mode = e.currentTarget.getAttribute('data-mode');
       switchMode(mode);
     });
   });
