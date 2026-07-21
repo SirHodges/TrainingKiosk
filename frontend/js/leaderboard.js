@@ -8,7 +8,7 @@ window.updateTooltipPos = function(e, row) {
   }
 };
 
-import { getLeaderboard, checkTopScore, submitScore } from './api.js?v=5.2';
+import { getLeaderboard, checkTopScore, submitScore } from './api.js?v=5.3';
 
 export async function loadLeaderboard(containerId) {
   const container = document.getElementById(containerId);

@@ -1,10 +1,10 @@
 // quiz.js - Quiz game module
 
-import { startQuiz as apiStartQuiz, submitAnswer, skipQuestion, checkTopScore, submitScore, getLeaderboard } from './api.js?v=5.2';
-import { playRight, playWrong } from './audio.js?v=5.2';
-import { registerFocusables, clearFocusables } from './navigation.js?v=5.2';
-import { startBinding, endSession } from './gamepad.js?v=5.2';
-import { displayScoresWithPlaceholder, loadLeaderboard } from './leaderboard.js?v=5.2';
+import { startQuiz as apiStartQuiz, submitAnswer, skipQuestion, checkTopScore, submitScore, getLeaderboard } from './api.js?v=5.3';
+import { playRight, playWrong } from './audio.js?v=5.3';
+import { registerFocusables, clearFocusables } from './navigation.js?v=5.3';
+import { startBinding, endSession } from './gamepad.js?v=5.3';
+import { displayScoresWithPlaceholder, loadLeaderboard } from './leaderboard.js?v=5.3';
 
 // State
 let quizQuestions = [];
@@ -212,6 +212,15 @@ function cancelStopHold() {
 
 let lastStartQuizFlow = 0;
 export async function startQuizFlow() {
+  // DIAGNOSTIC: Capture and display the call stack so we know exactly what triggered this
+  const stack = new Error().stack;
+  const debugEl = document.getElementById('debug-keyboard-log');
+  if (debugEl) {
+    debugEl.textContent = 'QUIZ STARTED BY: ' + stack.split('\n').slice(1, 4).join(' | ');
+    debugEl.style.fontSize = '9px';
+    debugEl.style.color = 'lime';
+  }
+  
   const now = Date.now();
   if (now - lastStartQuizFlow < 1500) return;
   lastStartQuizFlow = now;
