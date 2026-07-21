@@ -1,6 +1,6 @@
-import { MAP_WIDTH, MAP_HEIGHT, latLonToXY, xyToLatLon, calculatePoints, calculateDistance, calculateZoomViewBox } from './geogame_math.js?v=5.0';
-import { initCalibration, exitCalibration } from './geogame_calibration.js?v=5.0';
-import { startBinding, getGamepadForPlayer } from './gamepad.js?v=5.0';
+import { MAP_WIDTH, MAP_HEIGHT, latLonToXY, xyToLatLon, calculatePoints, calculateDistance, calculateZoomViewBox } from './geogame_math.js?v=5.1';
+import { initCalibration, exitCalibration } from './geogame_calibration.js?v=5.1';
+import { startBinding, getGamepadForPlayer } from './gamepad.js?v=5.1';
 
 
 // ==========================================

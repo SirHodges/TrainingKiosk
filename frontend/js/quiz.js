@@ -1,10 +1,10 @@
 // quiz.js - Quiz game module
 
-import { startQuiz as apiStartQuiz, submitAnswer, skipQuestion, checkTopScore, submitScore, getLeaderboard } from './api.js?v=5.0';
-import { playRight, playWrong } from './audio.js?v=5.0';
-import { registerFocusables, clearFocusables } from './navigation.js?v=5.0';
-import { startBinding, endSession } from './gamepad.js?v=5.0';
-import { displayScoresWithPlaceholder, loadLeaderboard } from './leaderboard.js?v=5.0';
+import { startQuiz as apiStartQuiz, submitAnswer, skipQuestion, checkTopScore, submitScore, getLeaderboard } from './api.js?v=5.1';
+import { playRight, playWrong } from './audio.js?v=5.1';
+import { registerFocusables, clearFocusables } from './navigation.js?v=5.1';
+import { startBinding, endSession } from './gamepad.js?v=5.1';
+import { displayScoresWithPlaceholder, loadLeaderboard } from './leaderboard.js?v=5.1';
 
 // State
 let quizQuestions = [];
@@ -80,12 +80,15 @@ function showScreen(screenId) {
   clearFocusables('quiz');
   
   if (screenId === 'quiz-start-screen') {
+    // NOTE: btn-start-quiz is intentionally NOT in this list.
+    // ABXY gamepad buttons start the quiz directly via handleGamepadButton.
+    // If btn-start-quiz were focusable, arcade encoders that also register as
+    // keyboards would trigger it via Enter -> selectFocused() -> click().
     registerFocusables('quiz', [
       document.getElementById('btn-mode-1p'),
       document.getElementById('btn-mode-2p'),
       document.getElementById('btn-input-mouse'),
-      document.getElementById('btn-input-gamepad'),
-      document.getElementById('btn-start-quiz')
+      document.getElementById('btn-input-gamepad')
     ]);
   } else if (screenId === 'quiz-game-screen') {
     updateFocusForGameScreen();
