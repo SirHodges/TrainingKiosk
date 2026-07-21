@@ -1,10 +1,10 @@
 // quiz.js - Quiz game module
 
-import { startQuiz as apiStartQuiz, submitAnswer, skipQuestion, checkTopScore, submitScore, getLeaderboard } from './api.js?v=4.1';
-import { playRight, playWrong } from './audio.js?v=4.1';
-import { registerFocusables, clearFocusables } from './navigation.js?v=4.1';
-import { startBinding, endSession } from './gamepad.js?v=4.1';
-import { displayScoresWithPlaceholder, loadLeaderboard } from './leaderboard.js?v=4.1';
+import { startQuiz as apiStartQuiz, submitAnswer, skipQuestion, checkTopScore, submitScore, getLeaderboard } from './api.js?v=4.2';
+import { playRight, playWrong } from './audio.js?v=4.2';
+import { registerFocusables, clearFocusables } from './navigation.js?v=4.2';
+import { startBinding, endSession } from './gamepad.js?v=4.2';
+import { displayScoresWithPlaceholder, loadLeaderboard } from './leaderboard.js?v=4.2';
 
 // State
 let quizQuestions = [];
@@ -594,7 +594,7 @@ async function endQuiz(reason = 'unknown') {
   debugMsg.style.fontSize = '12px';
   debugMsg.style.marginTop = '10px';
   debugMsg.textContent = `Debug: Game ended by ${reason}`;
-  const endContainer = document.querySelector('#quiz-end-screen .quiz-container');
+  const endContainer = document.getElementById('quiz-end-screen');
   if (endContainer && !document.getElementById('debug-end-reason')) {
     debugMsg.id = 'debug-end-reason';
     endContainer.appendChild(debugMsg);
