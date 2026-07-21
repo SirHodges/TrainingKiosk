@@ -1,10 +1,10 @@
 // quiz.js - Quiz game module
 
-import { startQuiz as apiStartQuiz, submitAnswer, skipQuestion, checkTopScore, submitScore, getLeaderboard } from './api.js?v=5.1';
-import { playRight, playWrong } from './audio.js?v=5.1';
-import { registerFocusables, clearFocusables } from './navigation.js?v=5.1';
-import { startBinding, endSession } from './gamepad.js?v=5.1';
-import { displayScoresWithPlaceholder, loadLeaderboard } from './leaderboard.js?v=5.1';
+import { startQuiz as apiStartQuiz, submitAnswer, skipQuestion, checkTopScore, submitScore, getLeaderboard } from './api.js?v=5.2';
+import { playRight, playWrong } from './audio.js?v=5.2';
+import { registerFocusables, clearFocusables } from './navigation.js?v=5.2';
+import { startBinding, endSession } from './gamepad.js?v=5.2';
+import { displayScoresWithPlaceholder, loadLeaderboard } from './leaderboard.js?v=5.2';
 
 // State
 let quizQuestions = [];
@@ -111,12 +111,34 @@ let eventsAttached = false;
 function setupEventListeners() {
   if (eventsAttached) return;
   eventsAttached = true;
-  document.getElementById('btn-start-quiz').onclick = startQuizFlow;
-  document.getElementById('btn-cancel-binding').onclick = cancelBindingFlow;
   
-  // Start button (click to start)
+  // CRITICAL: Block ALL keyboard events from triggering button clicks.
+  // Arcade encoders register as both gamepad + keyboard in Linux.
+  // The evdev backend grabs the gamepad device, but the keyboard device
+  // still sends raw keystrokes to the browser.
+  document.addEventListener('keydown', (e) => {
+    // Log to debug overlay so we can see what keys the encoder sends
+    const debugEl = document.getElementById('debug-keyboard-log');
+    if (debugEl) {
+      debugEl.textContent = `Last key: ${e.key} (code: ${e.code})`;
+    }
+    // Block Enter and Space from clicking any buttons
+    if (e.key === 'Enter' || e.key === ' ' || e.key === 'Tab') {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, true); // 'true' = capture phase, runs before any other handler
+  
+  // Use addEventListener with detail check to block keyboard-simulated clicks.
+  // event.detail === 0 means keyboard-triggered, 1+ means real mouse click.
   const startBtn = document.getElementById('btn-start-quiz');
-  // Hold logic removed, handled by onclick
+  startBtn.setAttribute('tabindex', '-1'); // Prevent browser focus
+  startBtn.addEventListener('click', (e) => {
+    if (e.detail === 0) return; // Block keyboard-simulated clicks
+    startQuizFlow();
+  });
+  
+  document.getElementById('btn-cancel-binding').onclick = cancelBindingFlow;
   
   // Stop hold button
   const stopBtn = document.getElementById('btn-stop-quiz');
