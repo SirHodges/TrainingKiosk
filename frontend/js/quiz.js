@@ -33,6 +33,12 @@ export function initQuiz() {
   resetQuiz();
 }
 
+export function isQuizLocked() {
+  return isGameActive || 
+         document.getElementById('quiz-countdown-screen').classList.contains('active') ||
+         document.getElementById('quiz-binding-screen').classList.contains('active');
+}
+
 export function resetQuiz() {
   quizQuestions = [];
   currentIndex = 0;

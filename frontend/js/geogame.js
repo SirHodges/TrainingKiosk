@@ -43,6 +43,10 @@ let p1Reticle, p2Reticle;
 // INIT & LIFECYCLE
 // ==========================================
 
+export function isGeoGameLocked() {
+  return currentState !== 'INTRO' && currentState !== 'GAME_OVER';
+}
+
 export function initGeoGame() {
   container = document.getElementById('geogame-mode');
   if (!container) return;
