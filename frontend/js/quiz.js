@@ -1,10 +1,10 @@
 // quiz.js - Quiz game module
 
-import { startQuiz as apiStartQuiz, submitAnswer, skipQuestion, checkTopScore, submitScore, getLeaderboard } from './api.js';
-import { playRight, playWrong } from './audio.js';
-import { registerFocusables, clearFocusables } from './navigation.js';
-import { startBinding, endSession } from './gamepad.js';
-import { displayScoresWithPlaceholder, loadLeaderboard } from './leaderboard.js';
+import { startQuiz as apiStartQuiz, submitAnswer, skipQuestion, checkTopScore, submitScore, getLeaderboard } from './api.js?v=3.2';
+import { playRight, playWrong } from './audio.js?v=3.2';
+import { registerFocusables, clearFocusables } from './navigation.js?v=3.2';
+import { startBinding, endSession } from './gamepad.js?v=3.2';
+import { displayScoresWithPlaceholder, loadLeaderboard } from './leaderboard.js?v=3.2';
 
 // State
 let quizQuestions = [];
