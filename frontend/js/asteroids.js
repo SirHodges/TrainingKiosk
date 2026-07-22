@@ -1,4 +1,4 @@
-import { getRandomUpgrades, UPGRADES } from './asteroids_upgrades.js?v=5.3';
+import { getRandomUpgrades, UPGRADES } from './asteroids_upgrades.js?v=5.4';
 
 let isRunning = false;
 let canvas, ctx;
