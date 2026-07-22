@@ -18,7 +18,7 @@ def setup_input_bridge(socketio, gamepad_handler):
         Callback fired by the GamepadHandler.
         We simply take the event and blast it out to any connected web clients.
         """
-        # print(f"Bridge forwarding: {event_type} -> {payload}")
+        print(f"Bridge forwarding: {event_type} -> {payload}")
         socketio.emit(event_type, payload)
         
     gamepad_handler.set_callback(handle_gamepad_event)
