@@ -1,10 +1,10 @@
 // quiz.js - Quiz game module
 
-import { startQuiz as apiStartQuiz, submitAnswer, skipQuestion, checkTopScore, submitScore, getLeaderboard } from './api.js?v=5.4';
-import { playRight, playWrong } from './audio.js?v=5.4';
-import { registerFocusables, clearFocusables } from './navigation.js?v=5.4';
-import { startBinding, endSession } from './gamepad.js?v=5.4';
-import { displayScoresWithPlaceholder, loadLeaderboard } from './leaderboard.js?v=5.4';
+import { startQuiz as apiStartQuiz, submitAnswer, skipQuestion, checkTopScore, submitScore, getLeaderboard } from './api.js?v=5.5';
+import { playRight, playWrong } from './audio.js?v=5.5';
+import { registerFocusables, clearFocusables } from './navigation.js?v=5.5';
+import { startBinding, endSession } from './gamepad.js?v=5.5';
+import { displayScoresWithPlaceholder, loadLeaderboard } from './leaderboard.js?v=5.5';
 
 // State
 let quizQuestions = [];
@@ -250,6 +250,8 @@ function cancelBindingFlow() {
 }
 
 function handleBindingStatus(e) {
+  if (gameState !== 'BINDING') return; // Ignore binding events if we aren't waiting for them
+  
   const status = e.detail;
   if (status.ready) {
     runCountdown();
@@ -617,14 +619,6 @@ function showLockout(playerIdx) {
 }
 
 async function endQuiz(reason = 'unknown') {
-  const stack = new Error().stack;
-  const debugEl = document.getElementById('debug-keyboard-log');
-  if (debugEl) {
-    debugEl.textContent = `ENDQUIZ (${reason}): ` + stack.split('\n').slice(1, 4).join(' | ');
-    debugEl.style.fontSize = '9px';
-    debugEl.style.color = 'red';
-  }
-
   if (gameState === 'ENDING') return;
   gameState = 'ENDING';
   
