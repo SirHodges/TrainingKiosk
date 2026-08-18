@@ -1,381 +1,623 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TrainingKiosk</title>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  
-  <link rel="stylesheet" href="/frontend/css/variables.css?v=6">
-  <link rel="stylesheet" href="/frontend/css/base.css?v=6">
-  <link rel="stylesheet" href="/frontend/css/components.css?v=6">
-  <link rel="stylesheet" href="/frontend/css/media.css?v=6">
-  <link rel="stylesheet" href="/frontend/css/quiz.css?v=6">
-  <link rel="stylesheet" href="/frontend/css/leaderboard.css?v=6">
-  <link rel="stylesheet" href="/frontend/css/geogame.css?v=6">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillPlayer - Video Learning</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
-  <div class="app-container">
-    <!-- Top Mode Bar -->
-    <div class="app-mode-topbar">
-      <button class="app-mode-tab" data-mode="skillplayer">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-        SkillPlayer
-      </button>
-      <button class="app-mode-tab active" data-mode="quiz">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-        QuizChallenge
-      </button>
-      <button class="app-mode-tab" data-mode="geogame">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line></svg>
-        Ottawa GeoGame
-      </button>
-    </div>
-    
-    <div class="app-body">
-      <!-- Sidebar -->
-      <aside class="sidebar">
-        <!-- Media Sidebar -->
-        <div id="skillplayer-sidebar" class="sidebar-mode-content">
-          <div class="sidebar-header" style="display: flex; justify-content: space-between; align-items: center;">
-            <h2>Categories</h2>
-            <button id="btn-refresh-media" class="admin-btn" style="padding: 4px 8px;" title="Refresh Content">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><path d="M21 2v6h-6"></path><path d="M3 12a9 9 0 1 0 2.6-6.4L21 8"></path></svg>
+    <div class="app-container">
+        <!-- Full-Width Top Mode Bar -->
+        <div class="app-mode-topbar">
+            <button class="app-mode-tab active" data-mode="skillplayer" onclick="switchAppMode('skillplayer')">
+                <span class="mode-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                        viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zm0 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V8c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z" />
+                    </svg></span> SkillPlayer
             </button>
-          </div>
-          <div id="category-tabs" class="category-tabs-container"></div>
-          <div class="sidebar-header">
-            <h2>Skills</h2>
-          </div>
-          <div id="skills-list" class="skills-list-container"></div>
-          
-          <div class="version">Version 3.5</div>
-          <div id="debug-keyboard-log" style="color: yellow; font-size: 10px; font-family: monospace; padding: 2px 8px;"></div>
-          <div class="views-counter" id="total-views-counter">
-            0 Views
-          </div>
-        </div>
-        
-        <!-- Quiz Sidebar -->
-        <div id="quiz-sidebar" class="sidebar-mode-content active">
-          <!-- Leaderboard will be injected here -->
-        </div>
-      </aside>
-      
-      <!-- Main Content -->
-      <main class="main-content">
-        <!-- Media Content -->
-        <div id="skillplayer-content" class="app-mode-content">
-          <div class="media-placeholder">
-            <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-            <h2>Select a Skill to Begin</h2>
-            <p>Choose a category and skill from the menu to watch training videos or read protocol PDFs.</p>
-          </div>
-        </div>
-        
-        <!-- Quiz Content -->
-        <div id="quiz-content" class="app-mode-content active">
-          <div class="quiz-container">
-            
-            <!-- START SCREEN -->
-            <div id="quiz-start-screen" class="quiz-screen active">
-              <h1 class="quiz-title" style="font-size: var(--font-size-5xl); margin-bottom: var(--space-8); color: var(--accent-primary); text-shadow: var(--glow-primary);">QUIZ CHALLENGE</h1>
-              
-              <div class="player-mode-selector" style="display:flex; gap:10px; margin-bottom:20px;">
-                <button id="btn-mode-1p" class="btn-secondary active">1 Player (Leaderboard)</button>
-                <button id="btn-mode-2p" class="btn-secondary">2 Player (Vs Mode)</button>
-              </div>
-              
-              <div class="input-mode-toggle" style="display:flex; gap:10px; margin-bottom:40px;">
-                <button id="btn-input-mouse" class="btn-secondary active">Mouse</button>
-                <button id="btn-input-gamepad" class="btn-secondary">Gamepad</button>
-              </div>
-              
-              <div class="quiz-rules card" style="max-width: 600px; padding: var(--space-6); text-align: center; margin-bottom: var(--space-8);">
-                <p>Answer questions as fast as possible.</p>
-                <p><strong>Correct:</strong> +Time & Points.</p>
-                <p><strong>Wrong:</strong> -Time Penalty.</p>
-                <p>Build streaks for massive score multipliers!</p>
-              </div>
-              
-              <button id="btn-start-quiz" class="btn-primary" style="font-size: var(--font-size-2xl); padding: var(--space-4) var(--space-8);">
-                <span id="start-btn-text">START</span>
-              </button>
+            <!-- Center Hint -->
+            <div class="mode-switch-hint">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none">
+                    <path d="M15 5l-8 7 8 7" stroke="#ff4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Switch between<br>SkillPlayer and Quiz</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none">
+                    <path d="M9 5l8 7-8 7" stroke="#ff4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
             </div>
-            
-            <!-- BINDING SCREEN -->
-            <div id="quiz-binding-screen" class="quiz-screen">
-              <h2 style="font-size: var(--font-size-4xl); margin-bottom: var(--space-6);">Connect Controllers</h2>
-              <p id="binding-msg" style="font-size: var(--font-size-2xl); color: var(--text-secondary); margin-bottom: var(--space-8);">Press START...</p>
-              <button id="btn-cancel-binding" class="btn-danger" style="font-size: var(--font-size-2xl); padding: var(--space-4) var(--space-8); margin-top: var(--space-8);">Click to Cancel</button>
-            </div>
-            
-                <!-- COUNTDOWN SCREEN -->
-            <div id="quiz-countdown-screen" class="quiz-screen">
-              <div id="countdown-number" class="countdown-number">3</div>
-            </div>
-            
-            <!-- GAME SCREEN -->
-            <div id="quiz-game-screen" class="quiz-screen">
-              <div class="quiz-timer-container">
-                <div id="quiz-timer-bar" class="quiz-timer-bar"></div>
-              </div>
-              
-              <!-- 2P Scores -->
-              <div id="p2-score-box" class="player-scores" style="display:none;">
-                <div class="player-score-container p1">
-                  <span class="player-badge p1">P1</span>
-                  <span id="p1-score-val" class="score-val">0</span>
-                </div>
-                <div class="player-score-container p2">
-                  <span class="player-badge p2">P2</span>
-                  <span id="p2-score-val" class="score-val">0</span>
-                </div>
-              </div>
-              
-              <!-- 1P Score -->
-              <div id="game-score-display" class="quiz-score-display" style="position: absolute; top: 40px; right: 40px;">
-                Score: <span id="p1-score-val-single">0</span>
-              </div>
-              
-              <!-- Streak Indicator -->
-              <div id="streak-indicator" class="streak-indicator">
-                <div id="streak-ring" class="streak-ring">
-                  <span class="streak-icon">⭐</span>
-                </div>
-                <div id="streak-text" class="streak-text">Streak!</div>
-              </div>
-              
-              <div id="quiz-question-text" class="quiz-question">Loading question...</div>
-              
-              <div id="quiz-answers-container" class="diamond-layout">
-                <!-- Buttons injected via JS -->
-              </div>
-              
-              <div class="quiz-controls">
-                <button id="btn-skip-q" class="quiz-btn-skip"><span id="skip-btn-text">Skip (RB)</span></button>
-                <button id="btn-stop-quiz" class="quiz-btn-stop">
-                  Hold to Stop
-                  <div id="stop-btn-fill" class="start-progress"></div>
-                </button>
-              </div>
-              
-              <div id="lock-overlay" class="lock-overlay">LOCKED</div>
-            </div>
-            
-            <!-- END SCREEN -->
-            <div id="quiz-end-screen" class="quiz-screen">
-              <h1 style="font-size: var(--font-size-5xl); color: var(--accent-primary); margin-bottom: var(--space-4);">TIME'S UP!</h1>
-              <div style="font-size: var(--font-size-3xl); margin-bottom: var(--space-8);">
-                Final Score: <span id="final-score-val" style="font-weight:bold; color:var(--color-success);">0</span>
-              </div>
-              
-              <div id="name-entry-section" style="display:none; text-align:center;">
-                <h3 style="color:var(--color-warning); margin-bottom:var(--space-4); display:flex; align-items:center; justify-content:center; gap:10px;">
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
-                  NEW HIGH SCORE!
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
-                </h3>
-                <div id="name-input" style="font-size:var(--font-size-4xl); letter-spacing:10px; margin-bottom:var(--space-6); border-bottom:2px solid var(--text-primary); width:100%; max-width:500px; margin-left:auto; margin-right:auto; height:60px; word-break: break-all;"></div>
-                
-                <div class="virtual-keyboard">
-                  <!-- Row 1 -->
-                  <div class="keyboard-row">
-                    <button class="vk-key">Q</button><button class="vk-key">W</button><button class="vk-key">E</button><button class="vk-key">R</button><button class="vk-key">T</button><button class="vk-key">Y</button><button class="vk-key">U</button><button class="vk-key">I</button><button class="vk-key">O</button><button class="vk-key">P</button>
-                  </div>
-                  <!-- Row 2 -->
-                  <div class="keyboard-row">
-                    <button class="vk-key">A</button><button class="vk-key">S</button><button class="vk-key">D</button><button class="vk-key">F</button><button class="vk-key">G</button><button class="vk-key">H</button><button class="vk-key">J</button><button class="vk-key">K</button><button class="vk-key">L</button><button id="vk-del" class="vk-key btn-danger" style="font-size: 16px;">DEL</button>
-                  </div>
-                  <!-- Row 3 -->
-                  <div class="keyboard-row">
-                    <button class="vk-key">Z</button><button class="vk-key">X</button><button class="vk-key">C</button><button class="vk-key">V</button><button class="vk-key">B</button><button class="vk-key">N</button><button class="vk-key">M</button>
-                  </div>
-                </div>
-                <button id="vk-submit" class="btn-primary" style="margin-top:20px; width:200px;">SUBMIT</button>
-              </div>
-              
-              <div id="end-leaderboard" style="margin-top:var(--space-8); width:100%; max-width:800px; height:300px;"></div>
-            </div>
-            
-          </div>
-        </div>
-      </main>
-    </div>
-
-    <!-- GeoGame Mode Container -->
-    <div id="geogame-mode" class="app-view hidden">
-      <div class="geogame-container">
-        
-            <button id="btn-geogame-calibrate" class="btn-primary" style="background-color: #fbbf24; color: #000; font-weight: bold; padding: 10px 20px;" title="Calibrate Locations">
-      Map Calibration
-    </button>
-
-    <!-- INTRO SCREEN -->
-        <div id="geogame-intro-screen" class="geogame-screen active">
-          <div style="text-align: center; max-width: 800px;">
-            <h1 style="font-size: var(--font-size-6xl); color: var(--accent-primary); margin-bottom: var(--space-4);">Ottawa GeoGame</h1>
-            <p style="font-size: var(--font-size-2xl); color: var(--text-secondary); margin-bottom: var(--space-8);">Test your knowledge of Ottawa's geography.</p>
-            
-            <div style="display: flex; gap: var(--space-4); justify-content: center; margin-bottom: var(--space-8);">
-              <button id="btn-geogame-1p" class="btn-secondary active" style="font-size: var(--font-size-xl); padding: var(--space-3) var(--space-6);">1 Player</button>
-              <button id="btn-geogame-2p" class="btn-secondary" style="font-size: var(--font-size-xl); padding: var(--space-3) var(--space-6);">2 Players</button>
-            </div>
-            
-            <div style="display: flex; gap: var(--space-4); justify-content: center; margin-bottom: var(--space-8);">
-              <button id="btn-geogame-mouse" class="btn-secondary active" style="font-size: var(--font-size-xl); padding: var(--space-3) var(--space-6);">Mouse / Touch</button>
-              <button id="btn-geogame-gamepad" class="btn-secondary" style="font-size: var(--font-size-xl); padding: var(--space-3) var(--space-6);">Gamepad</button>
-            </div>
-            
-            <button id="btn-geogame-start-intro" class="btn-primary" style="font-size: var(--font-size-3xl); padding: var(--space-4) var(--space-12); position: relative; overflow: hidden;">
-              <span id="geogame-start-btn-text">CLICK TO START</span>
-              <div id="geogame-start-btn-fill" class="start-progress"></div>
+            <button class="app-mode-tab" data-mode="quiz" onclick="switchAppMode('quiz')">
+                <span class="mode-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                        viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z" />
+                    </svg></span> Quiz Challenge
             </button>
-          </div>
         </div>
-        
-        <!-- BINDING SCREEN -->
-        <div id="geogame-binding-screen" class="geogame-screen">
-          <h2 style="font-size: var(--font-size-4xl); margin-bottom: var(--space-6);">Connect Controllers</h2>
-          <p id="geogame-binding-msg" style="font-size: var(--font-size-2xl); color: var(--text-secondary); margin-bottom: var(--space-8);">Press START...</p>
-          <button id="btn-geogame-cancel-binding" class="btn-danger" style="font-size: var(--font-size-2xl); padding: var(--space-4) var(--space-8); margin-top: var(--space-8);">Click to Cancel</button>
-        </div>
-        
-        <!-- CALIBRATION SCREEN -->
-    <div id="geogame-calibration-screen" class="geogame-screen">
-      <!-- Sidebar -->
-      <div id="geogame-calib-sidebar">
-        <div id="geogame-calib-sidebar-header">
-           <h2>Calibration</h2>
-           <button id="btn-geogame-exit-calib">Exit</button>
-        </div>
-        <div id="geogame-calib-instructions">
-          <b>Left click list</b>: Zoom to location<br>
-          <b>Right click map</b>: Set new coordinates<br>
-          <b>Left click map</b>: Confirm & Next
-        </div>
-        <div id="geogame-calib-list" class="custom-scrollbar">
-           <!-- Populated via JS -->
-        </div>
-      </div>
-      <!-- Map Area -->
-      <div id="geogame-calib-map-container">
-         <div id="geogame-calib-status"></div>
-      </div>
-    </div>
 
-        <!-- COUNTDOWN SCREEN -->
-        <div id="geogame-countdown-screen" class="geogame-screen">
-          <div id="geogame-countdown-number" class="countdown-number">3</div>
-        </div>
-        
-        <!-- GAME SCREEN -->
-        <div id="geogame-game-screen" class="geogame-screen">
-          <div id="geogame-ui-top" class="geogame-overlay">
-            <h2 id="geogame-location-display">Loading locations...</h2>
-            
-            <!-- 2P Scores -->
-            <div id="geogame-p2-score-box" class="player-scores" style="display:none;">
-              <div class="player-score-container p1">
-                <span class="player-badge p1">P1</span>
-                <span id="geogame-p1-score-val" class="score-val">0</span>
-              </div>
-              <div class="player-score-container p2">
-                <span class="player-badge p2">P2</span>
-                <span id="geogame-p2-score-val" class="score-val">0</span>
-              </div>
+        <!-- Sidebar + Main Content Row -->
+        <div class="app-body">
+        <!-- Left Sidebar -->
+        <aside class="sidebar">
+            <!-- SkillPlayer Sidebar Content (no tabs here anymore) -->
+            <div id="skillplayer-sidebar" class="sidebar-mode-content active">
+                <div class="sidebar-header">
+                    <h1><img src="/static/TDLogo.png" alt="Logo" class="header-logo"> SkillPlayer</h1>
+                </div>
+                <div class="category-tabs" id="category-tabs">
+                    <!-- Categories populated by JavaScript -->
+                </div>
+                <nav class="skills-nav">
+                    <h2 id="category-title">Skills</h2>
+                    <ul id="skills-list" class="skills-list">
+                        <!-- Skills populated by JavaScript -->
+                    </ul>
+                </nav>
+                <div class="sidebar-footer">
+                    <p>Views: <span id="total-views">0</span></p>
+                </div>
             </div>
-            
-            <!-- 1P Score -->
-            <div id="geogame-score-display">Score: <span id="geogame-score">0</span></div>
-            
-            <div id="geogame-round-display">Round: <span id="geogame-round">1/5</span></div>
-          </div>
-          
-          <div id="geogame-map-container">
-            <!-- The SVG map will be injected here -->
-          </div>
 
-          <div id="geogame-ui-bottom" class="geogame-overlay">
-            <div id="geogame-timer-bar" class="timer-bar"><div class="timer-fill"></div></div>
-            <p id="geogame-status-text" class="status-text">Click the map to guess the location!</p>
-          </div>
-          
-          <!-- Game Over Modal -->
-          <div id="geogame-end-modal" class="modal hidden">
-            <div class="modal-content">
-              <h2>Game Over</h2>
-              <p>Final Score: <span id="geogame-final-score">0</span></p>
-              <button id="btn-geogame-restart" class="btn-primary">Play Again</button>
+            <!-- Quiz Sidebar Content (Leaderboard) -->
+            <div id="quiz-sidebar" class="sidebar-mode-content">
+                <div class="sidebar-header quiz-header">
+                    <h1><span class="mode-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                viewBox="0 0 24 24" fill="currentColor">
+                                <path
+                                    d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z" />
+                            </svg></span> Leaderboard</h1>
+                </div>
+                <div class="quiz-leaderboard-panel">
+                    <div id="sidebar-scores-list" class="scores-list">
+                        <!-- Leaderboard populated by JavaScript -->
+                    </div>
+                </div>
             </div>
-          </div>
-        </div>
-        
-      </div>
-    </div>
-  </div>
-  
-  <!-- Admin Panel -->
-  <div class="admin-container">
-    <button id="admin-btn" class="admin-btn">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-      v3.5
-    </button>
-    <div id="admin-popup" class="admin-popup hidden">
-      <h3>Admin Settings</h3>
-      <div class="theme-settings" style="margin-bottom: var(--space-4);">
-        <button id="btn-toggle-themes" class="btn-secondary" style="margin-bottom: var(--space-2); width: 100%; justify-content: space-between;">
-          Color Themes <span id="theme-caret">▼</span>
-        </button>
-        <div id="theme-submenu" style="display: none; flex-direction: column; gap: var(--space-2);">
-          <button class="theme-btn btn-secondary" data-theme="theme-classic-dark">Classic Dark</button>
-          <button class="theme-btn btn-secondary" data-theme="theme-clinical-light">Clinical Light</button>
-          <button class="theme-btn btn-secondary" data-theme="theme-emergency-response">Emergency Red</button>
-          <button class="theme-btn btn-secondary" data-theme="theme-high-vis">Paramedic High-Vis</button>
-          <button id="btn-lucky-theme" class="btn-primary" style="margin-top: 4px;">
-            <span class="rainbow-text">I'm Feeling Lucky 🎲</span>
-          </button>
-        </div>
-      </div>
-      <button id="btn-test-gamepads" class="btn-secondary" style="margin-bottom: 10px;">Test Gamepads</button>
-      <button id="btn-update-reboot" class="btn-primary" style="margin-bottom: 10px;">Update & Reboot</button>
-      <button id="btn-reset-scores" class="btn-danger">Reset Scores</button>
-    </div>
-  </div>
+        </aside>
 
-  <!-- Gamepad Tester Modal -->
-  <div id="gamepad-tester-modal" class="modal-overlay hidden" style="z-index: 9999;">
-    <div class="modal" style="max-width: 800px; width: 90%; max-height: 80vh; overflow-y: auto; text-align: left;">
-      <h2 style="margin-bottom: 16px;">Gamepad Diagnostics</h2>
-      <p style="margin-bottom: 16px; color: var(--text-secondary);">Press buttons on any connected controller. Note the Index number next to the button that lights up. This is the index the app needs.</p>
-      
-      <h3>1. HTML5 Browser API Detection:</h3>
-      <div id="gamepad-tester-output" style="font-family: monospace; font-size: 14px; white-space: pre-wrap; margin-bottom: 20px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; min-height: 100px;">Waiting for gamepad interaction...</div>
-      
-      <h3>2. Backend evdev (Python) Socket Detection:</h3>
-      <div id="gamepad-tester-raw-output" style="font-family: monospace; font-size: 14px; margin-bottom: 20px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; height: 150px; overflow-y: auto;">Waiting for backend socket events...<br></div>
-      
-      <button id="btn-close-tester" class="btn-primary" style="display: block; width: 100%; text-align: center;">Close</button>
-    </div>
-  </div>
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- SkillPlayer Mode Content -->
+            <div id="skillplayer-content" class="app-mode-content active">
+                <!-- Video Player Section -->
+                <section class="video-section" id="video-section">
+                    <div class="video-container" id="video-container">
+                        <div class="video-placeholder" id="video-placeholder">
+                            <div class="placeholder-content">
+                                <img src="/static/TDLogo.png" alt="Logo" class="placeholder-logo">
+                                <h2 class="placeholder-text-red">Select a category and topic from the left and find
+                                    related
+                                    videos and training bulletins below:</h2>
+                                <p class="placeholder-text-french">Sélectionnez une catégorie et un sujet à gauche et
+                                    trouvez les vidéos et bulletins de formation associés ci-dessous:</p>
+                            </div>
+                            <div class="placeholder-arrow" id="placeholder-arrow">
+                                <!-- Arrow pointing left (to sidebar) when no skill selected -->
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#ff4444" width="80"
+                                    height="80">
+                                    <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <video id="video-player" class="video-player" controls style="display: none;">
+                            Your browser does not support the video tag.
+                        </video>
+                        <iframe id="pdf-viewer" class="pdf-viewer" style="display: none; border: none;"></iframe>
+                    </div>
+                    <div class="video-title" id="video-title"></div>
+                </section>
 
-  <!-- SocketIO (loaded before app modules) -->
-  <script src="/frontend/assets/socket.io.min.js"></script>
-  <script>
-    // Mock io if socket.io is not loaded to prevent errors
-    if(typeof io === 'undefined') {
-      window.io = function() {
-        return {
-          on: function() {},
-          emit: function() {}
-        };
-      };
-    }
-  </script>
-  
-  <!-- App modules -->
-  <script type="module" src="/frontend/js/leaderboard.js?v=5.5"></script>
-  <script type="module" src="/frontend/js/geogame.js?v=5.5"></script>
-  <script type="module" src="/frontend/js/app.js?v=5.5"></script>
+                <!-- Videos List Section -->
+                <section class="videos-list-section" id="videos-section">
+                    <h2><span id="current-skill-title">Select a topic to see videos</span> <span
+                            id="current-skill-title-french" class="skill-title-french">/ Sélectionnez un sujet pour voir
+                            les
+                            vidéos</span></h2>
+                    <div class="videos-grid" id="videos-grid">
+                        <!-- Videos populated by JavaScript -->
+                    </div>
+                </section>
+            </div>
+
+            <!-- Quiz Mode Content -->
+            <div id="quiz-content" class="app-mode-content">
+                <div class="quiz-container">
+                    <!-- Start Screen -->
+                    <div id="quiz-start-screen" class="quiz-screen active">
+                        <div class="quiz-logo">
+                            <span class="quiz-logo-icon"><svg xmlns="http://www.w3.org/2000/svg" width="72" height="72"
+                                    viewBox="0 0 24 24" fill="url(#quizGradient)">
+                                    <defs>
+                                        <linearGradient id="quizGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                            <stop offset="0%" style="stop-color:#6366f1" />
+                                            <stop offset="100%" style="stop-color:#a855f7" />
+                                        </linearGradient>
+                                    </defs>
+                                    <path
+                                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z" />
+                                </svg></span>
+                            <h1>Quiz Challenge</h1>
+                        </div>
+                        <p class="quiz-tagline">Test your knowledge in 1 minute!</p>
+                        <!-- Selector Moved Above Rules -->
+                        <div class="player-mode-selector" style="margin-bottom: 20px;">
+                            <label class="mode-option">
+                                <input type="radio" name="player-mode" value="1" checked onchange="updateQuizRules(1)">
+                                <span class="mode-label">1 Player</span>
+                            </label>
+                            <label class="mode-option">
+                                <input type="radio" name="player-mode" value="2" onchange="updateQuizRules(2)">
+                                <span class="mode-label">2 Players</span>
+                            </label>
+                        </div>
+
+                        <div id="quiz-rules-1p" class="quiz-rules">
+                            <div class="quiz-rule"><span class="rule-icon"><svg xmlns="http://www.w3.org/2000/svg"
+                                        width="20" height="20" viewBox="0 0 24 24" fill="#3b82f6">
+                                        <path
+                                            d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
+                                    </svg></span> 1 minute time limit</div>
+                            <div class="quiz-rule"><span class="rule-icon"><svg xmlns="http://www.w3.org/2000/svg"
+                                        width="20" height="20" viewBox="0 0 24 24" fill="#22c55e">
+                                        <path
+                                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                                    </svg></span> +2 seconds for correct answers</div>
+                            <div class="quiz-rule"><span class="rule-icon"><svg xmlns="http://www.w3.org/2000/svg"
+                                        width="20" height="20" viewBox="0 0 24 24" fill="#ef4444">
+                                        <path
+                                            d="M19 6.41L17.59 5 12 10.59 6.41 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                                    </svg></span> -5 seconds for wrong answers</div>
+                        </div>
+
+                        <div id="quiz-rules-2p" class="quiz-rules hidden">
+                            <div class="quiz-rule"><span class="rule-icon">🏆</span> Compete for highest score</div>
+                            <div class="quiz-rule"><span class="rule-icon">⏱️</span> +2 seconds for correct answers
+                            </div>
+                            <div class="quiz-rule"><span class="rule-icon">🔒</span> Wrong answer = 3s Lockout</div>
+                        </div>
+
+                        <!-- Moved Input Mode Toggle -->
+                        <div class="input-mode-toggle" id="input-mode-toggle" style="margin-bottom: 2rem;">
+                            <button class="input-toggle-btn active" data-mode="mouse" onclick="setInputMode('mouse')"
+                                title="Mouse Mode">
+                                <img src="/static/ui_mouse.png" alt="Mouse">
+                                Mouse
+                            </button>
+                            <button class="input-toggle-btn" data-mode="gamepad" onclick="setInputMode('gamepad')"
+                                title="Gamepad Mode">
+                                <img src="/static/ui_gamepad.png" alt="Gamepad">
+                                Gamepad
+                            </button>
+                        </div>
+                        <button id="quiz-start-btn" class="quiz-btn-primary" onclick="startQuiz()">
+                            <div id="start-progress" class="start-progress"></div>
+                            <span class="start-label">Start Quiz</span>
+                        </button>
+                    </div>
+
+                    <!-- Gamepad Binding Screen -->
+                    <div id="quiz-binding-screen" class="quiz-screen">
+                        <div class="binding-container">
+                            <div class="binding-icon">
+                                <img src="/static/ui_gamepad_clean.png" alt="Gamepad"
+                                    style="width: 120px; height: auto;">
+                            </div>
+                            <h2 class="binding-title">Press Any Button to Start</h2>
+                            <p class="binding-subtitle">The first gamepad to press will control this quiz</p>
+                            <p id="binding-status-text" class="binding-status"
+                                style="margin-bottom: 20px; color: yellow;">Waiting for gamepads...</p>
+                            <div class="binding-pulse"></div>
+
+                            <button id="binding-cancel-btn" class="quiz-btn-secondary"
+                                style="margin-top: 40px; width: auto; position: relative; z-index: 10;"
+                                onclick="cancelBinding()">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Countdown Screen -->
+                    <div id="quiz-countdown-screen" class="quiz-screen">
+                        <div class="countdown-container">
+                            <p class="countdown-message">You have one minute to answer as many questions as you can!</p>
+                            <div id="countdown-number" class="countdown-number">3</div>
+                        </div>
+                    </div>
+
+                    <!-- Game Screen -->
+                    <div id="quiz-game-screen" class="quiz-screen">
+                        <div class="quiz-game-header">
+                            <!-- Player 1 Score (2P Mode) -->
+                            <div id="p1-score-container" class="player-score-container hidden">
+                                <div id="p1-lock-bar" class="lockout-bar hidden">🔒 LOCKED</div>
+                                <div class="player-info-row">
+                                    <span class="player-badge p1">P1</span>
+                                    <span id="p1-timer" class="player-timer">60</span>
+                                </div>
+                                <span id="p1-score-val" class="player-score-val">0</span>
+                                <div id="p1-streak" class="player-streak hidden">🔥 0</div>
+                                <div id="p1-lock-overlay" class="lock-overlay hidden">🔒</div>
+                                <div id="p1-feedback" class="player-feedback"></div>
+                            </div>
+
+                            <div class="quiz-controls-center">
+                                <div class="volume-control">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                        fill="currentColor" class="volume-icon">
+                                        <path
+                                            d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
+                                    </svg>
+                                    <input type="range" id="quiz-volume" min="0" max="1" step="0.1" value="0.5"
+                                        onchange="updateVolume(this.value)" oninput="updateVolume(this.value)">
+                                </div>
+                                <div class="quiz-timer-container">
+                                    <div class="quiz-timer-bar">
+                                        <div id="quiz-timer-fill" class="quiz-timer-fill"></div>
+                                    </div>
+                                    <div class="timer-text-wrapper">
+                                        <span id="quiz-timer-text" class="quiz-timer-text">3:00</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Single Player Score (Default) -->
+                            <div id="single-player-score-container" class="quiz-score-display">
+                                Score: <span id="quiz-score">0</span>
+                                <span id="floating-score" class="floating-score"></span>
+                            </div>
+
+                            <!-- Player 2 Score (2P Mode) -->
+                            <div id="p2-score-container" class="player-score-container hidden">
+                                <div id="p2-lock-bar" class="lockout-bar hidden">🔒 LOCKED</div>
+                                <div class="player-info-row">
+                                    <span class="player-badge p2">P2</span>
+                                    <span id="p2-timer" class="player-timer">60</span>
+                                </div>
+                                <span id="p2-score-val" class="player-score-val">0</span>
+                                <div id="p2-streak" class="player-streak hidden">🔥 0</div>
+                                <div id="p2-lock-overlay" class="lock-overlay hidden">🔒</div>
+                                <div id="p2-feedback" class="player-feedback"></div>
+                            </div>
+                        </div>
+
+                        <div class="quiz-question-container">
+                            <div class="quiz-question-number">Question <span id="quiz-question-num">1</span> / <span
+                                    id="quiz-total-questions">15</span></div>
+                            <h2 id="quiz-question-text" class="quiz-question-text"></h2>
+                        </div>
+
+                        <div class="quiz-game-area">
+                            <div id="quiz-answers-container" class="quiz-answers-container">
+                                <!-- Answer buttons will be inserted here -->
+                            </div>
+                            <div class="quiz-skip-container">
+                                <button id="quiz-skip-btn" class="quiz-btn-skip skip-hidden" onclick="skipQuestion()">
+                                    <div class="rb-icon">RB</div> SKIP
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="quiz-feedback" class="quiz-feedback"></div>
+
+                        <!-- Streak Indicator -->
+                        <div id="streak-indicator" class="streak-indicator hidden">
+                            <div class="streak-star">
+                                <svg class="streak-ring" viewBox="0 0 36 36">
+                                    <circle class="streak-ring-bg" cx="18" cy="18" r="16"></circle>
+                                    <circle id="streak-ring-progress" class="streak-ring-progress" cx="18" cy="18"
+                                        r="16"></circle>
+                                </svg>
+                                <svg class="star-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                    fill="currentColor">
+                                    <path
+                                        d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
+                                </svg>
+                            </div>
+                            <span id="streak-text" class="streak-text">Streak!</span>
+                        </div>
+
+                        <!-- Steal Indicator (Clone of Streak) -->
+                        <div id="steal-indicator" class="streak-indicator hidden steal-mode">
+                            <div class="streak-star">
+                                <svg class="streak-ring" viewBox="0 0 36 36">
+                                    <circle class="streak-ring-bg" cx="18" cy="18" r="16"></circle>
+                                    <circle id="steal-ring-progress" class="streak-ring-progress" cx="18" cy="18"
+                                        r="16"></circle>
+                                </svg>
+                                <!-- Hand/Grab Icon for Steal -->
+                                <svg class="star-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                    fill="currentColor">
+                                    <path
+                                        d="M21 11h-4.3c-1.3 0-2.5-.7-3.1-1.8-.7-1.3-.7-2.9 0-4.2l.4-.7c.3-.5.3-1.1-.1-1.6-.4-.4-1.1-.5-1.6-.1l-1.6 1.1c-1.1.8-2.6.9-3.8.3C5.7 3.5 5 2.1 5.3 1c.1-.4-.1-.8-.5-.9-.4-.1-.8.1-.9.5C3.3 2.1 3 3.6 3 5v14c0 1.1.9 2 2 2h8l1-1h5c1.1 0 2-.9 2-2v-5c0-1.1-.9-2-2-2z" />
+                                </svg>
+                            </div>
+                            <span id="steal-text" class="streak-text">STEAL!</span>
+                        </div>
+
+                        <div class="quiz-stop-container">
+                            <div class="stop-btn-wrapper">
+                                <button id="quiz-btn-stop" class="quiz-btn-stop" onclick="stopQuizAttempt()">
+                                    <div id="stop-progress" class="stop-progress"></div>
+                                    <span class="stop-label">Stop Attempt</span>
+                                </button>
+                                <span class="stop-hint">Hold START (1s)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- End Screen -->
+                    <div id="quiz-end-screen" class="quiz-screen">
+                        <h1 class="quiz-end-title">Time's Up!</h1>
+
+                        <!-- Two-column layout: leaderboard left, score+entry right -->
+                        <div class="quiz-end-row">
+                            <!-- Mini Leaderboard on End Screen (left side) -->
+                            <div id="quiz-end-leaderboard" class="quiz-end-leaderboard">
+                                <h2><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                        fill="#f59e0b" style="vertical-align: middle;">
+                                        <path
+                                            d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z" />
+                                    </svg> Leaderboard</h2>
+                                <div id="quiz-end-scores-list" class="scores-list">
+                                    <!-- Scores will be inserted here -->
+                                </div>
+                            </div>
+
+                            <!-- Right column: Score + Name Entry -->
+                            <div class="quiz-end-right">
+                                <div class="quiz-final-score">
+                                    <span class="quiz-score-label">Your Score</span>
+                                    <span id="quiz-final-score" class="quiz-score-value">0</span>
+                                </div>
+
+                                <!-- Name Entry (shown if top 10) -->
+                                <div id="quiz-name-entry" class="quiz-name-entry hidden">
+                                    <h2><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                            viewBox="0 0 24 24" fill="#22c55e" style="vertical-align: middle;">
+                                            <path
+                                                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                                        </svg> Top 10 Score! <svg xmlns="http://www.w3.org/2000/svg" width="24"
+                                            height="24" viewBox="0 0 24 24" fill="#22c55e"
+                                            style="vertical-align: middle;">
+                                            <path
+                                                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                                        </svg></h2>
+                                    <p>Click letters to enter your name (10 characters max):</p>
+                                    <input type="text" id="quiz-player-name" maxlength="10" placeholder="NAME"
+                                        autocomplete="off" readonly>
+
+                                    <!-- Virtual Keyboard -->
+                                    <div class="virtual-keyboard" id="virtual-keyboard">
+                                        <div class="keyboard-row">
+                                            <button class="key" onclick="pressKey('Q')">Q</button>
+                                            <button class="key" onclick="pressKey('W')">W</button>
+                                            <button class="key" onclick="pressKey('E')">E</button>
+                                            <button class="key" onclick="pressKey('R')">R</button>
+                                            <button class="key" onclick="pressKey('T')">T</button>
+                                            <button class="key" onclick="pressKey('Y')">Y</button>
+                                            <button class="key" onclick="pressKey('U')">U</button>
+                                            <button class="key" onclick="pressKey('I')">I</button>
+                                            <button class="key" onclick="pressKey('O')">O</button>
+                                            <button class="key" onclick="pressKey('P')">P</button>
+                                        </div>
+                                        <div class="keyboard-row">
+                                            <button class="key" onclick="pressKey('A')">A</button>
+                                            <button class="key" onclick="pressKey('S')">S</button>
+                                            <button class="key" onclick="pressKey('D')">D</button>
+                                            <button class="key" onclick="pressKey('F')">F</button>
+                                            <button class="key" onclick="pressKey('G')">G</button>
+                                            <button class="key" onclick="pressKey('H')">H</button>
+                                            <button class="key" onclick="pressKey('J')">J</button>
+                                            <button class="key" onclick="pressKey('K')">K</button>
+                                            <button class="key" onclick="pressKey('L')">L</button>
+                                        </div>
+                                        <div class="keyboard-row">
+                                            <button class="key" onclick="pressKey('Z')">Z</button>
+                                            <button class="key" onclick="pressKey('X')">X</button>
+                                            <button class="key" onclick="pressKey('C')">C</button>
+                                            <button class="key" onclick="pressKey('V')">V</button>
+                                            <button class="key" onclick="pressKey('B')">B</button>
+                                            <button class="key" onclick="pressKey('N')">N</button>
+                                            <button class="key" onclick="pressKey('M')">M</button>
+                                            <button class="key key-backspace" onclick="pressBackspace()">⌫ DEL</button>
+                                        </div>
+                                    </div>
+
+                                    <button id="quiz-submit-score-btn" class="quiz-btn-primary"
+                                        onclick="submitQuizScore()">Submit Score</button>
+                                    <button id="quiz-skip-name-btn" class="quiz-btn-secondary"
+                                        onclick="skipNameEntry()">No thank you</button>
+
+                                </div>
+                                <button id="quiz-play-again-btn" class="quiz-btn-primary"
+                                    onclick="showQuizStartScreen()">Play Again</button>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Calibration Level Selector Screen -->
+                    <div id="calibration-level-screen" class="quiz-screen">
+                        <div class="calibration-header-banner">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"
+                                fill="currentColor">
+                                <path
+                                    d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
+                            </svg>
+                            CALIBRATION MODE
+                        </div>
+                        <h2 style="margin-bottom: 20px;">Select Calibration Level</h2>
+                        <p style="color: var(--text-secondary); margin-bottom: 30px;">
+                            Questions with calibration level BELOW your selection will be shown.
+                        </p>
+                        <div class="calibration-level-buttons">
+                            <button class="calibration-level-btn" onclick="selectCalibrationLevel(1)">Level 1</button>
+                            <button class="calibration-level-btn" onclick="selectCalibrationLevel(2)">Level 2</button>
+                            <button class="calibration-level-btn" onclick="selectCalibrationLevel(3)">Level 3</button>
+                            <button class="calibration-level-btn" onclick="selectCalibrationLevel(4)">Level 4</button>
+                            <button class="calibration-level-btn" onclick="selectCalibrationLevel(5)">Level 5</button>
+                        </div>
+                        <!-- Input Mode Toggle for Calibration -->
+                        <div class="input-mode-toggle" style="margin-top: 30px;">
+                            <button class="input-toggle-btn active" data-mode="mouse" onclick="setInputMode('mouse')"
+                                title="Mouse Mode">
+                                <img src="/static/ui_mouse.png" alt="Mouse">
+                                Mouse
+                            </button>
+                            <button class="input-toggle-btn" data-mode="gamepad" onclick="setInputMode('gamepad')"
+                                title="Gamepad Mode">
+                                <img src="/static/ui_gamepad.png" alt="Gamepad">
+                                Gamepad
+                            </button>
+                        </div>
+                        <button id="calibration-start-btn" class="quiz-btn-primary disabled" style="margin-top: 20px;"
+                            onclick="confirmStartCalibration()" disabled>
+                            Start Calibration
+                        </button>
+                        <button class="quiz-btn-secondary" style="margin-top: 30px;"
+                            onclick="exitCalibrationLevelScreen()">Cancel</button>
+                    </div>
+
+                    <!-- Calibration Game Screen -->
+                    <div id="calibration-game-screen" class="quiz-screen">
+                        <div class="calibration-header-banner">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"
+                                fill="currentColor">
+                                <path
+                                    d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
+                            </svg>
+                            CALIBRATION MODE - Level <span id="calibration-level-display">1</span>
+                        </div>
+
+                        <div class="calibration-progress">
+                            <span>Question <span id="calibration-question-num">1</span> / <span
+                                    id="calibration-total-questions">0</span></span>
+                            <span id="calibration-calibrated-count" style="color: #22c55e;">Calibrated: 0</span>
+                        </div>
+
+                        <div class="quiz-question-container">
+                            <h2 id="calibration-question-text" class="quiz-question-text"></h2>
+                        </div>
+
+                        <div class="quiz-game-area calibration-layout">
+                            <!-- Left: Prev Review -->
+                            <button id="calibration-review-prev-btn" class="calibration-side-btn left"
+                                onclick="markPreviousForReview()">
+                                <div class="rb-icon lb-icon">LB</div>
+                                <span>MARK PREVIOUS<br>QUESTION</span>
+                            </button>
+
+                            <!-- Center: Answers -->
+                            <div id="calibration-answers-container" class="quiz-answers-container">
+                                <!-- Answer buttons will be inserted here -->
+                            </div>
+
+                            <!-- Right: Review -->
+                            <button id="calibration-review-btn" class="calibration-side-btn right"
+                                onclick="markForReview()">
+                                <div class="rb-icon">RB</div>
+                                <span>MARK FOR<br>REVIEW</span>
+                            </button>
+                        </div>
+
+                        <div id="calibration-feedback" class="quiz-feedback"></div>
+
+                        <div class="calibration-end-container">
+                            <button id="calibration-end-btn" class="calibration-end-btn" onclick="endCalibration()">
+                                <div id="calibration-stop-progress" class="btn-progress-fill"></div>
+                                <span style="position: relative; z-index: 2;">Exit Calibration (Hold Start)</span>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Admin Menu -->
+                <div class="admin-container">
+                    <div id="admin-popup" class="admin-popup hidden">
+                        <h3>⚙️ Admin Menu</h3>
+                        <div class="build-timestamp">Build: <span id="build-timestamp">—</span></div>
+
+                        <!-- Admin Actions -->
+                        <div class="admin-actions">
+                            <button class="admin-action-btn update-action" onclick="triggerUpdate()">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                    fill="currentColor">
+                                    <path
+                                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" />
+                                </svg>
+                                <span>Update & Reboot</span>
+                            </button>
+                            <button class="admin-action-btn reset-action" onclick="promptResetScores()">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                    fill="currentColor">
+                                    <path
+                                        d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+                                </svg>
+                                <span>Reset All Scores</span>
+                            </button>
+                            <button class="admin-action-btn calibration-action" onclick="promptCalibrationPassword()">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                    fill="currentColor">
+                                    <path
+                                        d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
+                                </svg>
+                                <span>Calibration Mode</span>
+                            </button>
+                            <button class="admin-action-btn review-action" onclick="promptReviewPassword()">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                    fill="currentColor">
+                                    <path
+                                        d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" />
+                                </svg>
+                                <span>Review Mode</span>
+                            </button>
+                        </div>
+
+                        <div class="admin-section">
+                            <h3>System Logs</h3>
+                            <div id="admin-log-console" class="admin-log-console">
+                                <div class="log-entry system">> Ready...</div>
+                            </div>
+                        </div>
+
+                        <!-- Changelog Section -->
+                        <div class="admin-section">
+                            <div class="admin-changelog">
+                                <h4>Version History</h4>
+                                <div id="changelog-list" class="changelog-list">
+                                    <!-- Items injected via JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="admin-btn" class="admin-btn" onclick="toggleAdminMenu()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path
+                                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                            </path>
+                        </svg>
+                        <span id="version-label">v2.1</span>
+                    </button>
+                </div>
+
+                <script src="/static/socket.io.min.js"></script>
+                <!-- Module scripts (load order matters — dependencies first) -->
+                <script src="/static/js/audio.js"></script>
+                <script src="/static/js/media.js"></script>
+                <script src="/static/js/quiz.js"></script>
+                <script src="/static/js/leaderboard.js"></script>
+                <script src="/static/js/admin.js"></script>
+                <script src="/static/js/gamepad.js"></script>
+                <script src="/static/js/app.js"></script>
+        </div> <!-- end app-body -->
+    </div> <!-- end app-container -->
 </body>
+
 </html>
