@@ -7,6 +7,18 @@
     <title>SkillPlayer - Video Learning</title>
     <link rel="stylesheet" href="/static/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <script>
+    // Temporary: capture all JS errors for debugging
+    window._jsErrors = [];
+    window.onerror = function(msg, url, line, col, error) {
+        var entry = '[JS ERROR] ' + msg + ' at ' + url + ':' + line + ':' + col;
+        window._jsErrors.push(entry);
+        console.error(entry);
+        // Also show on page for kiosk visibility
+        var el = document.getElementById('admin-log-console');
+        if (el) { var d = document.createElement('div'); d.style.color='red'; d.textContent = entry; el.appendChild(d); }
+    };
+    </script>
 </head>
 
 <body>
