@@ -45,7 +45,7 @@ def get_content_dir() -> Path:
 MAX_SCORES = 10                  # Maximum number of high scores to show on the leaderboard
 SCORE_EXPIRY_DAYS = 14           # Days until a high score drops off the leaderboard
 NEW_CONTENT_DAYS = 14            # Days a newly added file keeps the "NEW" badge
-DEAL_SIZE = 25                   # Number of questions in a single quiz session
+DEAL_SIZE = 20                   # Number of questions in a single quiz session
 SUPPORTED_EXTENSIONS = {         # File types the system recognizes as valid content
     '.mp4', '.mkv', '.avi', '.mov', '.pdf'
 }

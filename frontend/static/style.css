@@ -897,7 +897,7 @@ body {
 .quiz-screen {
     display: none;
     width: 100%;
-    max-width: 900px;
+    max-width: 1100px;
     animation: fadeIn 0.3s ease-out;
 }
 
@@ -1455,6 +1455,28 @@ body {
     line-height: 1.4;
 }
 
+/* Quiz Game Row — 3-column: streak | answers+skip | streak */
+.quiz-game-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    width: 100%;
+}
+
+.streak-column {
+    width: 140px;
+    min-width: 100px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.quiz-game-center {
+    flex: 1;
+    min-width: 0;
+}
+
 /* Quiz Answers */
 .quiz-game-area {
     display: flex;
@@ -1925,14 +1947,11 @@ body {
    ======================================== */
 
 .streak-indicator {
-    position: fixed;
-    right: 15%;
-    top: 50%;
-    transform: translateY(-50%);
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 16px;
+    gap: 8px;
     z-index: 100;
     transition: all 0.3s ease;
 }
@@ -1943,8 +1962,8 @@ body {
 
 .streak-star {
     position: relative;
-    width: 240px;
-    height: 240px;
+    width: 120px;
+    height: 120px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1972,21 +1991,22 @@ body {
 }
 
 .star-icon {
-    width: 144px;
-    height: 144px;
+    width: 72px;
+    height: 72px;
     color: #a855f7;
-    filter: drop-shadow(0 0 30px rgba(168, 85, 247, 0.5));
+    filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.5));
     z-index: 1;
 }
 
 .streak-text {
     font-family: 'Outfit', 'Segoe UI', sans-serif;
-    font-size: 2rem;
+    font-size: 1.3rem;
     font-weight: 700;
     color: #a855f7;
     text-transform: uppercase;
-    letter-spacing: 2px;
-    text-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
+    letter-spacing: 1.5px;
+    text-shadow: 0 0 15px rgba(168, 85, 247, 0.5);
+    text-align: center;
 }
 
 /* Streak levels */
@@ -2037,7 +2057,7 @@ body {
 .streak-ultra .streak-text {
     color: #ec4899;
     text-shadow: 0 0 40px rgba(236, 72, 153, 0.8);
-    font-size: 2.2rem;
+    font-size: 1.5rem;
 }
 
 .streak-paragod .streak-ring-progress {
@@ -2053,7 +2073,7 @@ body {
 .streak-paragod .streak-text {
     color: #fbbf24;
     text-shadow: 0 0 50px rgba(251, 191, 36, 1);
-    font-size: 2.4rem;
+    font-size: 1.6rem;
     animation: textGlow 0.5s ease-in-out infinite;
 }
 
@@ -2120,7 +2140,7 @@ body {
 .steal-mode .streak-text {
     color: #ef4444;
     text-shadow: 0 0 20px rgba(239, 68, 68, 0.7);
-    font-size: 2.5rem;
+    font-size: 1.6rem;
     /* Larger as requested */
     text-align: center;
 }
