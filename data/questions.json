@@ -1,142 +1,327 @@
-[
-  {
-    "question": "What color is the sky on a clear day?",
-    "answers": ["Blue", "Green", "Red", "Purple"],
-    "correct": "Blue",
-    "tags": ["test"],
-    "calibration_level": 0
-  },
-  {
-    "question": "How many legs does a dog have?",
-    "answers": ["2", "4", "6", "8"],
-    "correct": "4",
-    "tags": ["test"],
-    "calibration_level": 0
-  },
-  {
-    "question": "What is 2 + 2?",
-    "answers": ["3", "4", "5", "6"],
-    "correct": "4",
-    "tags": ["test"],
-    "calibration_level": 0
-  },
-  {
-    "question": "Which animal says 'moo'?",
-    "answers": ["Cat", "Dog", "Cow", "Chicken"],
-    "correct": "Cow",
-    "tags": ["test"],
-    "calibration_level": 0
-  },
-  {
-    "question": "What shape is a stop sign?",
-    "answers": ["Circle", "Square", "Octagon", "Triangle"],
-    "correct": "Octagon",
-    "tags": ["test"],
-    "calibration_level": 0
-  },
-  {
-    "question": "How many days are in a week?",
-    "answers": ["5", "6", "7", "8"],
-    "correct": "7",
-    "tags": ["test"],
-    "calibration_level": 0
-  },
-  {
-    "question": "What is the capital of Canada?",
-    "answers": ["Toronto", "Ottawa", "Montreal", "Vancouver"],
-    "correct": "Ottawa",
-    "tags": ["test"],
-    "calibration_level": 0
-  },
-  {
-    "question": "Which planet is closest to the Sun?",
-    "answers": ["Venus", "Earth", "Mercury", "Mars"],
-    "correct": "Mercury",
-    "tags": ["test"],
-    "calibration_level": 0
-  },
-  {
-    "question": "What color do you get by mixing red and white?",
-    "answers": ["Orange", "Pink", "Purple", "Brown"],
-    "correct": "Pink",
-    "tags": ["test"],
-    "calibration_level": 0
-  },
-  {
-    "question": "How many sides does a triangle have?",
-    "answers": ["2", "3", "4", "5"],
-    "correct": "3",
-    "tags": ["test"],
-    "calibration_level": 0
-  },
-  {
-    "question": "What is frozen water called?",
-    "answers": ["Steam", "Ice", "Fog", "Rain"],
-    "correct": "Ice",
-    "tags": ["test"],
-    "calibration_level": 0
-  },
-  {
-    "question": "Which month comes after January?",
-    "answers": ["March", "February", "December", "April"],
-    "correct": "February",
-    "tags": ["test"],
-    "calibration_level": 0
-  },
-  {
-    "question": "What do bees make?",
-    "answers": ["Milk", "Honey", "Silk", "Wax"],
-    "correct": "Honey",
-    "tags": ["test"],
-    "calibration_level": 0
-  },
-  {
-    "question": "How many letters are in the English alphabet?",
-    "answers": ["24", "25", "26", "28"],
-    "correct": "26",
-    "tags": ["test"],
-    "calibration_level": 0
-  },
-  {
-    "question": "What is the largest ocean on Earth?",
-    "answers": ["Atlantic", "Indian", "Pacific", "Arctic"],
-    "correct": "Pacific",
-    "tags": ["test"],
-    "calibration_level": 0
-  },
-  {
-    "question": "Which fruit is yellow and curved?",
-    "answers": ["Apple", "Banana", "Orange", "Grape"],
-    "correct": "Banana",
-    "tags": ["test"],
-    "calibration_level": 0
-  },
-  {
-    "question": "What do you use to write on a chalkboard?",
-    "answers": ["Pen", "Pencil", "Chalk", "Marker"],
-    "correct": "Chalk",
-    "tags": ["test"],
-    "calibration_level": 0
-  },
-  {
-    "question": "How many wheels does a bicycle have?",
-    "answers": ["1", "2", "3", "4"],
-    "correct": "2",
-    "tags": ["test"],
-    "calibration_level": 0
-  },
-  {
-    "question": "What is the opposite of hot?",
-    "answers": ["Warm", "Cold", "Cool", "Mild"],
-    "correct": "Cold",
-    "tags": ["test"],
-    "calibration_level": 0
-  },
-  {
-    "question": "Which coin is worth 25 cents?",
-    "answers": ["Dime", "Nickel", "Quarter", "Loonie"],
-    "correct": "Quarter",
-    "tags": ["test"],
-    "calibration_level": 0
-  }
-]
+{
+  "format": "trainingkiosk-questions",
+  "format_version": 2,
+  "exported_at": "2026-10-14T17:48:29Z",
+  "questions": [
+    {
+      "id": "d4c53f29f105ba858dcb02a56eeada26",
+      "question": "What color is the sky on a clear day?",
+      "answers": [
+        "Blue",
+        "Green",
+        "Red",
+        "Purple"
+      ],
+      "correct": "Blue",
+      "tags": {
+        "tag": [
+          "test"
+        ]
+      }
+    },
+    {
+      "id": "99e588e5e255c2c506f6813121ff2041",
+      "question": "How many legs does a dog have?",
+      "answers": [
+        "2",
+        "4",
+        "6",
+        "8"
+      ],
+      "correct": "4",
+      "tags": {
+        "tag": [
+          "test"
+        ]
+      }
+    },
+    {
+      "id": "0c1410da6636525dfbb07871aa041bbf",
+      "question": "What is 2 + 2?",
+      "answers": [
+        "3",
+        "4",
+        "5",
+        "6"
+      ],
+      "correct": "4",
+      "tags": {
+        "tag": [
+          "test"
+        ]
+      }
+    },
+    {
+      "id": "ea80c6ca9db5e7d3b5418df418cf285c",
+      "question": "Which animal says 'moo'?",
+      "answers": [
+        "Cat",
+        "Dog",
+        "Cow",
+        "Chicken"
+      ],
+      "correct": "Cow",
+      "tags": {
+        "tag": [
+          "test"
+        ]
+      }
+    },
+    {
+      "id": "1bff6c9d34a863716d6d9623f11488a7",
+      "question": "What shape is a stop sign?",
+      "answers": [
+        "Circle",
+        "Square",
+        "Octagon",
+        "Triangle"
+      ],
+      "correct": "Octagon",
+      "tags": {
+        "tag": [
+          "test"
+        ]
+      }
+    },
+    {
+      "id": "5e161e9070c999c7307b3a85759c0444",
+      "question": "How many days are in a week?",
+      "answers": [
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "correct": "7",
+      "tags": {
+        "tag": [
+          "test"
+        ]
+      }
+    },
+    {
+      "id": "0fc0618a13eac0d678f65f81d65cdbca",
+      "question": "What is the capital of Canada?",
+      "answers": [
+        "Toronto",
+        "Ottawa",
+        "Montreal",
+        "Vancouver"
+      ],
+      "correct": "Ottawa",
+      "tags": {
+        "tag": [
+          "test"
+        ]
+      }
+    },
+    {
+      "id": "496d0e58aa13f3ad68d0c5928423a493",
+      "question": "Which planet is closest to the Sun?",
+      "answers": [
+        "Venus",
+        "Earth",
+        "Mercury",
+        "Mars"
+      ],
+      "correct": "Mercury",
+      "tags": {
+        "tag": [
+          "test"
+        ]
+      }
+    },
+    {
+      "id": "b614e63b85a2275010a775349241b4af",
+      "question": "What color do you get by mixing red and white?",
+      "answers": [
+        "Orange",
+        "Pink",
+        "Purple",
+        "Brown"
+      ],
+      "correct": "Pink",
+      "tags": {
+        "tag": [
+          "test"
+        ]
+      }
+    },
+    {
+      "id": "a51630be1e8f7bbc85dc4f0c0d0b64e8",
+      "question": "How many sides does a triangle have?",
+      "answers": [
+        "2",
+        "3",
+        "4",
+        "5"
+      ],
+      "correct": "3",
+      "tags": {
+        "tag": [
+          "test"
+        ]
+      }
+    },
+    {
+      "id": "fe8616e6e722d72c36430880cba1876a",
+      "question": "What is frozen water called?",
+      "answers": [
+        "Steam",
+        "Ice",
+        "Fog",
+        "Rain"
+      ],
+      "correct": "Ice",
+      "tags": {
+        "tag": [
+          "test"
+        ]
+      }
+    },
+    {
+      "id": "cca9b954ad45653886958c0867aa8b62",
+      "question": "Which month comes after January?",
+      "answers": [
+        "March",
+        "February",
+        "December",
+        "April"
+      ],
+      "correct": "February",
+      "tags": {
+        "tag": [
+          "test"
+        ]
+      }
+    },
+    {
+      "id": "b0bdc17c2e6ae5c6e80ab5fe7ae81afb",
+      "question": "What do bees make?",
+      "answers": [
+        "Milk",
+        "Honey",
+        "Silk",
+        "Wax"
+      ],
+      "correct": "Honey",
+      "tags": {
+        "tag": [
+          "test"
+        ]
+      }
+    },
+    {
+      "id": "cc5df5fef2aceca0c617be47f9e481eb",
+      "question": "How many letters are in the English alphabet?",
+      "answers": [
+        "24",
+        "25",
+        "26",
+        "28"
+      ],
+      "correct": "26",
+      "tags": {
+        "tag": [
+          "test"
+        ]
+      }
+    },
+    {
+      "id": "d90572b7214c6f4a208b55b8972a76b1",
+      "question": "What is the largest ocean on Earth?",
+      "answers": [
+        "Atlantic",
+        "Indian",
+        "Pacific",
+        "Arctic"
+      ],
+      "correct": "Pacific",
+      "tags": {
+        "tag": [
+          "test"
+        ]
+      }
+    },
+    {
+      "id": "dc177d91df082ebe595d0e03ba656d92",
+      "question": "Which fruit is yellow and curved?",
+      "answers": [
+        "Apple",
+        "Banana",
+        "Orange",
+        "Grape"
+      ],
+      "correct": "Banana",
+      "tags": {
+        "tag": [
+          "test"
+        ]
+      }
+    },
+    {
+      "id": "a58ee54b850120d143f72e74dc8c89f2",
+      "question": "What do you use to write on a chalkboard?",
+      "answers": [
+        "Pen",
+        "Pencil",
+        "Chalk",
+        "Marker"
+      ],
+      "correct": "Chalk",
+      "tags": {
+        "tag": [
+          "test"
+        ]
+      }
+    },
+    {
+      "id": "58f5013e4d606a2b4915d611fccf4227",
+      "question": "How many wheels does a bicycle have?",
+      "answers": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "correct": "2",
+      "tags": {
+        "tag": [
+          "test"
+        ]
+      }
+    },
+    {
+      "id": "4c4081a254f12c87faba6785cbe11133",
+      "question": "What is the opposite of hot?",
+      "answers": [
+        "Warm",
+        "Cold",
+        "Cool",
+        "Mild"
+      ],
+      "correct": "Cold",
+      "tags": {
+        "tag": [
+          "test"
+        ]
+      }
+    },
+    {
+      "id": "f4cd0df1bbb98b1a06bab1d3306d0eb4",
+      "question": "Which coin is worth 25 cents?",
+      "answers": [
+        "Dime",
+        "Nickel",
+        "Quarter",
+        "Loonie"
+      ],
+      "correct": "Quarter",
+      "tags": {
+        "tag": [
+          "test"
+        ]
+      }
+    }
+  ]
+}

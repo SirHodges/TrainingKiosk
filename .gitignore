@@ -24,3 +24,6 @@ content/Other/*
 !content/Skills/.gitkeep
 !content/Equipment/.gitkeep
 !content/Other/.gitkeep
+
+# Automatic database backups taken before schema upgrades
+data/backups/

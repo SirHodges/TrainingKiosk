@@ -25,7 +25,8 @@ except ImportError:
 
 # Import our settings and database tools
 from server.config import BASE_DIR
-from server.database import init_db, import_questions, import_geogame_locations, get_db
+from server.database import init_db, import_geogame_locations, get_db
+from server.services.question_bank import sync_questions
 
 # Import the different sections (blueprints) of our website
 from server.routes.media import media_bp
@@ -66,13 +67,12 @@ def create_app():
 
     # Initialize the database and questions before processing the first request
     with app.app_context():
+        # Create/upgrade the database (takes a backup before any upgrade)
         init_db()
-        # Only import if the questions table is empty to save time
+        # Bring questions in line with data/questions.json on every start:
+        # adds new ones, versions edited ones, retires removed ones.
+        sync_questions()
         with get_db() as db:
-            count = db.execute("SELECT COUNT(*) FROM questions").fetchone()[0]
-            if count == 0:
-                import_questions()
-            
             # Seed the geogame_locations table
             geogame_count = db.execute("SELECT COUNT(*) FROM geogame_locations").fetchone()[0]
             if geogame_count == 0:

@@ -10,7 +10,7 @@ import json
 from flask import Blueprint, jsonify, request
 
 from server.config import MAX_SCORES, SCORE_EXPIRY_DAYS
-from server.database import get_db
+from server.database import get_db, clean_oasis
 
 leaderboard_bp = Blueprint('leaderboard', __name__)
 
@@ -97,13 +97,15 @@ def add_score():
     name = data['name'].strip()[:10].upper()  # Standard 10-letter arcade name
     score = int(data['score'])
     stats = json.dumps(data.get('stats', {}))
+    oasis = clean_oasis(data.get('oasis'))        # optional, links the score to a player
+    session_id = data.get('session_id')           # optional, links the score to the game played
     
     with get_db() as db:
         # Save the new score
         db.execute('''
-            INSERT INTO scores (name, score, stats)
-            VALUES (?, ?, ?)
-        ''', (name, score, stats))
+            INSERT INTO scores (name, score, stats, player_oasis, session_id)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (name, score, stats, oasis, session_id))
         db.commit()
         
         # Fetch the updated leaderboard to return back

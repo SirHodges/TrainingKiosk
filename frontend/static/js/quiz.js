@@ -469,6 +469,7 @@ async function selectQuizAnswer(answerIndex, playerIndex = 1) {
                 session_id: quizSessionId,
                 question_index: quizCurrentQuestionIndex,
                 answer_index: answerIndex,
+                player: playerIndex,
                 time_ms: timeToAnswer,
                 streak_count: quizStreak,
                 timestamp: new Date().toISOString()
@@ -912,7 +913,7 @@ function startStealTimer(seconds) {
     }, 1000);
 }
 
-async function trackSkipOnServer() {
+async function trackSkipOnServer(playerIndex = 1) {
     try {
         const timeToAnswer = Date.now() - questionDisplayTime;
         const question = quizQuestions[quizCurrentQuestionIndex];
@@ -921,6 +922,7 @@ async function trackSkipOnServer() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 session_id: quizSessionId,
+                player: playerIndex,
                 question: question.question,
                 question_index: quizCurrentQuestionIndex,
                 time_ms: timeToAnswer,

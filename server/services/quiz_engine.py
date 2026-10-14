@@ -28,6 +28,7 @@ class QuizSession:
         self.session_id = session_id
         self.questions = questions  # The subset of questions dealt for this game
         self.current_index = 0      # Which question the player is currently on
+        self.players = {}           # player slot (1 or 2) -> OASIS number, if entered
         self.score = 0              # Player's current score
         self.stats = {
             'correct': 0,
@@ -46,7 +47,11 @@ def _rebuild_deck(db_conn) -> None:
     """
     global quiz_deck
     
-    rows = db_conn.execute("SELECT id, question, answers, correct FROM questions").fetchall()
+    # Only active questions are dealt. Retired ones stay in the DB for history.
+    rows = db_conn.execute(
+        "SELECT id, question, answers, correct, version, media FROM questions "
+        "WHERE COALESCE(status, 'active') = 'active'"
+    ).fetchall()
     
     deck = []
     for row in rows:
@@ -54,7 +59,9 @@ def _rebuild_deck(db_conn) -> None:
             'id': row['id'],
             'question': row['question'],
             'answers': json.loads(row['answers']),
-            'correct': row['correct']
+            'correct': row['correct'],
+            'version': row['version'] or 1,
+            'media': json.loads(row['media']) if row['media'] else None,
         })
         
     random.shuffle(deck)
@@ -92,22 +99,29 @@ def create_session(db_conn) -> Optional[QuizSession]:
         # We need to securely determine the correct answer index without exposing
         # the exact string matching logic to the client.
         
-        # Create a copy of the answers list to shuffle
-        shuffled_answers = q['answers'].copy()
+        # Copy the answers in file order
+        source_answers = q['answers'].copy()
         
         # Ensure the correct answer is in the list
-        if q['correct'] not in shuffled_answers:
-            shuffled_answers.append(q['correct'])
-            
-        random.shuffle(shuffled_answers)
+        if q['correct'] not in source_answers:
+            source_answers.append(q['correct'])
+        
+        # Shuffle the *positions*, so we can record which file answer was
+        # shown where (useful for research, e.g. "do people favour option A?")
+        order = list(range(len(source_answers)))
+        random.shuffle(order)
+        shuffled_answers = [source_answers[i] for i in order]
         
         # Find where the correct answer ended up after shuffling
         correct_index = shuffled_answers.index(q['correct'])
         
         dealt_questions.append({
             'id': q['id'],
+            'version': q.get('version', 1),
             'question': q['question'],
             'answers': shuffled_answers,
+            'presented_order': order,       # file positions, in on-screen order
+            'media': q.get('media'),
             'correct_index': correct_index  # Keep this secret from the client!
         })
         
