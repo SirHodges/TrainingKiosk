@@ -350,15 +350,16 @@ def init_db():
 
 def clean_oasis(value):
     """
-    Tidies an OASIS number typed by a player. Returns None if it's blank or
-    clearly not an ID (we only allow letters and digits, up to 20 characters).
+    Tidies an OASIS number typed by a player. OASIS numbers are 5 or 6
+    digits. Returns None for anything else (treated as anonymous play).
+    Kept as text so a leading zero is never lost.
     """
     if value is None:
         return None
     s = str(value).strip()
-    if not s or len(s) > 20 or not s.isalnum():
+    if not (s.isdigit() and s.isascii() and 5 <= len(s) <= 6):
         return None
-    return s.upper()
+    return s
 
 
 def touch_player(db, oasis):
